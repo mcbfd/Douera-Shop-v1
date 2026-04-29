@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Admin | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+
+<body
+    style="background: radial-gradient(circle at top right, var(--color-primary), var(--color-primary-dark)); height: 100vh; display: flex; align-items: center; justify-content: center;">
+
+    <div class="login-card animate-fade-in"
+        style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 60px; border-radius: 30px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+
+        <div style="text-align: center; margin-bottom: 48px;">
+            <div
+                style="width: 100px; height: 100px; background: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 10px;">
+                <img src="../assets/logo.png" alt="Douéra Shop" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <h1 style="color: white; font-size: 2rem;">Accès Admin</h1>
+            <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Connectez-vous pour gérer Douéra Shop</p>
+        </div>
+
+        <form id="loginForm" style="display: flex; flex-direction: column; gap: 24px;">
+            <div class="form-group">
+                <label
+                    style="display: block; color: white; margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Email
+                    Professionnel</label>
+                <input type="email" id="email" required class="pay-input" placeholder="admin@douerashop.sn"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; margin-bottom: 0;">
+            </div>
+
+            <div class="form-group">
+                <label
+                    style="display: block; color: white; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem;">Mot
+                    de Passe</label>
+                <input type="password" id="password" required class="pay-input" placeholder="••••••••"
+                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; margin-bottom: 0;">
+            </div>
+
+            <button type="submit" id="loginBtn" class="btn btn-accent"
+                style="width: 100%; padding: 16px; font-size: 1.1rem; margin-top: 12px; border-radius: 12px;">
+                Se connecter
+            </button>
+        </form>
+
+        <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 40px;">
+            &copy; 2026 Admin Portal v2.5. Système sécurisé.
+        </p>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="../js/ui.js"></script>
+    <script src="../js/admin-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+
+            const form = document.getElementById('loginForm');
+            const btn = document.getElementById('loginBtn');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                UI.setLoading(btn, true, "Authentification...");
+
+                const email = document.getElementById('email').value;
+                const pass = document.getElementById('password').value;
+
+                try {
+                    const session = await AdminService.login(email, pass);
+                    UI.showToast(`Bienvenue, ${session.name}`, "success");
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } catch (err) {
+                    UI.showToast(err.message, "error");
+                    UI.setLoading(btn, false, "Se connecter");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

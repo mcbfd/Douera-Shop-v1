@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Votre panier d'achats Douéra Shop. Retrouvez des produits premium, livraison express à Dakar.">
+    <meta name="keywords" content="Douéra Shop, e-commerce, panier, Sénégal, Dakar, Import, luxe, qualité">
+    <title>Mon Panier | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+
+<body class="animate-fade-in">
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
+                    <div
+                        style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="assets/logo douera shop.png" alt="Douéra Shop"
+                            style="width: 100%; height: auto; object-fit: contain; transform: translateY(0);">
+                    </div>
+                </a>
+                <div class="nav-icons" style="margin-left: auto;">
+                    <a href="index.html" class="btn btn-outline" style="padding: 10px 20px;">
+                        <i data-lucide="arrow-left" style="width: 18px;"></i> Retour à la boutique
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 64px 20px;">
+        <h1
+            style="font-size: 3rem; margin-bottom: 48px; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark);">
+            Votre Panier</h1>
+
+        <div id="cart-content-wrapper">
+            <!-- Empty Cart State -->
+            <div id="empty-cart-msg"
+                style="display: none; text-align: center; padding: 120px 24px; background: white; border-radius: 24px; border: 2px dashed var(--color-border); box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+                <div style="margin-bottom: 32px; position: relative; display: inline-block;">
+                    <div
+                        style="width: 140px; height: 140px; background: rgba(43, 89, 162, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; position: relative; z-index: 1;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--color-primary);">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                            <path d="M3 6h18" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
+                        </svg>
+                    </div>
+                    <div
+                        style="position: absolute; top: 10px; right: -10px; width: 40px; height: 40px; background: rgba(37, 211, 102, 0.1); border-radius: 50%; z-index: 0;">
+                    </div>
+                </div>
+                <h2
+                    style="font-size: 1.8rem; margin-bottom: 16px; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark);">
+                    Votre panier est vide</h2>
+                <p style="color: var(--color-muted); margin-bottom: 32px; font-size: 1.05rem;">Il semble que vous n'ayez
+                    pas encore ajouté d'articles à votre panier.</p>
+                <a href="index.html" class="btn btn-primary"
+                    style="padding: 16px 32px; font-size: 1.1rem; font-weight: 700; border-radius: 14px; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2);">Découvrir
+                    les produits</a>
+            </div>
+
+            <!-- Cart Items Container -->
+            <div id="cart-items-wrapper" style="display: none;" class="animate-fade-in">
+                <div class="cart-layout"
+                    style="display: grid; grid-template-columns: 1fr 420px; gap: 48px; align-items: start;">
+                    <div id="cart-items-list" style="display: flex; flex-direction: column; gap: 24px;">
+                        <!-- JS injects rows here -->
+                    </div>
+
+                    <div class="summary-sidebar">
+                        <div class="summary-card"
+                            style="background: white; border: 1px solid var(--color-border); border-radius: 24px; padding: 40px; position: sticky; top: 120px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08);">
+                            <h3
+                                style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--color-border); font-size: 1.5rem; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark);">
+                                Résumé de la commande</h3>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--color-muted); font-size: 1rem;">
+                                <span>Sous-total</span>
+                                <span id="cart-subtotal" style="font-weight: 600; color: var(--color-foreground);">0
+                                    XOF</span>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 32px; color: var(--color-muted); font-size: 1rem;">
+                                <span>Livraison (Douéra)</span>
+                                <span
+                                    style="color: var(--color-success); font-weight: 800; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">GRATUITE</span>
+                            </div>
+
+                            <div class="mobile-sticky-checkout">
+                                <div style="display: flex; justify-content: space-between; padding-top: 24px; border-top: 1px solid var(--color-border); font-weight: 800; font-size: 2rem; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif; margin-bottom: 32px;">
+                                    <span>Total</span>
+                                    <span id="cart-total">0 XOF</span>
+                                </div>
+
+                                <a href="checkout.html" class="btn btn-primary"
+                                    style="width: 100%; font-size: 1.15rem; padding: 20px; font-weight: 800; border-radius: 16px; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; justify-content: center; margin-bottom: 12px;">
+                                    Passer à la caisse <i data-lucide="arrow-right"
+                                        style="margin-left: 8px; width: 22px;"></i>
+                                </a>
+                                
+                                <button id="whatsapp-fast-checkout" class="btn btn-outline" style="width: 100%; color: #25D366; border-color: #25D366; padding: 16px; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 0.95rem;">
+                                    <i data-lucide="message-circle"></i> Commande Rapide WhatsApp
+                                </button>
+                            </div>
+
+                            <p
+                                style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--color-muted); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <i data-lucide="shield-check" style="width: 18px; color: var(--color-success);"></i>
+                                Paiement 100% sécurisé
+                            </p>
+                            <div
+                                style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--color-border); text-align: center;">
+                                <p style="font-size: 0.9rem; color: var(--color-muted); margin-bottom: 8px;">Besoin
+                                    d'aide ?</p>
+                                <a href="https://wa.me/221781607468"
+                                    style="color: var(--color-primary); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+                                    <i data-lucide="message-circle" style="width: 20px;"></i> +221 78 160 74 68
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Foot Excellence -->
+    <footer style="background: white; border-top: 1px solid var(--color-border); padding: 100px 0 40px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 80px; margin-bottom: 80px;">
+                <div>
+                    <a href="index.html" class="logo" style="margin-bottom: 32px; display: block;">
+                        <img src="assets/logo.png" alt="Douéra Shop"
+                            style="height: 50px; width: auto; object-fit: contain;">
+                    </a>
+                    <p style="color: var(--color-muted); margin-bottom: 32px; max-width: 320px;">L'excellence de
+                        l'import international au service de la communauté locale. Qualité, Rapidité et Confiance.</p>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="#" class="btn btn-outline" style="padding: 12px; border-radius: 12px;"><i
+                                data-lucide="facebook"></i></a>
+                        <a href="#" class="btn btn-outline" style="padding: 12px; border-radius: 12px;"><i
+                                data-lucide="instagram"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Boutique</h4>
+                    <ul
+                        style="list-style: none; display: flex; flex-direction: column; gap: 16px; color: var(--color-muted);">
+                        <li><a href="index.html#notre-boutique">Tous les articles</a></li>
+                        <li><a href="orders.html">Mes commandes</a></li>
+                        <li><a href="cart.html">Mon panier</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Compte</h4>
+                    <ul
+                        style="list-style: none; display: flex; flex-direction: column; gap: 16px; color: var(--color-muted);">
+                        <li><a href="account/login.html">Se connecter</a></li>
+                        <li><a href="account/register.html">S'inscrire</a></li>
+                        <li><a href="admin/login.html" style="color: var(--color-accent); font-weight: 700;">Portail
+                                Admin</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Rejoignez-nous</h4>
+                    <p style="color: var(--color-muted); margin-bottom: 24px; font-size: 0.9rem;">Recevez nos nouvelles
+                        arrivées et promos exclusives.</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="email" placeholder="Votre email"
+                            style="flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none;">
+                        <button class="btn btn-primary" style="padding: 12px;"><i
+                                data-lucide="arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="border-top: 1px solid var(--color-border); padding-top: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
+                <p style="color: var(--color-muted); font-size: 0.9rem;">&copy; 2026 Douéra Shop. Tous droits réservés.
+                </p>
+                <div style="display: flex; gap: 24px; opacity: 0.5;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" style="height: 20px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+                        style="height: 20px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                        style="height: 20px;">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Chat Excellence -->
+    <a href="https://wa.me/221781607468"
+        style="position: fixed; bottom: 40px; right: 40px; width: 72px; height: 72px; background: #25D366; color: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(37, 211, 102, 0.4); z-index: 1500; transition: var(--transition-base); text-decoration: none;">
+        <i data-lucide="message-circle" style="width: 32px; height: 32px;"></i>
+    </a>
+
+    <!-- Alibaba Style Bottom Nav Bar (Mobile Only) -->
+    <nav class="mobile-bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Accueil</span>
+        </a>
+        <a href="index.html#notre-boutique" class="nav-item">
+            <i data-lucide="search"></i>
+            <span>Recherche</span>
+        </a>
+        <a href="cart.html" class="nav-item cart-nav-item active">
+            <div style="position: relative;">
+                <i data-lucide="shopping-cart"></i>
+                <span class="cart-count nav-badge">0</span>
+            </div>
+            <span>Panier</span>
+        </a>
+        <a href="account/login.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Compte</span>
+        </a>
+    </nav>
+
+    <div id="toast-container"></div>
+
+    <script src="js/auth-service.js"></script>
+    <script>
+        // Auth Guard
+        if (!AuthService.isAuthenticated()) {
+            localStorage.setItem('auth_redirect', window.location.pathname);
+            window.location.href = 'account/login.html';
+        }
+    </script>
+    <script src="js/ui.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/cart-page.js"></script>
+</body>
+
+</html>

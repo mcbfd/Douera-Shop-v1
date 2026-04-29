@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donner mon avis | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+<body class="animate-fade-in" style="background: #F8FAFC;">
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="../index.html" class="logo">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="height: 50px;">
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 64px 20px; max-width: 800px;">
+        <div style="background: white; padding: 48px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.05); border: 1px solid var(--color-border);">
+            <h1 style="font-size: 2.2rem; margin-bottom: 12px; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark);">Votre avis compte</h1>
+            <p style="color: var(--color-muted); margin-bottom: 40px;">Merci de nous aider à nous améliorer en partageant votre expérience sur la commande <span id="display-order-id" style="font-weight: 800; color: var(--color-primary);">...</span></p>
+
+            <form id="review-form">
+                <!-- Product Rating -->
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--color-primary-dark);">Comment notez-vous les produits reçus ?</label>
+                    <div class="star-rating" data-type="product" style="display: flex; gap: 12px; color: #E2E8F0; cursor: pointer;">
+                        <i data-lucide="star" data-value="1" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="2" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="3" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="4" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="5" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                    </div>
+                    <input type="hidden" id="rating-product" value="0">
+                </div>
+
+                <!-- Service Rating -->
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--color-primary-dark);">Comment notez-vous la prise en charge et le service ?</label>
+                    <div class="star-rating" data-type="service" style="display: flex; gap: 12px; color: #E2E8F0; cursor: pointer;">
+                        <i data-lucide="star" data-value="1" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="2" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="3" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="4" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                        <i data-lucide="star" data-value="5" style="width: 32px; height: 32px; pointer-events: auto;"></i>
+                    </div>
+                    <input type="hidden" id="rating-service" value="0">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 800; color: var(--color-primary-dark);">Votre commentaire (optionnel)</label>
+                    <textarea id="review-comment" class="pay-input" rows="4" placeholder="Qu'avez-vous particulièrement apprécié ?" style="width: 100%; border-radius: 14px; padding: 16px; border: 2px solid var(--color-border); resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" id="submit-review-btn" class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 1.1rem; font-weight: 800; border-radius: 16px; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); justify-content: center;">
+                    Envoyer mon avis <i data-lucide="send" style="margin-left: 8px; width: 20px;"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="../js/auth-service.js"></script>
+    <script src="../js/ui.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get('orderId');
+            if (!orderId) window.location.href = '../orders.html';
+
+            document.getElementById('display-order-id').textContent = orderId;
+            if (window.lucide) lucide.createIcons();
+
+            // Star Rating Logic
+            const ratingContainers = document.querySelectorAll('.star-rating');
+            ratingContainers.forEach(container => {
+                container.addEventListener('click', (e) => {
+                    const star = e.target.closest('svg, i');
+                    if (!star) return;
+
+                    const val = parseInt(star.getAttribute('data-value'));
+                    const input = document.getElementById('rating-' + container.dataset.type);
+                    input.value = val;
+
+                    // Color stars
+                    const allStars = container.querySelectorAll('svg, i');
+                    allStars.forEach(s => {
+                        const sVal = parseInt(s.getAttribute('data-value'));
+                        if (sVal <= val) {
+                            s.style.color = '#F59E0B';
+                            s.style.fill = '#F59E0B';
+                        } else {
+                            s.style.color = '#E2E8F0';
+                            s.style.fill = 'none';
+                        }
+                    });
+                });
+            });
+
+            document.getElementById('review-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const user = AuthService.getCurrentUser();
+                if (!user) return;
+
+                const ratingProduct = parseInt(document.getElementById('rating-product').value);
+                const ratingService = parseInt(document.getElementById('rating-service').value);
+
+                if (ratingProduct === 0 || ratingService === 0) {
+                    UI.showToast("Veuillez donner une note pour le produit et le service.", "error");
+                    return;
+                }
+
+                const productId = params.get('productId');
+
+                const payload = {
+                    orderId: orderId,
+                    productId: productId,
+                    userId: user.userId,
+                    userName: user.name,
+                    rating_product: ratingProduct,
+                    rating_service: ratingService,
+                    comment: document.getElementById('review-comment').value
+                };
+
+                const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+                
+                try {
+                    const res = await fetch(`${API_URL}/reviews`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        UI.showToast("Merci pour votre avis !", "success");
+                        setTimeout(() => window.location.href = '../orders.html', 1500);
+                    }
+                } catch (err) {
+                    UI.showToast("Erreur lors de l'envoi de l'avis", "error");
+                }
+            };
+        });
+    </script>
+</body>
+</html>

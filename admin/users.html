@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Utilisateurs | Douéra Shop Admin</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo"
+                style="padding: 10px 0; display: flex; align-items: center; justify-content: center;">
+                <div
+                    style="width: 200px; height: 200px; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #FAF9F6; box-shadow: var(--shadow-sm);">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop"
+                        style="width: 100%; height: auto; transform: translateY(-5%); object-fit: cover;">
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
+                <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
+                <a href="users.html" class="nav-item active"><i data-lucide="users"></i> Utilisateurs</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i>
+                    Déconnexion</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <header class="admin-header">
+                <div>
+                    <h1 style="font-size: 2rem;">Utilisateurs & Accès</h1>
+                    <p style="color: var(--color-muted);">Gérez les rôles, les permissions et la sécurité des comptes.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <button class="btn" id="openAddUserModal" style="display: none; padding: 14px 24px; border-radius: 14px; font-weight: 800; background: rgba(43, 89, 162, 0.1); color: var(--color-primary-dark); border: none; align-items: center; gap: 8px;"><i data-lucide="shield-plus"></i> Nouvel Admin</button>
+                    <button class="btn btn-primary" id="openAddClientModal" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="user-plus"></i> Nouveau Client</button>
+                </div>
+            </header>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list-body">
+                        <!-- JS feeds this -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="super-admin-only-msg"
+                style="display: none; margin-top: 24px; padding: 24px; background: #FEF2F2; color: #991B1B; border-radius: 12px; font-weight: 600;">
+                🔒 Certaines actions sont limitées car vous n'êtes pas Super Admin.
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 24px;">Modifier l'utilisateur</h2>
+            <form id="userForm">
+                <input type="hidden" id="u-id">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Nom Complet</label>
+                    <input type="text" id="u-name" class="pay-input" required>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Email</label>
+                    <input type="email" id="u-email" class="pay-input" required>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Mot de passe</label>
+                    <input type="password" id="u-password" class="pay-input" required placeholder="••••••••">
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; margin-bottom: 32px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Rôle</label>
+                        <select id="u-role" class="pay-input" style="appearance: none;">
+                            <option value="admin">Administrateur</option>
+                            <option value="super_admin">Super Admin</option>
+                            <option value="client">Client</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Statut</label>
+                        <select id="u-status" class="pay-input" style="appearance: none;">
+                            <option value="active">Actif</option>
+                            <option value="blocked">Bloqué</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; margin-bottom: 32px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Adresse de livraison</label>
+                        <input type="text" id="u-address" class="pay-input" placeholder="Quartier, Ville">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Téléphone</label>
+                        <input type="tel" id="u-phone" class="pay-input" placeholder="77 000 00 00">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px;">
+                    <button type="button" class="btn btn-outline" style="flex: 1;"
+                        onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2;">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/admin-service.js"></script>
+    <script src="../js/ui.js"></script>
+    <script>
+        let currentSession = null;
+        let allUsers = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentSession = AdminService.checkAuth();
+            refreshData();
+            document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+
+            // Permissions Buttons
+            if (currentSession.role === 'super_admin') {
+                document.getElementById('openAddUserModal').style.display = 'flex';
+                document.getElementById('openAddUserModal').onclick = () => openModal('admin');
+            } else {
+                document.getElementById('super-admin-only-msg').style.display = 'block';
+            }
+
+            document.getElementById('openAddClientModal').onclick = () => openModal('client');
+
+            document.getElementById('userForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const user = {
+                    id: document.getElementById('u-id').value || null,
+                    name: document.getElementById('u-name').value,
+                    email: document.getElementById('u-email').value,
+                    role: document.getElementById('u-role').value,
+                    status: document.getElementById('u-status').value,
+                    password: document.getElementById('u-password').value,
+                    address: document.getElementById('u-address').value,
+                    phone: document.getElementById('u-phone').value
+                };
+                await AdminService.saveUser(user);
+                UI.showToast("Compte enregistré avec succès", "success");
+                closeModal();
+                await refreshData();
+            };
+        });
+
+        async function refreshData() {
+            allUsers = await AdminService.getUsers();
+            renderUsers();
+        }
+
+        function renderUsers() {
+            const list = document.getElementById('users-list-body');
+            list.innerHTML = '';
+
+            allUsers.forEach(u => {
+                const tr = document.createElement('tr');
+                const isSuper = currentSession.role === 'super_admin';
+                const isSelf = currentSession.userId === u.id;
+                const isClient = u.role === 'client';
+
+                // Permission logique : Admin Standard peut gérer les Clients, Super Admin gère Tout
+                const canManage = isSuper || (isClient && currentSession.role === 'admin') || isSelf;
+
+                tr.className = 'animate-fade-in';
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${u.name} ${isSelf ? '<span style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 12px; font-weight: 800; margin-left: 8px;">VOUS</span>' : ''}</div>
+                    </td>
+                    <td style="color: var(--color-muted); font-size: 0.95rem;">${u.email}</td>
+                    <td><span class="badge ${u.role === 'super_admin' ? 'badge-paid' : (u.role === 'admin' ? 'badge-shipping' : 'badge-pending')}" style="font-family: 'Outfit', sans-serif;">${u.role.replace('_', ' ')}</span></td>
+                    <td><span class="badge ${u.status === 'active' ? 'badge-delivered' : 'badge-pending'}" style="font-family: 'Outfit', sans-serif;">${u.status}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal(null, '${u.id}')" ${!canManage ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : 'onmouseover="this.style.background=\'var(--color-primary)\'; this.style.color=\'white\';" onmouseout="this.style.background=\'rgba(59, 130, 246, 0.1)\'; this.style.color=\'var(--color-primary)\';"'}><i data-lucide="edit-2" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="confirmDelete('${u.id}')" ${!canManage || isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : 'onmouseover="this.style.background=\'#DC2626\'; this.style.color=\'white\';" onmouseout="this.style.background=\'rgba(239, 68, 68, 0.1)\'; this.style.color=\'#DC2626\';"'}><i data-lucide="trash-2" style="width: 18px;"></i></button>
+                        </div>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function confirmDelete(id) {
+            const u = allUsers.find(x => x.id === id);
+            const confirmed = await UI.showConfirm(
+                "Supprimer l'utilisateur ?",
+                `Êtes-vous sûr de vouloir supprimer définitivement le compte de ${u.name} ? Cette action est irréversible.`
+            );
+            if (confirmed) {
+                await AdminService.deleteUser(id);
+                UI.showToast("Utilisateur supprimé", "success");
+                await refreshData();
+            }
+        }
+
+        function openModal(defaultRole = 'client', id = null) {
+            const overlay = document.getElementById('userModal');
+            document.getElementById('userForm').reset();
+            document.getElementById('u-id').value = '';
+            document.getElementById('u-password').required = true;
+
+            // Restrictions de rôle pour le formulaire
+            const roleSelect = document.getElementById('u-role');
+            if (currentSession.role !== 'super_admin') {
+                // Un admin standard ne peut créer/modifier que des clients
+                roleSelect.innerHTML = '<option value="client">Client</option>';
+            } else {
+                roleSelect.innerHTML = `
+                    <option value="admin">Administrateur</option>
+                    <option value="super_admin">Super Admin</option>
+                    <option value="client">Client</option>
+                `;
+            }
+
+            if (id) {
+                const u = allUsers.find(x => x.id === id);
+                document.getElementById('u-id').value = u.id;
+                document.getElementById('u-name').value = u.name;
+                document.getElementById('u-email').value = u.email;
+                document.getElementById('u-role').value = u.role;
+                document.getElementById('u-status').value = u.status;
+                document.getElementById('u-password').value = u.password;
+                document.getElementById('u-address').value = u.address || '';
+                document.getElementById('u-phone').value = u.phone || '';
+                document.getElementById('modalTitle').textContent = "Modifier l'utilisateur";
+                document.getElementById('u-password').required = false;
+            } else {
+                document.getElementById('u-role').value = defaultRole;
+                document.getElementById('modalTitle').textContent = defaultRole === 'admin' ? "Nouvel Administrateur" : "Nouveau Client";
+            }
+
+            overlay.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>

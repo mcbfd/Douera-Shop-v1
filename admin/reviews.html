@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avis Clients | Douéra Shop Admin</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+<body>
+
+    <div class="admin-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 150px;">
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
+                <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
+                <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
+                <a href="reviews.html" class="nav-item active"><i data-lucide="star"></i> Avis Clients</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
+            </div>
+        </aside>
+
+        <main class="admin-content">
+            <header class="admin-header">
+                <div>
+                    <h1 style="font-size: 2rem;">Avis Clients</h1>
+                    <p style="color: var(--color-muted);">Consultez les retours sur vos produits et votre service.</p>
+                </div>
+            </header>
+
+            <div class="stat-grid" style="margin-bottom: 40px;">
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Note Moyenne Produit</p>
+                        <p class="stat-val" id="avg-product">0.0 / 5</p>
+                    </div>
+                    <div class="stat-icon" style="background: #FEF3C7; color: #F59E0B;"><i data-lucide="star"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Note Moyenne Service</p>
+                        <p class="stat-val" id="avg-service">0.0 / 5</p>
+                    </div>
+                    <div class="stat-icon" style="background: #DBEAFE; color: #2B59A2;"><i data-lucide="truck"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Total Avis</p>
+                        <p class="stat-val" id="total-reviews">0</p>
+                    </div>
+                    <div class="stat-icon" style="background: #DCFCE7; color: #166534;"><i data-lucide="message-square"></i></div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Commande</th>
+                            <th>Note Produit</th>
+                            <th>Note Service</th>
+                            <th>Commentaire</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviews-list">
+                        <!-- JS feeds this -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/admin-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!AdminService.checkAuth()) return;
+            document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+
+            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            
+            try {
+                const res = await fetch(`${API_URL}/reviews`);
+                const reviews = await res.json();
+
+                renderReviews(reviews);
+                updateStats(reviews);
+            } catch (err) {
+                console.error("Erreur chargement avis:", err);
+            }
+
+            if (window.lucide) lucide.createIcons();
+        });
+
+        function renderReviews(reviews) {
+            const list = document.getElementById('reviews-list');
+            list.innerHTML = '';
+
+            if (reviews.length === 0) {
+                list.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--color-muted);">Aucun avis pour le moment.</td></tr>';
+                return;
+            }
+
+            reviews.forEach(rev => {
+                const tr = document.createElement('tr');
+                const date = new Date(isNaN(rev.date) ? rev.date : parseInt(rev.date)).toLocaleDateString();
+                
+                tr.innerHTML = `
+                    <td style="color: var(--color-muted); font-size: 0.85rem;">${date}</td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--color-primary-dark);">${rev.userName}</div>
+                        <div style="font-size: 0.75rem; color: var(--color-muted);">ID: ${rev.userId}</div>
+                    </td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">#${rev.orderId.substring(0,8)}</td>
+                    <td>
+                        <div style="display: flex; gap: 2px; color: #F59E0B;">
+                            ${'★'.repeat(rev.rating_product)}${'☆'.repeat(5-rev.rating_product)}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 2px; color: var(--color-primary);">
+                            ${'★'.repeat(rev.rating_service)}${'☆'.repeat(5-rev.rating_service)}
+                        </div>
+                    </td>
+                    <td style="max-width: 400px;">
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 0.9rem; color: var(--color-foreground); line-height: 1.4; font-style: italic;">"${rev.comment || 'Sans commentaire'}"</p>
+                        </div>
+                        
+                        ${rev.admin_reply ? `
+                            <div style="background: rgba(43, 89, 162, 0.05); padding: 12px; border-radius: 10px; border-left: 3px solid var(--color-primary); margin-top: 8px;">
+                                <p style="font-size: 0.8rem; font-weight: 800; color: var(--color-primary); margin-bottom: 4px;">Votre réponse :</p>
+                                <p style="font-size: 0.85rem; color: var(--color-primary-dark);">${rev.admin_reply}</p>
+                                <button onclick="toggleReply('${rev.id}')" style="background: none; border: none; color: var(--color-muted); font-size: 0.75rem; text-decoration: underline; cursor: pointer; margin-top: 4px;">Modifier</button>
+                            </div>
+                        ` : `
+                            <button class="btn btn-outline" onclick="toggleReply('${rev.id}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Répondre</button>
+                        `}
+
+                        <div id="reply-form-${rev.id}" style="display: none; margin-top: 12px;">
+                            <textarea id="reply-text-${rev.id}" class="pay-input" style="width: 100%; font-size: 0.85rem; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);" placeholder="Tapez votre réponse ici...">${rev.admin_reply || ''}</textarea>
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <button class="btn btn-primary" onclick="submitReply('${rev.id}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Enregistrer</button>
+                                <button class="btn btn-outline" onclick="toggleReply('${rev.id}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Annuler</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+
+        function toggleReply(id) {
+            const form = document.getElementById(`reply-form-${id}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function submitReply(id) {
+            const text = document.getElementById(`reply-text-${id}`).value;
+            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+
+            try {
+                const res = await fetch(`${API_URL}/reviews/${id}/reply`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reply: text })
+                });
+
+                if (res.ok) {
+                    location.reload();
+                }
+            } catch (err) {
+                alert("Erreur lors de l'enregistrement de la réponse");
+            }
+        }
+
+        function updateStats(reviews) {
+            if (reviews.length === 0) return;
+            
+            const totalProduct = reviews.reduce((acc, r) => acc + r.rating_product, 0);
+            const totalService = reviews.reduce((acc, r) => acc + r.rating_service, 0);
+            
+            document.getElementById('avg-product').textContent = (totalProduct / reviews.length).toFixed(1) + " / 5";
+            document.getElementById('avg-service').textContent = (totalService / reviews.length).toFixed(1) + " / 5";
+            document.getElementById('total-reviews').textContent = reviews.length;
+        }
+    </script>
+</body>
+</html>

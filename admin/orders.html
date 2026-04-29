@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Commandes | Douéra Shop Admin</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo"
+                style="padding: 10px 0; display: flex; align-items: center; justify-content: center;">
+                <div
+                    style="width: 200px; height: 200px; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #FAF9F6; box-shadow: var(--shadow-sm);">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop"
+                        style="width: 100%; height: auto; transform: translateY(-5%); object-fit: cover;">
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
+                <a href="orders.html" class="nav-item active"><i data-lucide="shopping-cart"></i> Commandes</a>
+                <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
+                <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i>
+                    Déconnexion</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h1 style="font-size: 2rem;">Gestion des Commandes</h1>
+                        <p style="color: var(--color-muted);">Suivez et gérez les ventes et livraisons en temps réel.</p>
+                    </div>
+                    <div id="bulk-actions" style="display: none; gap: 16px; align-items: center;">
+                        <span id="selection-count" style="font-weight: 700; color: var(--color-primary);">0 sélectionné</span>
+                        <button class="btn" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer;" onclick="deleteSelectedOrders()">
+                            <i data-lucide="trash-2" style="width: 18px; vertical-align: middle; margin-right: 8px;"></i> Supprimer la sélection
+                        </button>
+                    </div>
+                </div>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this.checked)"></th>
+                            <th>ID Commande</th>
+                            <th>Date</th>
+                            <th>Client / Contact</th>
+                            <th>Mode Paiement</th>
+                            <th>Total</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list-body">
+                        <!-- JS feeds this -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+                <div>
+                    <h2 id="order-id-title" style="margin-bottom: 4px;">Commande #REF</h2>
+                    <p id="order-date" style="color: var(--color-muted);"></p>
+                </div>
+                <div id="order-status-badge"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+                <div>
+                    <h4
+                        style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
+                        Articles</h4>
+                    <div id="order-items-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Items -->
+                    </div>
+
+                    <h4
+                        style="margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
+                        Informations Client</h4>
+                    <div id="customer-info" style="background: var(--color-background); padding: 16px; border-radius: 12px; font-size: 0.9rem;">
+                        <p id="customer-name" style="font-weight: 700; margin-bottom: 4px;"></p>
+                        <p id="customer-phone" style="margin-bottom: 8px; color: var(--color-primary); font-weight: 600;"></p>
+                        <p id="customer-address" style="color: var(--color-muted); line-height: 1.4;"></p>
+                    </div>
+                </div>
+                <div>
+                    <h4
+                        style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
+                        Modifier le Statut</h4>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
+                            onclick="updateStatus('Payé')">💎 Marquer comme Payé</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
+                            onclick="updateStatus('En préparation')">📦 En préparation</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
+                            onclick="updateStatus('Expédié')">🚚 Expédié</button>
+                        <button class="btn btn-primary" style="text-align: left; justify-content: flex-start;"
+                            onclick="updateStatus('Livré')">✅ Marquer comme Livré</button>
+                        <button class="btn btn-outline"
+                            style="text-align: left; justify-content: flex-start; color: var(--color-error); border-color: var(--color-error);"
+                            onclick="updateStatus('Annulé')">❌ Annuler la commande</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding-top: 24px; border-top: 1px solid var(--color-border); text-align: right;">
+                <button class="btn btn-outline" onclick="closeModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin-service.js"></script>
+    <script src="../js/ui.js"></script>
+    <script>
+        let allOrders = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminService.checkAuth();
+            refreshData();
+            document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+        });
+
+        async function refreshData() {
+            allOrders = await AdminService.getOrders();
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('orders-list-body');
+            list.innerHTML = '';
+            
+            if (allOrders.length === 0) {
+                list.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--color-muted); padding: 40px;">Aucune commande trouvée.</td></tr>';
+                return;
+            }
+
+            allOrders.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = 'animate-fade-in';
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="order-checkbox" value="${o.id}" onclick="updateSelection()"></td>
+                    <td style="font-family: monospace; font-weight: 800; color: var(--color-foreground);">#${o.id.substring(0, 8)}</td>
+                    <td style="color: var(--color-muted); font-size: 0.95rem;">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
+                    <td>
+                        <div style="font-weight: 800; color: var(--color-primary-dark);">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
+                        <div style="font-size: 0.8rem; color: var(--color-muted);">${o.customer_phone || 'Pas de tel'}</div>
+                    </td>
+                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-size: 0.8rem; text-transform: uppercase;">${o.method}</span></td>
+                    <td style="font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${o.total.toLocaleString()} XOF</td>
+                    <td><span class="badge ${getStatusClass(o.status)}">${o.status}</span></td>
+                    <td style="display: flex; gap: 8px;">
+                        <button class="btn" style="padding: 10px 15px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; background: rgba(43, 89, 162, 0.05); color: var(--color-primary); border: none; cursor: pointer;" onclick="openOrderModal('${o.id}')">Détails</button>
+                        <button class="btn" style="padding: 10px; border-radius: 10px; background: #FEE2E2; color: #DC2626; border: none; cursor: pointer;" onclick="confirmDeleteOrder('${o.id}')"><i data-lucide="trash-2" style="width: 16px;"></i></button>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function openOrderModal(id) {
+            currentOrderId = id;
+            const order = allOrders.find(o => o.id === id);
+
+            document.getElementById('order-id-title').textContent = "Commande #" + id.substring(0, 8);
+            document.getElementById('order-date').textContent = "Passée le " + new Date(order.date).toLocaleString();
+
+            const badge = document.getElementById('order-status-badge');
+            badge.innerHTML = `<span class="badge ${getStatusClass(order.status)}" style="font-size: 1rem; padding: 10px 20px;">${order.status}</span>`;
+
+            const itemsList = document.getElementById('order-items-list');
+            itemsList.innerHTML = '';
+            order.items.forEach(item => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; gap: 12px; align-items: center; background: var(--color-background); padding: 12px; border-radius: 12px;';
+                div.innerHTML = `
+                    <div style="font-weight: 800; color: var(--color-primary); width: 24px;">${item.quantity}x</div>
+                    <div style="flex: 1; font-weight: 600;">${item.name}</div>
+                    <div style="color: var(--color-muted);">${item.price.toLocaleString()} XOF</div>
+                `;
+                itemsList.appendChild(div);
+            });
+
+            // Customer Info
+            document.getElementById('customer-name').textContent = (order.customer_firstname || 'N/A') + ' ' + (order.customer_lastname || '');
+            document.getElementById('customer-phone').textContent = "📞 " + (order.customer_phone || 'N/A');
+            document.getElementById('customer-address').textContent = "📍 " + (order.customer_address || 'Non spécifiée');
+
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        async function updateStatus(newStatus) {
+            await AdminService.updateOrderStatus(currentOrderId, newStatus);
+            UI.showToast("Statut mis à jour", "success");
+            closeModal();
+            await refreshData();
+        }
+
+        // Selection & Delete Logic
+        function toggleSelectAll(checked) {
+            document.querySelectorAll('.order-checkbox').forEach(cb => cb.checked = checked);
+            updateSelection();
+        }
+
+        function updateSelection() {
+            const selected = document.querySelectorAll('.order-checkbox:checked');
+            const bulkActions = document.getElementById('bulk-actions');
+            const countLabel = document.getElementById('selection-count');
+            
+            if (selected.length > 0) {
+                bulkActions.style.display = 'flex';
+                countLabel.textContent = `${selected.length} sélectionné(s)`;
+            } else {
+                bulkActions.style.display = 'none';
+                document.getElementById('select-all').checked = false;
+            }
+        }
+
+        async function confirmDeleteOrder(id) {
+            const confirmed = await UI.showConfirm(
+                "Supprimer la commande ?",
+                "Cette action est irréversible et supprimera toutes les données liées à cette vente."
+            );
+            if (confirmed) {
+                await AdminService.deleteOrder(id);
+                UI.showToast("Commande supprimée avec succès", "success");
+                await refreshData();
+            }
+        }
+
+        async function deleteSelectedOrders() {
+            const selected = Array.from(document.querySelectorAll('.order-checkbox:checked')).map(cb => cb.value);
+            const confirmed = await UI.showConfirm(
+                "Suppression groupée",
+                `Voulez-vous vraiment supprimer les ${selected.length} commandes sélectionnées ?`
+            );
+            if (confirmed) {
+                UI.showToast("Suppression en cours...", "info");
+                for (const id of selected) {
+                    await AdminService.deleteOrder(id);
+                }
+                UI.showToast("Toutes les commandes ont été supprimées", "success");
+                document.getElementById('select-all').checked = false;
+                await refreshData();
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'Payé': return 'badge-paid';
+                case 'Livré': return 'badge-delivered';
+                case 'Expédié': return 'badge-shipping';
+                case 'Annulé': return 'badge-pending'; // CSS reuse
+                default: return 'badge-pending';
+            }
+        }
+    </script>
+</body>
+
+</html>

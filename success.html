@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Commande confirmée sur Douéra Shop. Merci pour votre achat !">
+    <meta name="keywords" content="succès, commande, Douéra Shop, e-commerce, confirmation">
+    <title>Commande Confirmée | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+
+<body class="animate-fade-in"
+    style="background: var(--color-background); min-height: 100vh; display: flex; flex-direction: column;">
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
+                    <div
+                        style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="assets/logo douera shop.png" alt="Douéra Shop"
+                            style="width: 100%; height: auto; object-fit: contain; transform: translateY(0);">
+                    </div>
+                </a>
+                <div class="nav-icons" style="margin-left: auto;">
+                    <a href="orders.html" class="btn btn-outline" style="padding: 10px 20px;">
+                        Mes commandes
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container"
+        style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px; text-align: center;">
+
+        <div class="success-card animate-fade-in"
+            style="background: white; padding: 64px; border-radius: var(--radius-lg); border: 1px solid var(--color-border); box-shadow: var(--shadow-lg); max-width: 640px; width: 100%;">
+
+            <div
+                style="width: 100px; height: 100px; background: var(--color-primary-light); color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 32px; border: 8px solid white; box-shadow: 0 0 0 4px var(--color-primary-light);">
+                <i data-lucide="check" style="width: 48px; height: 48px; stroke-width: 3;"></i>
+            </div>
+
+            <h1 style="font-size: 2.5rem; margin-bottom: 16px; color: var(--color-primary-dark);">Paiement réussi !</h1>
+            <p style="color: var(--color-muted); font-size: 1.15rem; margin-bottom: 40px; line-height: 1.6;">Merci pour
+                votre achat sur Douéra Shop. Votre colis est déjà en cours de préparation pour une livraison rapide.</p>
+
+            <div
+                style="background: var(--color-background); padding: 24px; border-radius: var(--radius-md); margin-bottom: 48px; border: 1px solid var(--color-border); text-align: left;">
+                <p
+                    style="font-size: 0.8rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 8px;">
+                    Référence de transaction</p>
+                <p id="transaction-ref"
+                    style="font-family: monospace; font-size: 1.75rem; font-weight: 800; color: var(--color-primary); margin-bottom: 24px;">
+                </p>
+                
+                <div id="delivery-recap" style="display: none; border-top: 1px dashed var(--color-border); padding-top: 24px;">
+                    <p style="font-size: 0.8rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 12px;">Détails de Livraison</p>
+                    <p id="delivery-name" style="font-weight: 700; margin-bottom: 4px;"></p>
+                    <p id="delivery-address" style="color: var(--color-muted); font-size: 0.95rem; line-height: 1.4;"></p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <a href="index.html" class="btn btn-primary" style="flex: 1; min-width: 200px; padding: 18px;">Retour à
+                    l'accueil</a>
+                <a href="orders.html" class="btn btn-outline" style="flex: 1; min-width: 200px; padding: 18px;">Suivre
+                    ma commande</a>
+            </div>
+        </div>
+
+        <div
+            style="margin-top: 48px; display: flex; align-items: center; gap: 12px; color: var(--color-muted); font-size: 0.95rem; font-weight: 500;">
+            <i data-lucide="help-circle" style="width: 18px; color: var(--color-primary);"></i>
+            Besoin d'aide ? WhatsApp au <strong>+221 78 160 74 68</strong>
+        </div>
+
+    </main>
+
+    <!-- Foot Excellence -->
+    <footer style="background: white; border-top: 1px solid var(--color-border); padding: 100px 0 40px;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 80px; margin-bottom: 80px;">
+                <div>
+                    <a href="index.html" class="logo" style="margin-bottom: 32px; display: block;">
+                        <img src="assets/logo.png" alt="Douéra Shop"
+                            style="height: 50px; width: auto; object-fit: contain;">
+                    </a>
+                    <p style="color: var(--color-muted); margin-bottom: 32px; max-width: 320px;">L'excellence de
+                        l'import international au service de la communauté locale. Qualité, Rapidité et Confiance.</p>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="#" class="btn btn-outline" style="padding: 12px; border-radius: 12px;"><i
+                                data-lucide="facebook"></i></a>
+                        <a href="#" class="btn btn-outline" style="padding: 12px; border-radius: 12px;"><i
+                                data-lucide="instagram"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Boutique</h4>
+                    <ul
+                        style="list-style: none; display: flex; flex-direction: column; gap: 16px; color: var(--color-muted);">
+                        <li><a href="index.html#notre-boutique">Tous les articles</a></li>
+                        <li><a href="orders.html">Mes commandes</a></li>
+                        <li><a href="cart.html">Mon panier</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Compte</h4>
+                    <ul
+                        style="list-style: none; display: flex; flex-direction: column; gap: 16px; color: var(--color-muted);">
+                        <li><a href="account/login.html">Se connecter</a></li>
+                        <li><a href="account/register.html">S'inscrire</a></li>
+                        <li><a href="admin/login.html" style="color: var(--color-accent); font-weight: 700;">Portail
+                                Admin</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 32px;">Rejoignez-nous</h4>
+                    <p style="color: var(--color-muted); margin-bottom: 24px; font-size: 0.9rem;">Recevez nos nouvelles
+                        arrivées et promos exclusives.</p>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="email" placeholder="Votre email"
+                            style="flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--color-border); outline: none;">
+                        <button class="btn btn-primary" style="padding: 12px;"><i
+                                data-lucide="arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="border-top: 1px solid var(--color-border); padding-top: 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
+                <p style="color: var(--color-muted); font-size: 0.9rem;">&copy; 2026 Douéra Shop. Tous droits réservés.
+                </p>
+                <div style="display: flex; gap: 24px; opacity: 0.5;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" style="height: 20px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+                        style="height: 20px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                        style="height: 20px;">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Chat Excellence -->
+    <a href="https://wa.me/221781607468"
+        style="position: fixed; bottom: 40px; right: 40px; width: 72px; height: 72px; background: #25D366; color: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(37, 211, 102, 0.4); z-index: 1500; transition: var(--transition-base); text-decoration: none;">
+        <i data-lucide="message-circle" style="width: 32px; height: 32px;"></i>
+    </a>
+
+    <div id="toast-container"></div>
+
+    <!-- Alibaba Style Bottom Nav Bar (Mobile Only) -->
+    <nav class="mobile-bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Accueil</span>
+        </a>
+        <a href="index.html#notre-boutique" class="nav-item">
+            <i data-lucide="search"></i>
+            <span>Recherche</span>
+        </a>
+        <a href="cart.html" class="nav-item cart-nav-item">
+            <div style="position: relative;">
+                <i data-lucide="shopping-cart"></i>
+                <span class="cart-count nav-badge">0</span>
+            </div>
+            <span>Panier</span>
+        </a>
+        <a href="account/login.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Compte</span>
+        </a>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const ref = params.get('ref') || 'TRX-DEFAULT';
+            document.getElementById('transaction-ref').textContent = ref;
+
+            // Fetch delivery details
+            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            try {
+                const res = await fetch(`${API_URL}/orders`);
+                if (res.ok) {
+                    const orders = await res.json();
+                    const order = orders.find(o => o.id === ref);
+                    if (order && order.customer_address) {
+                        document.getElementById('delivery-recap').style.display = 'block';
+                        document.getElementById('delivery-name').textContent = `${order.customer_firstname} ${order.customer_lastname}`;
+                        document.getElementById('delivery-address').textContent = order.customer_address;
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not fetch order recap");
+            }
+
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>

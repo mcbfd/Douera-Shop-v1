@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventaire Pro | Douéra Shop Admin</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <style>
+        .product-img-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--color-border);
+            transition: transform 0.2s;
+        }
+
+        .product-img-preview:hover {
+            transform: scale(2);
+            z-index: 10;
+        }
+
+        .stock-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .stock-critical {
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid #FEE2E2;
+        }
+
+        .stock-low {
+            background: #FFFBEB;
+            color: #D97706;
+            border: 1px solid #FEF3C7;
+        }
+
+        .stock-ok {
+            background: #F0FDF4;
+            color: #16A34A;
+            border: 1px solid #DCFCE7;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-muted);
+            width: 18px;
+        }
+
+        .search-input {
+            padding-left: 40px !important;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo"
+                style="padding: 10px 0; display: flex; align-items: center; justify-content: center;">
+                <div
+                    style="width: 200px; height: 200px; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #FAF9F6; box-shadow: var(--shadow-sm);">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop"
+                        style="width: 100%; height: auto; transform: translateY(-5%); object-fit: cover;">
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="products.html" class="nav-item active"><i data-lucide="package"></i> Produits</a>
+                <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
+                <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
+                <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i>
+                    Déconnexion</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <header class="admin-header">
+                <div>
+                    <h1 style="font-size: 2rem;">Gestion du Stock</h1>
+                    <p style="color: var(--color-muted);">Visualisez, ajoutez et gérez vos produits en temps réel.</p>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <button class="btn btn-outline" id="resetCatalog" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; color: #DC2626; border: 2px solid rgba(220, 38, 38, 0.2);"><i data-lucide="rotate-ccw"></i> Reset</button>
+                    <button class="btn btn-primary" id="openAddModal" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="plus"></i> Nouveau Produit</button>
+                </div>
+            </header>
+
+            <!-- Toolbar: Search & Filter -->
+            <div class="toolbar animate-fade-in" style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); margin-bottom: 32px; border: 1px solid rgba(43, 89, 162, 0.05); display: flex; gap: 24px;">
+                <div class="search-container" style="flex: 2;">
+                    <i data-lucide="search" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
+                    <input type="text" id="searchInput" class="pay-input search-input"
+                        placeholder="Rechercher par nom..." style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                </div>
+                <select id="filterCategory" class="pay-input" style="flex: 1; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none; margin-bottom: 0; cursor: pointer;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <option value="all">Toutes catégories</option>
+                    <option value="Téléphone">Téléphone</option>
+                    <option value="Audio">Audio</option>
+                    <option value="Luxe">Luxe</option>
+                    <option value="Mode">Mode</option>
+                    <option value="Sport">Sport</option>
+                </select>
+            </div>
+
+            <div class="data-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Aperçu</th>
+                            <th>Désignation</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-list-body">
+                        <!-- JS feeds this -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Form -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 24px;">Configuration Produit</h2>
+            <form id="productForm">
+                <input type="hidden" id="p-id">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nom du
+                            produit</label>
+                        <input type="text" id="p-name" class="pay-input" required placeholder="Ex: iPhone 12 Pro">
+                    </div>
+                    <div class="form-group">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Catégorie</label>
+                        <select id="p-category" class="pay-input">
+                            <option value="Téléphone">Téléphone</option>
+                            <option value="Audio">Audio</option>
+                            <option value="Luxe">Luxe</option>
+                            <option value="Mode">Mode</option>
+                            <option value="Sport">Sport</option>
+                            <option value="Accessoires">Accessoires</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Description du produit</label>
+                    <textarea id="p-description" class="pay-input" rows="4" placeholder="Détails techniques, avantages, style..." style="resize: vertical; min-height: 100px; padding: 12px;"></textarea>
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Spécifications techniques</label>
+                    <input type="text" id="p-specs" class="pay-input" placeholder="Ex: Taille: XL | Matière: Coton | Poids: 500g">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Prix de
+                            vente (XOF)</label>
+                        <input type="number" id="p-price" class="pay-input" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Stock
+                            disponible</label>
+                        <input type="number" id="p-stock" class="pay-input" required placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px; margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Image du
+                        produit</label>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-outline"
+                                onclick="document.getElementById('fileInput').click()"
+                                style="padding: 10px 16px; font-size: 0.85rem;">
+                                <i data-lucide="upload-cloud" style="width: 16px; margin-right: 8px;"></i> Choisir une
+                                image locale
+                            </button>
+                            <span id="fileName"
+                                style="font-size: 0.8rem; color: var(--color-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">Aucun
+                                fichier</span>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <input type="text" id="p-image" class="pay-input"
+                                placeholder="Ou coller une URL: assets/images/..." style="flex: 1; margin-bottom: 0;">
+                            <div id="imagePreviewContainer"
+                                style="width: 50px; height: 50px; border-radius: 8px; background: #f3f4f6; overflow: hidden; border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i data-lucide="image" style="width: 20px; color: #9ca3af;"></i>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--color-muted); font-style: italic;">* Max 2 Mo
+                            recommandé pour les images locales.</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px;">
+                    <button type="button" class="btn btn-outline" style="flex: 1;"
+                        onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2;">Enregistrer les
+                        modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/admin-service.js"></script>
+    <script src="../js/ui.js"></script>
+    <script>
+        let allProducts = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminService.checkAuth();
+            refreshData();
+
+            document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+            document.getElementById('openAddModal').onclick = () => openModal();
+
+            // Search & Filter Listeners
+            document.getElementById('searchInput').oninput = (e) => filterAndRender(e.target.value, document.getElementById('filterCategory').value);
+            document.getElementById('filterCategory').onchange = (e) => filterAndRender(document.getElementById('searchInput').value, e.target.value);
+
+            document.getElementById('resetCatalog').onclick = async () => {
+                if (confirm("Réinitialiser le catalogue n'est plus supporté de cette façon (Base de données active).")) {
+                    UI.showToast("Opération annulée", "info");
+                }
+            };
+
+            // FIX: Form listener
+            document.getElementById('productForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const product = {
+                    id: document.getElementById('p-id').value || null,
+                    name: document.getElementById('p-name').value,
+                    price: parseInt(document.getElementById('p-price').value),
+                    category: document.getElementById('p-category').value,
+                    stock: parseInt(document.getElementById('p-stock').value),
+                    image: document.getElementById('p-image').value || 'assets/electronics_1.png',
+                    description: document.getElementById('p-description').value,
+                    specs: document.getElementById('p-specs').value
+                };
+                await AdminService.saveProduct(product);
+                UI.showToast("Produit sauvegardé", "success");
+                closeModal();
+                await refreshData();
+            };
+
+            // Image local upload listener
+            document.getElementById('fileInput').onchange = (e) => {
+                const file = e.target.files[0];
+                const fileNameSpan = document.getElementById('fileName');
+                const imageInput = document.getElementById('p-image');
+                const preview = document.getElementById('imagePreviewContainer');
+
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        UI.showToast("Image trop lourde (Max 2Mo)", "error");
+                        e.target.value = "";
+                        return;
+                    }
+
+                    fileNameSpan.textContent = file.name;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64 = event.target.result;
+                        imageInput.value = base64; // On stocke le base64 dans le champ URL
+                        preview.innerHTML = `<img src="${base64}" style="width:100%; height:100%; object-fit:cover;">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            // Image URL/Manual preview listener
+            document.getElementById('p-image').oninput = (e) => {
+                const preview = document.getElementById('imagePreviewContainer');
+                if (e.target.value) {
+                    // Vérifier si c'est un chemin relatif local ou une URL complète ou le base64
+                    const src = e.target.value.startsWith('data:') || e.target.value.startsWith('http') ? e.target.value : `../${e.target.value}`;
+                    preview.innerHTML = `<img src="${src}" style="width:100%; height:100%; object-fit:cover;">`;
+                } else {
+                    preview.innerHTML = `<i data-lucide="image" style="width: 20px; color: #9ca3af;"></i>`;
+                    lucide.createIcons();
+                }
+            };
+        });
+
+        async function refreshData() {
+            allProducts = await AdminService.getProducts();
+            filterAndRender();
+        }
+
+        function filterAndRender(search = '', category = 'all') {
+            const list = document.getElementById('product-list-body');
+            list.innerHTML = '';
+
+            const filtered = allProducts.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+                const matchesCategory = category === 'all' || p.category === category;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 48px; color: var(--color-muted);">Aucun produit trouvé.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'animate-fade-in';
+
+                let stockClass = 'stock-ok';
+                if (p.stock === 0) stockClass = 'stock-critical';
+                else if (p.stock < 10) stockClass = 'stock-low';
+
+                tr.innerHTML = `
+                    <td>
+                        <div style="background: rgba(43, 89, 162, 0.03); border-radius: 12px; padding: 6px; display: inline-block;">
+                            <img src="../${p.image || 'assets/electronics_1.png'}" class="product-img-preview" style="mix-blend-mode: multiply; border: none;">
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${p.name}</div>
+                        <div style="font-size: 0.8rem; color: var(--color-muted); font-family: monospace;">ID: ${p.id}</div>
+                    </td>
+                    <td><span class="badge" style="background: rgba(43, 89, 162, 0.05); color: var(--color-primary-dark); font-weight: 800;">${p.category}</span></td>
+                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${p.price.toLocaleString()} XOF</span></td>
+                    <td><span class="stock-badge ${stockClass}" style="font-family: 'Outfit', sans-serif;">${p.stock} Unité(s)</span></td>
+                    <td>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal('${p.id}')" onmouseover="this.style.background='var(--color-primary)'; this.style.color='white';" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='var(--color-primary)';"><i data-lucide="edit-3" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="handleDelete('${p.id}')" onmouseover="this.style.background='#DC2626'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='#DC2626';"><i data-lucide="trash-2" style="width: 18px;"></i></button>
+                        </div>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function openModal(id = null) {
+            const overlay = document.getElementById('productModal');
+            document.getElementById('productForm').reset();
+            document.getElementById('p-id').value = '';
+            document.getElementById('imagePreviewContainer').innerHTML = `<i data-lucide="image" style="width: 20px; color: #9ca3af;"></i>`;
+            lucide.createIcons();
+
+            if (id) {
+                const p = allProducts.find(x => x.id === id);
+                document.getElementById('modalTitle').textContent = "Modifier le produit";
+                document.getElementById('p-id').value = p.id;
+                document.getElementById('p-name').value = p.name;
+                document.getElementById('p-price').value = p.price;
+                document.getElementById('p-category').value = p.category;
+                document.getElementById('p-stock').value = p.stock;
+                document.getElementById('p-image').value = p.image;
+                document.getElementById('p-description').value = p.description || '';
+                document.getElementById('p-specs').value = p.specs || '';
+                document.getElementById('imagePreviewContainer').innerHTML = `<img src="../${p.image}" style="width:100%; height:100%; object-fit:cover;">`;
+            } else {
+                document.getElementById('modalTitle').textContent = "Nouveau Produit";
+            }
+
+            overlay.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        async function handleDelete(id) {
+            const confirmed = await UI.showConfirm(
+                "Supprimer le produit ?",
+                "Voulez-vous vraiment retirer cet article du catalogue ? Les commandes existantes ne seront pas affectées."
+            );
+            if (confirmed) {
+                await AdminService.deleteProduct(id);
+                UI.showToast("Produit supprimé", "success");
+                await refreshData();
+            }
+        }
+    </script>
+</body>
+
+</html>

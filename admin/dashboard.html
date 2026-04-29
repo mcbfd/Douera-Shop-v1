@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Douéra Shop Admin</title>
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo"
+                style="padding: 10px 0; display: flex; align-items: center; justify-content: center;">
+                <div
+                    style="width: 200px; height: 200px; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #FAF9F6; box-shadow: var(--shadow-sm);">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop"
+                        style="width: 100%; height: auto; transform: translateY(-5%); object-fit: cover;">
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+                <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
+                <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
+                <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
+                <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i>
+                    Déconnexion</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <header class="admin-header">
+                <div>
+                    <h1 style="font-size: 2rem;">Bonjour, <span id="admin-name">Admin</span></h1>
+                    <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique aujourd'hui.</p>
+                </div>
+                <div style="display: flex; gap: 16px;">
+                    <button class="btn btn-outline" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; color: var(--color-primary-dark); border: 2px solid rgba(43, 89, 162, 0.2);"><i data-lucide="download"></i> Exporter Rapport</button>
+                    <a href="../index.html" class="btn btn-primary" target="_blank" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="external-link"></i> Voir le site</a>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Ventes Totales</p>
+                        <p class="stat-val" id="stat-sales">0 XOF</p>
+                    </div>
+                    <div class="stat-icon" style="background: #DCFCE7; color: #166534;"><i
+                            data-lucide="dollar-sign"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Commandes</p>
+                        <p class="stat-val" id="stat-orders">0</p>
+                    </div>
+                    <div class="stat-icon" style="background: #FCE7F3; color: #9D174D;"><i
+                            data-lucide="shopping-bag"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Clients</p>
+                        <p class="stat-val" id="stat-clients">0</p>
+                    </div>
+                    <div class="stat-icon" style="background: #DBEAFE; color: #1E40AF;"><i data-lucide="users"></i>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">Rupture Stock</p>
+                        <p class="stat-val" id="stat-rupture" style="color: #DC2626;">0</p>
+                    </div>
+                    <div class="stat-icon" style="background: #FEE2E2; color: #991B1B;"><i data-lucide="alert-triangle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-bottom: 48px;">
+                <div class="data-card" style="padding: 32px;">
+                    <h3 style="margin-bottom: 24px;">Évolution des Revenus</h3>
+                    <canvas id="salesChart" height="120"></canvas>
+                </div>
+                <div class="data-card" style="padding: 32px;">
+                    <h3 style="margin-bottom: 24px;">Répartition des Paiements</h3>
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Products Section -->
+            <div class="data-card" style="margin-bottom: 48px; padding: 32px;">
+                <h3 style="margin-bottom: 24px; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark);">Top 3 Produits les plus vendus</h3>
+                <div id="top-products-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <!-- JS feeds this -->
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="data-card">
+                <div style="padding: 32px 32px 24px 32px; border-bottom: 1px solid rgba(43, 89, 162, 0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--color-primary-dark); font-size: 1.5rem;">Commandes Récentes</h3>
+                    <a href="orders.html" style="color: var(--color-primary); font-weight: 800; font-size: 0.95rem; text-decoration: none; padding: 8px 16px; background: rgba(43, 89, 162, 0.05); border-radius: 12px; transition: var(--transition-base);" onmouseover="this.style.background='var(--color-primary)'; this.style.color='white';" onmouseout="this.style.background='rgba(43, 89, 162, 0.05)'; this.style.color='var(--color-primary)';">Voir tout</a>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Commande</th>
+                            <th>Date</th>
+                            <th>Client / Contact</th>
+                            <th>Statut</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-orders-list">
+                        <!-- JS feeds this -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/admin-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = AdminService.checkAuth();
+            if (!session) return;
+
+            document.getElementById('admin-name').textContent = session.name;
+            document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+
+            const stats = await AdminService.getStats();
+
+            // UI Update
+            document.getElementById('stat-sales').textContent = stats.totalVentes.toLocaleString() + ' XOF';
+            document.getElementById('stat-orders').textContent = stats.nbCommandes;
+            document.getElementById('stat-clients').textContent = stats.nbClients;
+            document.getElementById('stat-rupture').textContent = stats.nbRupture;
+
+            // Recent Orders
+            const list = document.getElementById('recent-orders-list');
+            if (stats.recentOrders.length === 0) {
+                list.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-muted);">Aucune commande pour le moment.</td></tr>';
+            } else {
+                stats.recentOrders.forEach(o => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-family: monospace; font-weight: 700;">#${o.id.substring(0, 8)}</td>
+                        <td style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.9rem;">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
+                            <div style="font-size: 0.75rem; color: var(--color-muted);">${o.customer_phone || 'N/A'}</div>
+                        </td>
+                        <td><span class="badge badge-paid">${o.status}</span></td>
+                        <td style="font-weight: 800; color: var(--color-primary);">${o.total.toLocaleString()} XOF</td>
+                    `;
+                    list.appendChild(tr);
+                });
+            }
+
+            // Top Products
+            const topList = document.getElementById('top-products-list');
+            topList.innerHTML = '';
+            stats.popularProducts.forEach((p, idx) => {
+                const card = document.createElement('div');
+                card.style.cssText = `display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(43, 89, 162, 0.03); border-radius: 16px; border: 1px solid rgba(43, 89, 162, 0.05);`;
+                card.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="../${p.image || 'assets/electronics_1.png'}" style="width: 70px; height: 70px; border-radius: 12px; object-fit: cover;">
+                        <div style="position: absolute; top: -10px; left: -10px; width: 30px; height: 30px; background: ${idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : '#CD7F32'}; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; border: 3px solid white; box-shadow: var(--shadow-sm);">${idx + 1}</div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 800; color: var(--color-primary-dark); margin-bottom: 4px;">${p.name}</div>
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--color-muted); font-size: 0.9rem;">
+                            <i data-lucide="trending-up" style="width: 14px; color: #10B981;"></i>
+                            <strong>${p.sales} ventes</strong>
+                        </div>
+                    </div>
+                    <div style="font-weight: 800; color: var(--color-primary); font-size: 1.1rem;">
+                        ${(p.price || 0).toLocaleString()} XOF
+                    </div>
+                `;
+                topList.appendChild(card);
+            });
+
+            // Charts
+            initCharts(stats);
+            if (window.lucide) lucide.createIcons();
+        });
+
+        function initCharts(stats) {
+            // Sales Chart (Simulated Data)
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [{
+                        label: 'Revenus (XOF)',
+                        data: [120000, 190000, 150000, 250000, 220000, stats.totalVentes || 300000],
+                        borderColor: '#2B59A2',
+                        backgroundColor: 'rgba(43, 89, 162, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            // Payment Distribution
+            const payCtx = document.getElementById('paymentChart').getContext('2d');
+            new Chart(payCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Orange Money', 'Wave', 'Carte', 'Espèce'],
+                    datasets: [{
+                        data: [45, 30, 15, 10],
+                        backgroundColor: ['#F97316', '#3B82F6', '#6366F1', '#10B981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    </script>
+</body>
+
+</html>

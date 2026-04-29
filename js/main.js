@@ -1,0 +1,686 @@
+/**
+ * Douéra Shop - Main App Controller v4.0 (Excellence)
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM ELEMENTS ---
+    const productGrid = document.getElementById('productGrid');
+    const authArea = document.getElementById('nav-auth-area');
+    const storeSearch = document.getElementById('storeSearch');
+    const storeSort = document.getElementById('storeSort');
+    const filterContainer = document.getElementById('categoryFilters');
+    
+    // Drawer Elements
+    const cartDrawer = document.getElementById('cartDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    const cartToggleBtn = document.getElementById('cartToggleBtn');
+    const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+    const cartDrawerItems = document.getElementById('cartDrawerItems');
+    const drawerTotal = document.getElementById('drawerTotal');
+    const cartBadge = document.querySelector('.cart-count');
+
+    // Quick View Elements
+    const qvModal = document.getElementById('quickViewModal');
+    
+    // State
+    let allProducts = [];
+    let currentCategory = 'all';
+    let currentSearch = '';
+    let currentSort = 'default';
+    let currentMaxPrice = 5000000;
+    let currentInStockOnly = false;
+
+    // --- 1. INITIALIZATION ---
+
+    async function init() {
+        // Load Data from Backend API
+        const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+        try {
+            const res = await fetch(`${API_URL}/products`);
+            if (res.ok) {
+                allProducts = await res.json();
+            } else {
+                allProducts = [];
+            }
+        } catch(e) {
+            console.error("Erreur de connexion au backend", e);
+            allProducts = [];
+        }
+        
+        initHeroBackground();
+        
+        // Populate Categories
+        const categories = [...new Set(allProducts.map(p => p.category))];
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline filter-chip';
+            btn.style.borderRadius = 'var(--radius-full)';
+            btn.dataset.category = cat;
+            btn.textContent = cat;
+            btn.onclick = () => {
+                document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCategory = cat;
+                renderAppProducts();
+            };
+            if (filterContainer) filterContainer.appendChild(btn);
+        });
+
+        // Setup Events
+        if (storeSearch) storeSearch.oninput = (e) => { currentSearch = e.target.value.toLowerCase(); renderAppProducts(); };
+        if (storeSort) storeSort.onchange = (e) => { currentSort = e.target.value; renderAppProducts(); };
+        
+        // Advanced Filters
+        const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+        const advancedFiltersPanel = document.getElementById('advancedFiltersPanel');
+        const priceRange = document.getElementById('priceRange');
+        const priceValueDisplay = document.getElementById('priceValueDisplay');
+        const inStockToggle = document.getElementById('inStockToggle');
+
+        if (toggleFiltersBtn && advancedFiltersPanel) {
+            toggleFiltersBtn.onclick = () => {
+                const isHidden = advancedFiltersPanel.style.display === 'none';
+                advancedFiltersPanel.style.display = isHidden ? 'flex' : 'none';
+                toggleFiltersBtn.classList.toggle('active');
+            };
+        }
+
+        if (priceRange) {
+            priceRange.oninput = (e) => {
+                currentMaxPrice = parseInt(e.target.value);
+                if (priceValueDisplay) priceValueDisplay.textContent = currentMaxPrice.toLocaleString() + ' XOF';
+            };
+            priceRange.onchange = () => renderAppProducts();
+        }
+
+        if (inStockToggle) {
+            inStockToggle.onchange = (e) => {
+                currentInStockOnly = e.target.checked;
+                renderAppProducts();
+            };
+        }
+        
+        // Drawer Controls
+        if (closeDrawerBtn) closeDrawerBtn.onclick = toggleDrawer;
+        if (drawerOverlay) drawerOverlay.onclick = toggleDrawer;
+
+        // Global Sync
+        window.addEventListener('cartUpdated', () => { updateBadge(); renderCartDrawer(); });
+        window.addEventListener('dataSynced', async () => { 
+            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            try {
+                const res = await fetch(`${API_URL}/products`);
+                if (res.ok) allProducts = await res.json();
+            } catch(e) {}
+            renderAppProducts(); 
+        });
+
+        updateAuthUI();
+        updateBadge();
+        renderAppProducts();
+        renderCartDrawer();
+    }
+
+    // --- 2. UI UTILITIES ---
+
+    function toggleDrawer() {
+        cartDrawer.classList.toggle('active');
+        drawerOverlay.classList.toggle('active');
+        document.body.style.overflow = cartDrawer.classList.contains('active') ? 'hidden' : '';
+    }
+
+    function updateBadge() {
+        const items = Cart.getItems();
+        const count = items.reduce((t, i) => t + i.quantity, 0);
+        document.querySelectorAll('.cart-count').forEach(badge => {
+            badge.textContent = count;
+            badge.classList.remove('animate-pop');
+            void badge.offsetWidth; // Trigger reflow
+            badge.classList.add('animate-pop');
+        });
+    }
+
+    async function updateAuthUI() {
+        if (!authArea) return;
+        const user = AuthService.getCurrentUser();
+        const cartCount = Cart.getItems().reduce((t, i) => t + i.quantity, 0);
+
+        // Check for new admin replies (Seen logic)
+        let hasNewReply = false;
+        if (user) {
+            try {
+                const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+                const res = await fetch(`${API_URL}/orders`);
+                if (res.ok) {
+                    const orders = await res.json();
+                    const userOrders = orders.filter(o => o.userId === user.userId);
+                    
+                    // Get seen reply IDs from localStorage
+                    const seenReplies = JSON.parse(localStorage.getItem('seen_replies') || '[]');
+                    
+                    // Check if any order has an admin_reply whose review_id isn't in seenReplies
+                    hasNewReply = userOrders.some(o => o.admin_reply && !seenReplies.includes(o.review_id));
+                    
+                    // Play sound if new reply found and not played yet in this page load
+                    if (hasNewReply && !window.notificationPlayed) {
+                        const popSound = new Audio('data:audio/wav;base64,UklGRmYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YWCWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                        // Note: Base64 above is a dummy, let's use a real short pop sound
+                        const realPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+                        realPop.volume = 0.4;
+                        realPop.play().catch(e => console.log("Autoplay prevented sound"));
+                        window.notificationPlayed = true;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Common Cart Section (Redirect link to Checkout)
+        const cartIconHtml = `
+            <a href="checkout.html" class="btn btn-outline" id="cartRedirectLink" style="padding: 10px; border-radius: 12px; position: relative; border: none; background: transparent;">
+                <i data-lucide="shopping-cart" style="width: 24px; height: 24px; color: var(--color-primary);"></i>
+                <span class="cart-count">${cartCount}</span>
+            </a>
+        `;
+
+        const myOrdersBtnHtml = `
+            <a href="orders.html" class="btn btn-outline" style="padding: 10px; border-radius: 12px; border: none; background: transparent; color: var(--color-foreground); position: relative;" title="Mes Commandes">
+                <i data-lucide="package" style="width: 24px; height: 24px;"></i>
+                ${hasNewReply ? '<span style="position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);"></span>' : ''}
+            </a>
+        `;
+
+        if (user) {
+            authArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    ${myOrdersBtnHtml}
+                    ${cartIconHtml}
+                    <div style="display: flex; align-items: center; gap: 12px; background: var(--color-primary-light); padding: 6px 16px; border-radius: 14px; border: 1px solid var(--color-primary-light);">
+                        <div style="text-align: right; line-height: 1;">
+                            <span style="font-size: 0.65rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Client Privilège</span>
+                            <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.95rem;">${user.name.split(' ')[0]}</p>
+                        </div>
+                        <button id="logoutBtn" style="background: white; border: none; color: var(--color-primary); cursor: pointer; padding: 8px; border-radius: 10px; box-shadow: var(--shadow-soft);" title="Déconnexion">
+                            <i data-lucide="log-out" style="width: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('logoutBtn').onclick = () => AuthService.logout();
+        } else {
+            authArea.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 24px;">
+                    ${cartIconHtml}
+                    <a href="account/login.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Connexion</a>
+                </div>
+            `;
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // --- 3. RENDERING ---
+
+    function renderAppProducts() {
+        if (!productGrid) return;
+        
+        // Filtering
+        let filtered = allProducts.filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(currentSearch);
+            const matchesCategory = currentCategory === 'all' || p.category === currentCategory;
+            const matchesPrice = p.price <= currentMaxPrice;
+            const matchesStock = !currentInStockOnly || p.stock > 0;
+            return matchesSearch && matchesCategory && matchesPrice && matchesStock;
+        });
+
+        // Sorting
+        if (currentSort === 'price-asc') filtered.sort((a,b) => a.price - b.price);
+        else if (currentSort === 'price-desc') filtered.sort((a,b) => b.price - a.price);
+        else if (currentSort === 'newest') filtered.reverse();
+
+        productGrid.innerHTML = '';
+        const noResults = document.getElementById('no-results');
+        if (filtered.length === 0) { if (noResults) noResults.style.display = 'block'; return; }
+        if (noResults) noResults.style.display = 'none';
+
+        filtered.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = 'product-card animate-fade-in';
+            card.style.animationDelay = `${idx * 0.05}s`;
+            
+            const imgSrc = p.image.startsWith('data:') || p.image.startsWith('http') ? p.image : p.image;
+
+            card.innerHTML = `
+                <div class="product-image">
+                    <img src="${imgSrc}" alt="${p.name}" loading="lazy">
+                    <div class="product-overlay">
+                        <div class="overlay-btn" onclick="openQuickView('${p.id}')"><i data-lucide="eye"></i></div>
+                        <div class="overlay-btn" onclick="addToCart('${p.id}')"><i data-lucide="shopping-cart"></i></div>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <div class="product-category">${p.category}</div>
+                    <h3 class="product-title">${p.name}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="product-price">${p.price.toLocaleString()} XOF</span>
+                        ${p.stock < 5 ? `<span style="font-size: 0.7rem; color: var(--color-error); font-weight: 800;">QUASI ÉPUISÉ</span>` : ''}
+                    </div>
+                    <!-- Alibaba style direct add button (Mobile Only) -->
+                    <button class="mobile-add-btn" onclick="addToCart('${p.id}'); event.stopPropagation();">
+                        <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+            `;
+            // Sur mobile, cliquer sur toute la carte ouvre la vue rapide (Vu qu'on a plus le hover)
+            card.onclick = () => { if(window.innerWidth <= 640) openQuickView(p.id); };
+            productGrid.appendChild(card);
+        });
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderCartDrawer() {
+        if (!cartDrawerItems) return;
+        const items = Cart.getItems();
+        const total = Cart.getTotal();
+        const drawerSummary = document.getElementById('cartDrawerSummary');
+
+        if (drawerTotal) drawerTotal.textContent = total.toLocaleString() + ' XOF';
+        cartDrawerItems.innerHTML = '';
+
+        if (items.length === 0) {
+            if (drawerSummary) drawerSummary.style.display = 'none';
+            cartDrawerItems.innerHTML = `
+                <div style="text-align: center; padding: 64px 0; color: var(--color-muted);">
+                    <div style="width: 80px; height: 80px; background: var(--color-muted-light); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                        <i data-lucide="shopping-bag" style="width: 40px; height: 40px; opacity: 0.5;"></i>
+                    </div>
+                    <h4 style="margin-bottom: 8px;">Votre panier est vide</h4>
+                    <p style="font-size: 0.9rem;">Ajoutez des articles pour commencer votre shopping.</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        if (drawerSummary) drawerSummary.style.display = 'block';
+
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'cart-item';
+            div.style.marginBottom = '24px';
+            div.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" style="width: 70px; height: 70px;">
+                <div class="cart-item-info">
+                    <div class="cart-item-title" style="font-size: 0.95rem;">${item.name}</div>
+                    <div class="cart-item-price" style="font-size: 1rem;">${item.price.toLocaleString()} XOF</div>
+                    <div class="quantity-controls">
+                        <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i data-lucide="minus" style="width: 12px;"></i></button>
+                        <span style="font-weight: 800; font-size: 0.9rem;">${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i data-lucide="plus" style="width: 12px;"></i></button>
+                    </div>
+                </div>
+                <button onclick="removeFromCart('${item.id}')" style="background: none; border: none; color: var(--color-error); padding: 8px; cursor: pointer; opacity: 0.6;">
+                    <i data-lucide="trash-2" style="width: 18px;"></i>
+                </button>
+            `;
+            cartDrawerItems.appendChild(div);
+        });
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // --- 4. GLOBAL ACTIONS ---
+
+    window.addToCart = function(id, qty = 1) {
+        const product = allProducts.find(p => p.id === id);
+        if (product) {
+            Cart.add(product, qty);
+            UI.showToast(`${product.name} ajouté au panier !`, 'success');
+            // NO auto-toggle drawer here for seamless pro experience
+        }
+    };
+
+    window.removeFromCart = function(id) {
+        Cart.remove(id);
+        renderCartDrawer();
+    };
+
+    window.updateQty = function(id, delta) {
+        Cart.updateQuantity(id, delta);
+        renderCartDrawer();
+    };
+
+    window.resetFilters = function() {
+        currentCategory = 'all';
+        currentSearch = '';
+        currentSort = 'default';
+        currentMaxPrice = 5000000;
+        currentInStockOnly = false;
+
+        if (storeSearch) storeSearch.value = '';
+        if (storeSort) storeSort.value = 'default';
+        
+        const priceRange = document.getElementById('priceRange');
+        const priceDisplay = document.getElementById('priceValueDisplay');
+        const inStockToggle = document.getElementById('inStockToggle');
+        
+        if (priceRange) priceRange.value = 5000000;
+        if (priceDisplay) priceDisplay.textContent = 'Tout';
+        if (inStockToggle) inStockToggle.checked = false;
+
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        const allBtn = document.querySelector('[data-category="all"]');
+        if (allBtn) allBtn.classList.add('active');
+        renderAppProducts();
+    };
+
+    // --- 5. QUICK VIEW LOGIC ---
+
+    window.openQuickView = function(id) {
+        const p = allProducts.find(x => x.id === id);
+        if (!p) return;
+
+        document.getElementById('qv-image-container').innerHTML = `
+            <img src="${p.image}" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);" id="qv-main-img">
+            <div style="position: absolute; top: 32px; left: 32px; z-index: 10;">
+                <span id="qv-badge" style="background: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; color: var(--color-primary); box-shadow: var(--shadow-soft); text-transform: uppercase;">${p.category === 'Électronique' ? 'PREMIUM' : 'NOUVEAUTÉ'}</span>
+            </div>
+        `;
+        document.getElementById('qv-category').textContent = p.category;
+        document.getElementById('qv-title').textContent = p.name;
+        document.getElementById('qv-price').textContent = p.price.toLocaleString() + ' XOF';
+        const intro = "Un produit d'exception sélectionné par Douéra Shop pour sa qualité supérieure et son design élégant.";
+        document.getElementById('qv-description').textContent = p.description ? `${intro} ${p.description}` : intro;
+        
+        // Technical Specs
+        const specsContainer = document.getElementById('qv-specs-container');
+        if (specsContainer) {
+            specsContainer.innerHTML = '';
+            if (p.specs) {
+                const specsList = p.specs.split('|');
+                specsList.forEach(spec => {
+                    const badge = document.createElement('span');
+                    badge.style.cssText = `background: #F1F5F9; color: var(--color-primary-dark); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--color-border);`;
+                    badge.textContent = spec.trim();
+                    specsContainer.appendChild(badge);
+                });
+            }
+        }
+        
+        // Stock Indicator
+        const stockBadge = document.getElementById('qv-stock-badge');
+        if (p.stock <= 0) {
+            stockBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #EF4444; border-radius: 50%;"></span> Rupture de stock';
+            stockBadge.style.color = '#EF4444';
+        } else if (p.stock < 5) {
+            stockBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #F59E0B; border-radius: 50%;"></span> Plus que ' + p.stock + ' en stock';
+            stockBadge.style.color = '#F59E0B';
+        } else {
+            stockBadge.innerHTML = '<span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span> En Stock';
+            stockBadge.style.color = '#10B981';
+        }
+
+        const addBtn = document.getElementById('qv-add-btn');
+        const qtyInput = document.getElementById('qv-qty-input');
+        if (qtyInput) qtyInput.value = 1; 
+
+        addBtn.onclick = () => { 
+            const qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+            addToCart(p.id, qty); 
+            closeQuickView(); 
+        };
+        
+        // WhatsApp Share
+        const shareBtn = document.getElementById('qv-whatsapp-share');
+        if (shareBtn) {
+            const shareText = encodeURIComponent(`Salam ! Regarde cette pépite sur Douéra Shop : *${p.name}* à ${p.price.toLocaleString()} XOF. C'est magnifique ! \n\nLien : ${window.location.href}`);
+            shareBtn.href = `https://wa.me/?text=${shareText}`;
+        }
+
+        // Render Stars
+        const starsContainer = document.getElementById('qv-stars');
+        if (starsContainer) {
+            starsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('i');
+                star.dataset.lucide = 'star';
+                star.style.cssText = `width: 18px; height: 18px; fill: #F59E0B;`;
+                starsContainer.appendChild(star);
+            }
+        }
+        document.getElementById('qv-rating-text').textContent = "4.9 (24 avis vérifiés)";
+
+        // Render FAQ
+        renderProductFAQ(p);
+        
+        // Render Reviews
+        renderProductReviews(p);
+
+        qvModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Render Similar Products
+        renderSimilarProducts(p);
+        
+        if (window.lucide) lucide.createIcons();
+    };
+
+    function renderSimilarProducts(currentProduct) {
+        const container = document.getElementById('qv-similar-products');
+        if (!container) return;
+
+        const similar = allProducts
+            .filter(p => p.category === currentProduct.category && p.id !== currentProduct.id)
+            .slice(0, 4);
+
+        if (similar.length === 0) {
+            container.parentElement.style.display = 'none';
+            return;
+        }
+
+        container.parentElement.style.display = 'block';
+        container.innerHTML = '';
+        
+        similar.forEach(p => {
+            const div = document.createElement('div');
+            div.style.cssText = `background: white; border-radius: 16px; overflow: hidden; border: 1px solid var(--color-border); transition: var(--transition-base); cursor: pointer;`;
+            div.onclick = () => {
+                document.querySelector('.modal-content').scrollTop = 0;
+                openQuickView(p.id);
+            };
+            div.onmouseover = () => div.style.transform = 'translateY(-5px)';
+            div.onmouseout = () => div.style.transform = 'translateY(0)';
+
+            div.innerHTML = `
+                <div style="height: 140px; overflow: hidden; background: #f8fafc;">
+                    <img src="${p.image}" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <div style="padding: 12px;">
+                    <div style="font-weight: 800; font-size: 0.85rem; color: var(--color-primary-dark); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${p.name}</div>
+                    <div style="font-weight: 800; color: var(--color-primary); font-size: 0.9rem;">${p.price.toLocaleString()} XOF</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function renderProductFAQ(product) {
+        const container = document.getElementById('qv-faq-items');
+        if (!container) return;
+
+        const faqs = [
+            { q: "Quelle est la durée de la livraison ?", a: "La livraison à Douéra et Dakar se fait généralement sous 24h. Pour les autres régions du Sénégal, comptez 48h à 72h." },
+            { q: "Le produit est-il original ?", a: "Oui, Douéra Shop s'approvisionne directement auprès de fournisseurs agréés à l'international pour garantir l'authenticité de chaque pépite." },
+            { q: "Quels sont les modes de paiement ?", a: "Nous acceptons Wave, Orange Money et le paiement en espèces à la livraison pour votre totale tranquillité d'esprit." }
+        ];
+
+        // Add category specific FAQ
+        if (product.category === 'Électronique' || product.category === 'Téléphone') {
+            faqs.push({ q: "Y a-t-il une garantie ?", a: "Tous nos produits électroniques bénéficient d'une garantie de 6 mois contre tout défaut de fabrication." });
+        }
+
+        container.innerHTML = '';
+        faqs.forEach((faq, index) => {
+            const item = document.createElement('div');
+            item.style.cssText = `border: 1px solid var(--color-border); border-radius: 12px; overflow: hidden;`;
+            item.innerHTML = `
+                <div class="faq-trigger" style="padding: 12px 16px; background: #F8FAFC; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700;">
+                    <span>${faq.q}</span>
+                    <i data-lucide="chevron-down" style="width: 14px; transition: 0.3s;"></i>
+                </div>
+                <div class="faq-content" style="padding: 0 16px; max-height: 0; overflow: hidden; transition: all 0.3s ease-out; font-size: 0.8rem; color: var(--color-muted); background: white;">
+                    <div style="padding: 12px 0;">${faq.a}</div>
+                </div>
+            `;
+            
+            item.querySelector('.faq-trigger').onclick = function() {
+                const content = this.nextElementSibling;
+                const icon = this.querySelector('i');
+                const isOpen = content.style.maxHeight !== '0px' && content.style.maxHeight !== '';
+                
+                // Close all others
+                document.querySelectorAll('.faq-content').forEach(c => c.style.maxHeight = '0');
+                document.querySelectorAll('.faq-trigger i').forEach(i => i.style.transform = 'rotate(0)');
+
+                if (!isOpen) {
+                    content.style.maxHeight = '100px';
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            };
+            
+            container.appendChild(item);
+        });
+        if (window.lucide) lucide.createIcons();
+    }
+
+    async function renderProductReviews(product) {
+        const container = document.getElementById('qv-reviews-list');
+        if (!container) return;
+
+        const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+        
+        let allReviews = [];
+        try {
+            const res = await fetch(`${API_URL}/reviews`);
+            if (res.ok) {
+                const data = await res.json();
+                allReviews = data.filter(r => r.productId === product.id);
+            }
+        } catch (e) {
+            console.error("Erreur chargement avis", e);
+        }
+
+        const displayReviews = allReviews.length > 0 ? allReviews : [
+            { userName: "Moussa Diop", date: new Date().toISOString(), comment: "Franchement, la qualité est au rendez-vous. Livraison rapide à Douéra en moins de 24h. Je recommande !", rating_product: 5, rating_service: 5 },
+            { userName: "Aminata Sow", date: new Date().toISOString(), comment: "Très satisfaite de mon achat. Le produit correspond exactement à la description. Service client au top.", rating_product: 5, rating_service: 4 }
+        ];
+
+        container.innerHTML = '';
+        displayReviews.forEach(review => {
+            const date = new Date(review.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+            const div = document.createElement('div');
+            div.style.cssText = `padding: 24px; background: #FFF; border-radius: 20px; border: 1px solid #F1F5F9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);`;
+            
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1rem; color: var(--color-primary-dark);">${review.userName}</div>
+                        <div style="display: flex; gap: 4px; color: #F59E0B; margin-top: 6px;">
+                            ${Array(review.rating_product || 5).fill('<i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor;"></i>').join('')}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.75rem; color: var(--color-muted);">${date}</span>
+                        <div style="display: flex; align-items: center; gap: 4px; color: var(--color-success); font-size: 0.7rem; font-weight: 800; margin-top: 6px;">
+                            <i data-lucide="check-circle-2" style="width: 14px;"></i> ACHAT VÉRIFIÉ
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size: 0.95rem; color: var(--color-foreground); line-height: 1.6; font-style: italic;">"${review.comment}"</p>
+                
+                ${review.admin_reply ? `
+                    <div style="margin-top: 20px; padding: 16px; background: rgba(43, 89, 162, 0.04); border-radius: 12px; border-left: 4px solid var(--color-primary);">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <img src="assets/logo.png" style="width: 20px; height: 20px; border-radius: 4px; object-fit: contain;">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-primary); text-transform: uppercase;">Réponse de Douéra Shop</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--color-primary-dark); line-height: 1.5;">${review.admin_reply}</p>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(div);
+        });
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.changeQVQty = function(delta) {
+        const input = document.getElementById('qv-qty-input');
+        if (!input) return;
+        let val = parseInt(input.value) + delta;
+        if (val < 1) val = 1;
+        input.value = val;
+    };
+
+    window.closeQuickView = function() {
+        if (qvModal) qvModal.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    function initHeroBackground() {
+        const track1 = document.getElementById('hero-track-1');
+        const track2 = document.getElementById('hero-track-2');
+        const slider = document.getElementById('hero-bg-slider');
+        
+        if (!track1 || !track2 || !allProducts.length) return;
+
+        // On nettoie
+        track1.innerHTML = '';
+        track2.innerHTML = '';
+
+        // On mélange et on prend une sélection
+        const pool = [...allProducts].sort(() => 0.5 - Math.random());
+        // S'il y a peu de produits, on les répète pour remplir la piste
+        const items = pool.length < 6 ? [...pool, ...pool, ...pool] : pool.slice(0, 8);
+
+        const createImg = (p) => {
+            const img = document.createElement('img');
+            img.src = p.image;
+            img.className = 'hero-bg-img';
+            img.alt = p.name;
+            img.onerror = () => { img.src = 'assets/electronics_1.png'; }; // Fallback
+            return img;
+        };
+
+        // Track 1
+        items.forEach(p => track1.appendChild(createImg(p)));
+        items.forEach(p => track1.appendChild(createImg(p))); // Duplication pour scroll infini
+
+        // Track 2 (ordre différent)
+        const items2 = [...items].reverse();
+        items2.forEach(p => track2.appendChild(createImg(p)));
+        items2.forEach(p => track2.appendChild(createImg(p)));
+
+        // Afficher le slider
+        if (slider) slider.style.display = 'flex';
+    }
+
+    // --- 6. SCROLL REVEAL ANIMATIONS ---
+    function initScrollReveal() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Optional: remove observer if we only want it to animate once
+                    // observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        const revealElements = document.querySelectorAll('.reveal-up');
+        revealElements.forEach(el => observer.observe(el));
+    }
+
+    // --- BOOTSTRAP ---
+    init().then(() => {
+        // Initializer scroll anims après le render
+        setTimeout(initScrollReveal, 100);
+    });
+});
