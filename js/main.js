@@ -45,11 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_BASE_URL}/products`);
             if (res.ok) {
                 allProducts = await res.json();
+                console.log("Produits chargés:", allProducts);
             } else {
+                const text = await res.text();
+                console.error("Erreur serveur:", text);
                 allProducts = [];
             }
         } catch(e) {
             console.error("Erreur de connexion au backend", e);
+            window.alert("Erreur de connexion : " + e.message + " (URL: " + API_BASE_URL + ")");
             allProducts = [];
         }
         

@@ -155,15 +155,11 @@ class DB:
 
     def fetchall(self):
         rows = self.cur.fetchall()
-        if self.is_postgres:
-            return rows
         return [dict(r) for r in rows]
 
     def fetchone(self):
         row = self.cur.fetchone()
         if not row: return None
-        if self.is_postgres:
-            return row
         return dict(row)
 
     def commit(self):
