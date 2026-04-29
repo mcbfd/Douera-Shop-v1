@@ -2,7 +2,7 @@
  * Douéra Shop - Main App Controller v4.0 (Excellence)
  */
 
-const API_BASE_URL = 'https://douerashop.vercel.app/api';
+const API_BASE_URL = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENTS ---
