@@ -14,6 +14,17 @@ sys.stdout = sys.stderr
 app = Flask(__name__)
 CORS(app)
 
+# --- Custom JSON Encoder for Row objects ---
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, '__iter__') and not isinstance(obj, (str, dict, list)):
+            return dict(obj)
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+app.json_encoder = CustomJSONEncoder
+
 # --- Ensure DB Initialized ---
 try:
     init_db()
