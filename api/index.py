@@ -6,8 +6,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
 from .db import get_db_connection, init_db, DB
-
 import sys
+
+# Redirection forcée pour éviter la pollution de la réponse HTTP par des prints
+sys.stdout = sys.stderr
 
 app = Flask(__name__)
 CORS(app)
@@ -108,7 +110,8 @@ def login():
     password = data.get('password')
     
     db = DB(get_db_connection())
-    user = db.execute('SELECT * FROM users WHERE email = ? AND password = ?', (email, password)).fetchone()
+    db.execute('SELECT * FROM users WHERE email = ? AND password = ?', (email, password))
+    user = db.fetchone()
     db.close()
     
     if not user:
@@ -132,7 +135,8 @@ def login():
 @app.route('/api/users', methods=['GET'])
 def get_users():
     db = DB(get_db_connection())
-    users = db.execute('SELECT * FROM users').fetchall()
+    db.execute('SELECT * FROM users')
+    users = db.fetchall()
     db.close()
     for u in users:
         u.pop('password', None)
@@ -196,7 +200,8 @@ def get_orders():
         LEFT JOIN reviews r ON o.id = r.orderId
         ORDER BY o.date DESC
     '''
-    orders = db.execute(query).fetchall()
+    db.execute(query)
+    orders = db.fetchall()
     db.close()
     for o in orders:
         if isinstance(o['items'], str):
@@ -268,7 +273,8 @@ def add_review():
 @app.route('/api/reviews', methods=['GET'])
 def get_reviews():
     db = DB(get_db_connection())
-    reviews = db.execute('SELECT * FROM reviews ORDER BY date DESC').fetchall()
+    db.execute('SELECT * FROM reviews ORDER BY date DESC')
+    reviews = db.fetchall()
     db.close()
     return jsonify(reviews)
 
