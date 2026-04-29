@@ -129,6 +129,7 @@
         </div>
     </div>
 
+    <script src="../js/config.js"></script>
     <script src="../js/admin-service.js"></script>
     <script src="../js/ui.js"></script>
     <script>
@@ -159,14 +160,14 @@
                 tr.className = 'animate-fade-in';
                 tr.innerHTML = `
                     <td><input type="checkbox" class="order-checkbox" value="${o.id}" onclick="updateSelection()"></td>
-                    <td style="font-family: monospace; font-weight: 800; color: var(--color-foreground);">#${o.id.substring(0, 8)}</td>
+                <td style="font-family: monospace; font-weight: 800; color: var(--color-foreground);">#${(o.id || 'N/A').substring(0, 8)}</td>
                     <td style="color: var(--color-muted); font-size: 0.95rem;">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
                     <td>
                         <div style="font-weight: 800; color: var(--color-primary-dark);">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
                         <div style="font-size: 0.8rem; color: var(--color-muted);">${o.customer_phone || 'Pas de tel'}</div>
                     </td>
-                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-size: 0.8rem; text-transform: uppercase;">${o.method}</span></td>
-                    <td style="font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${o.total.toLocaleString()} XOF</td>
+                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-size: 0.8rem; text-transform: uppercase;">${o.method || 'CASH'}</span></td>
+                    <td style="font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(o.total || 0).toLocaleString()} XOF</td>
                     <td><span class="badge ${getStatusClass(o.status)}">${o.status}</span></td>
                     <td style="display: flex; gap: 8px;">
                         <button class="btn" style="padding: 10px 15px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; background: rgba(43, 89, 162, 0.05); color: var(--color-primary); border: none; cursor: pointer;" onclick="openOrderModal('${o.id}')">Détails</button>

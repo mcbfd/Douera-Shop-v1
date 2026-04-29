@@ -239,6 +239,7 @@
         </div>
     </div>
 
+    <script src="../js/config.js"></script>
     <script src="../js/admin-service.js"></script>
     <script src="../js/ui.js"></script>
     <script>
@@ -274,10 +275,14 @@
                     description: document.getElementById('p-description').value,
                     specs: document.getElementById('p-specs').value
                 };
-                await AdminService.saveProduct(product);
-                UI.showToast("Produit sauvegardé", "success");
-                closeModal();
-                await refreshData();
+                try {
+                    await AdminService.saveProduct(product);
+                    UI.showToast("Produit sauvegardé", "success");
+                    closeModal();
+                    await refreshData();
+                } catch (err) {
+                    UI.showToast(err.message, "error");
+                }
             };
 
             // Image local upload listener
@@ -347,19 +352,21 @@
                 if (p.stock === 0) stockClass = 'stock-critical';
                 else if (p.stock < 10) stockClass = 'stock-low';
 
+                const imgSrc = (p.image && (p.image.startsWith('data:') || p.image.startsWith('http'))) ? p.image : `../${p.image || 'assets/electronics_1.png'}`;
+
                 tr.innerHTML = `
                     <td>
                         <div style="background: rgba(43, 89, 162, 0.03); border-radius: 12px; padding: 6px; display: inline-block;">
-                            <img src="../${p.image || 'assets/electronics_1.png'}" class="product-img-preview" style="mix-blend-mode: multiply; border: none;">
+                            <img src="${imgSrc}" class="product-img-preview" style="mix-blend-mode: multiply; border: none;">
                         </div>
                     </td>
                     <td>
-                        <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${p.name}</div>
-                        <div style="font-size: 0.8rem; color: var(--color-muted); font-family: monospace;">ID: ${p.id}</div>
+                        <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${p.name || 'Produit sans nom'}</div>
+                        <div style="font-size: 0.8rem; color: var(--color-muted); font-family: monospace;">ID: ${p.id || 'N/A'}</div>
                     </td>
-                    <td><span class="badge" style="background: rgba(43, 89, 162, 0.05); color: var(--color-primary-dark); font-weight: 800;">${p.category}</span></td>
-                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${p.price.toLocaleString()} XOF</span></td>
-                    <td><span class="stock-badge ${stockClass}" style="font-family: 'Outfit', sans-serif;">${p.stock} Unité(s)</span></td>
+                    <td><span class="badge" style="background: rgba(43, 89, 162, 0.05); color: var(--color-primary-dark); font-weight: 800;">${p.category || 'Général'}</span></td>
+                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(p.price || 0).toLocaleString()} XOF</span></td>
+                    <td><span class="stock-badge ${stockClass}" style="font-family: 'Outfit', sans-serif;">${p.stock || 0} Unité(s)</span></td>
                     <td>
                         <div style="display: flex; gap: 12px;">
                             <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal('${p.id}')" onmouseover="this.style.background='var(--color-primary)'; this.style.color='white';" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='var(--color-primary)';"><i data-lucide="edit-3" style="width: 18px;"></i></button>

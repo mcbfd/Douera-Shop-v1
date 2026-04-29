@@ -149,11 +149,16 @@
         </a>
     </nav>
 
+    <script src="js/config.js"></script>
     <script src="js/auth-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Guard
-            if (!AuthService.isAuthenticated()) {
+            // Récupérer la référence éventuelle dans l'URL (ex: ?ref=TRX-123)
+            const params = new URLSearchParams(window.location.search);
+            const refParam = params.get('ref');
+
+            // Guard: On autorise si l'utilisateur est connecté OU si on a une référence précise
+            if (!AuthService.isAuthenticated() && !refParam) {
                 window.location.href = 'account/login.html';
                 return;
             }
@@ -161,7 +166,7 @@
             const container = document.getElementById('orders-list');
             const noOrders = document.getElementById('no-orders');
             const currentSession = AuthService.getCurrentUser();
-
+            
             let allOrders = [];
             const API_URL = API_BASE_URL;
             try {
@@ -171,11 +176,28 @@
                 console.error("Erreur chargement commandes:", err);
             }
 
-            // FILTRE : Uniquement les commandes de l'utilisateur connecté
-            const userOrders = allOrders.filter(o => o.userId === currentSession.userId);
+            // LOGIQUE DE FILTRAGE :
+            // 1. Si on a une REF dans l'URL, on cherche cette commande précise
+            // 2. Sinon, on affiche les commandes du compte connecté
+            let userOrders = [];
+            
+            if (refParam) {
+                userOrders = allOrders.filter(o => o.id === refParam);
+            } else if (currentSession) {
+                userOrders = allOrders.filter(o => o.userId === currentSession.userId);
+            } else {
+                // Pas de session et pas de REF -> Rediriger vers login
+                window.location.href = 'account/login.html';
+                return;
+            }
 
             if (userOrders.length === 0) {
                 noOrders.style.display = 'block';
+                // Si on cherchait une REF, on change le message
+                if (refParam) {
+                    noOrders.querySelector('h3').textContent = "Référence introuvable";
+                    noOrders.querySelector('p').textContent = `La commande ${refParam} n'existe pas ou n'est pas encore synchronisée.`;
+                }
                 return;
             }
 

@@ -130,6 +130,7 @@
         </div>
     </div>
 
+    <script src="../js/config.js"></script>
     <script src="../js/admin-service.js"></script>
     <script src="../js/ui.js"></script>
     <script>
@@ -163,10 +164,14 @@
                     address: document.getElementById('u-address').value,
                     phone: document.getElementById('u-phone').value
                 };
-                await AdminService.saveUser(user);
-                UI.showToast("Compte enregistré avec succès", "success");
-                closeModal();
-                await refreshData();
+                try {
+                    await AdminService.saveUser(user);
+                    UI.showToast("Compte enregistré avec succès", "success");
+                    closeModal();
+                    await refreshData();
+                } catch (err) {
+                    UI.showToast(err.message, "error");
+                }
             };
         });
 

@@ -131,6 +131,7 @@
         </main>
     </div>
 
+    <script src="../js/config.js"></script>
     <script src="../js/admin-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -143,10 +144,10 @@
             const stats = await AdminService.getStats();
 
             // UI Update
-            document.getElementById('stat-sales').textContent = stats.totalVentes.toLocaleString() + ' XOF';
-            document.getElementById('stat-orders').textContent = stats.nbCommandes;
-            document.getElementById('stat-clients').textContent = stats.nbClients;
-            document.getElementById('stat-rupture').textContent = stats.nbRupture;
+            document.getElementById('stat-sales').textContent = (stats.totalVentes || 0).toLocaleString() + ' XOF';
+            document.getElementById('stat-orders').textContent = stats.nbCommandes || 0;
+            document.getElementById('stat-clients').textContent = stats.nbClients || 0;
+            document.getElementById('stat-rupture').textContent = stats.nbRupture || 0;
 
             // Recent Orders
             const list = document.getElementById('recent-orders-list');
@@ -156,14 +157,14 @@
                 stats.recentOrders.forEach(o => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="font-family: monospace; font-weight: 700;">#${o.id.substring(0, 8)}</td>
+                        <td style="font-family: monospace; font-weight: 700;">#${(o.id || 'N/A').substring(0, 8)}</td>
                         <td style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
                         <td>
                             <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.9rem;">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
                             <div style="font-size: 0.75rem; color: var(--color-muted);">${o.customer_phone || 'N/A'}</div>
                         </td>
                         <td><span class="badge badge-paid">${o.status}</span></td>
-                        <td style="font-weight: 800; color: var(--color-primary);">${o.total.toLocaleString()} XOF</td>
+                        <td style="font-weight: 800; color: var(--color-primary);">${(o.total || 0).toLocaleString()} XOF</td>
                     `;
                     list.appendChild(tr);
                 });

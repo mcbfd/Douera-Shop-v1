@@ -260,6 +260,29 @@ def create_order():
         return jsonify({"success": True, "id": o_id})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route('/api/orders/<o_id>', methods=['PUT'])
+def update_order_status(o_id):
+    try:
+        data = request.json
+        status = data.get('status')
+        db = DB(get_db_connection())
+        db.execute('UPDATE orders SET status = ? WHERE id = ?', (status, o_id))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/orders/<o_id>', methods=['DELETE'])
+def delete_order(o_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('DELETE FROM orders WHERE id = ?', (o_id,))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # --- 4. Reviews API ---
 @app.route('/api/reviews', methods=['GET'])

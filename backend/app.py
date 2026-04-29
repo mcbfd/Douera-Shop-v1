@@ -180,33 +180,40 @@ def get_orders():
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():
-    data = request.json
-    items = json.dumps(data.get('items', []))
-    total = data.get('total', 0)
-    method = data.get('method', 'Espèces')
-    user_id = data.get('userId', 'guest')
-    o_id = 'ORD-' + str(int(time.time()))
-    date_str = data.get('date') or str(int(time.time() * 1000))
-    status = 'En attente'
-    
-    customer_firstname = data.get('customer_firstname')
-    customer_lastname = data.get('customer_lastname')
-    customer_address = data.get('customer_address')
-    customer_phone = data.get('customer_phone')
-    
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO orders (id, userId, date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (o_id, user_id, date_str, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone))
-    
-    # Also reduce stock
-    for item in data.get('items', []):
-        conn.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (item.get('quantity', 1), item.get('id')))
+    try:
+        data = request.json
+        items_json = json.dumps(data.get('items', []))
+        total = data.get('total', 0)
+        method = data.get('method', 'Espèces')
+        user_id = data.get('userId', 'guest')
         
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True, "id": o_id})
+        # Use provided ID if available (Wave/OM/TRX ref)
+        o_id = data.get('id')
+        if not o_id:
+            o_id = 'ORD-' + str(int(time.time()))
+            
+        date_str = data.get('date') or datetime.now().isoformat()
+        status = 'En attente'
+        
+        customer_firstname = data.get('customer_firstname')
+        customer_lastname = data.get('customer_lastname')
+        customer_address = data.get('customer_address')
+        customer_phone = data.get('customer_phone')
+        
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO orders (id, userId, date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (o_id, user_id, date_str, method, status, total, items_json, customer_firstname, customer_lastname, customer_address, customer_phone))
+        
+        for item in data.get('items', []):
+            conn.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (item.get('quantity', 1), item.get('id')))
+            
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "id": o_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/orders/<o_id>', methods=['PUT'])
 def update_order_status(o_id):

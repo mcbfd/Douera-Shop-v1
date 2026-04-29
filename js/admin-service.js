@@ -2,10 +2,6 @@
  * Douéra Shop - Admin Service Layer (REST API Integration)
  */
 
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-    ? 'http://127.0.0.1:5001/api' 
-    : '/api';
-
 const AdminService = {
     KEYS: {
         SESSION: 'douera_admin_session'
@@ -59,6 +55,12 @@ const AdminService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(product)
         });
+        
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Erreur lors de la sauvegarde du produit.");
+        }
+        
         await res.json();
         window.dispatchEvent(new CustomEvent('dataSynced', { detail: { type: 'products' } }));
     },
@@ -92,11 +94,16 @@ const AdminService = {
     },
     
     saveUser: async (user) => {
-        await fetch(`${API_BASE_URL}/users`, {
+        const res = await fetch(`${API_BASE_URL}/users`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(user)
         });
+
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Erreur lors de l'enregistrement de l'utilisateur.");
+        }
     },
 
     deleteUser: async (id) => {

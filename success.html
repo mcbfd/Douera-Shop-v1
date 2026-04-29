@@ -177,14 +177,21 @@
         </a>
     </nav>
 
+    <script src="js/config.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const ref = params.get('ref') || 'TRX-DEFAULT';
             document.getElementById('transaction-ref').textContent = ref;
 
+            // Mise à jour du lien "Suivre ma commande" avec la référence
+            const trackBtn = document.querySelector('a[href="orders.html"]');
+            if (trackBtn) {
+                trackBtn.href = `orders.html?ref=${ref}`;
+            }
+
             // Fetch delivery details
-            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            const API_URL = API_BASE_URL;
             try {
                 const res = await fetch(`${API_URL}/orders`);
                 if (res.ok) {
