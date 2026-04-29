@@ -233,8 +233,12 @@ def create_order():
         total = data.get('total', 0)
         method = data.get('method', 'Espèces')
         user_id = data.get('userId', 'guest')
-        o_id = 'ORD-' + str(int(time.time()))
-        date_str = data.get('date') or str(int(time.time() * 1000))
+        # Use provided ID if available (Wave/OM/TRX ref)
+        o_id = data.get('id')
+        if not o_id:
+            o_id = 'ORD-' + str(int(time.time()))
+            
+        date_str = data.get('date') or datetime.now().isoformat()
         status = 'En attente'
         
         customer_firstname = data.get('customer_firstname')
