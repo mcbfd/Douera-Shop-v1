@@ -22,11 +22,13 @@ except Exception as e:
 def health():
     try:
         db = DB(get_db_connection())
-        # Utilisation de list().pop() pour être indépendant du nom de la colonne
-        u_row = db.execute('SELECT count(*) FROM users').fetchone()
+        # Utilisation de la méthode fetchone de la classe DB pour la conversion automatique
+        db.execute('SELECT count(*) FROM users')
+        u_row = db.fetchone()
         u_count = list(u_row.values())[0] if u_row else 0
         
-        p_row = db.execute('SELECT count(*) FROM products').fetchone()
+        db.execute('SELECT count(*) FROM products')
+        p_row = db.fetchone()
         p_count = list(p_row.values())[0] if p_row else 0
         
         db.close()
@@ -37,7 +39,7 @@ def health():
             "products": p_count
         })
     except Exception as e:
-        return jsonify({"status": "error", "error": str(e)})
+        return jsonify({"status": "error", "error": str(e), "trace": traceback.format_exc()})
 
 # --- 1. Products API ---
 @app.route('/api/products', methods=['GET'])
