@@ -7,15 +7,16 @@ from flask_cors import CORS
 import traceback
 from .db import get_db_connection, init_db, DB
 
+import sys
+
 app = Flask(__name__)
 CORS(app)
 
 # --- Ensure DB Initialized ---
-# On tente une init légère au démarrage
 try:
     init_db()
 except Exception as e:
-    print(f"Init DB Error: {e}")
+    sys.stderr.write(f"Init DB Error: {e}\n")
     traceback.print_exc()
 
 @app.route('/api/health')

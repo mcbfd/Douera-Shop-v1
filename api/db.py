@@ -2,6 +2,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import sqlite3
+import sys
 
 # Supabase Connection String (priorité à la variable d'environnement)
 DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
@@ -12,7 +13,7 @@ def get_db_connection():
             conn = psycopg2.connect(DATABASE_URL)
             return conn
         except Exception as e:
-            print(f"Postgres Connection Error: {e}")
+            sys.stderr.write(f"Postgres Connection Error: {e}\n")
             # Fallback to sqlite if postgres fails
             return get_sqlite_connection()
     else:
