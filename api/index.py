@@ -17,15 +17,39 @@ except Exception as e:
 
 @app.route('/api/health')
 def health():
-    return jsonify({"status": "ok", "db": "postgres" if DATABASE_URL else "sqlite"})
+    try:
+        db = DB(get_db_connection())
+        u_count = db.execute('SELECT count(*) FROM users').fetchone()['count']
+        p_count = db.execute('SELECT count(*) FROM products').fetchone()['count']
+        db.close()
+        return jsonify({
+            "status": "ok", 
+            "db": "postgres", 
+            "users": u_count, 
+            "products": p_count,
+            "msg": "Si users=0, rafraîchissez pour forcer l'init"
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)})
 
 # --- 1. Products API ---
 @app.route('/api/products', methods=['GET'])
 def get_products():
-    db = DB(get_db_connection())
-    products = db.execute('SELECT * FROM products').fetchall()
-    db.close()
-    return jsonify(products)
+    try:
+        db = DB(get_db_connection())
+        products = db.execute('SELECT * FROM products').fetchall()
+        
+        # Auto-init if empty
+        if len(products) == 0:
+            db.close()
+            init_db()
+            db = DB(get_db_connection())
+            products = db.execute('SELECT * FROM products').fetchall()
+            
+        db.close()
+        return jsonify(products)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/products', methods=['POST'])
 def save_product():
