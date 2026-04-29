@@ -2,7 +2,7 @@
  * Douéra Shop - Client Auth Service (REST API)
  */
 
-const API_BASE_URL = 'https://douerashop.vercel.app/api';
+const API_BASE_URL = '/api';
 
 const AuthService = {
     KEYS: {

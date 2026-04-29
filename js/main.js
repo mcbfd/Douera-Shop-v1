@@ -2,7 +2,8 @@
  * Douéra Shop - Main App Controller v4.0 (Excellence)
  */
 
-const API_BASE_URL = '/api';
+// API_BASE_URL is defined in auth-service.js
+
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENTS ---
