@@ -43,6 +43,7 @@ def health():
 
 # --- 1. Products API ---
 @app.route('/api/products', methods=['GET'])
+@app.route('/products', methods=['GET'])
 def get_products():
     try:
         db = DB(get_db_connection())
