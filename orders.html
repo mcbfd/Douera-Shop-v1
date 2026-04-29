@@ -163,9 +163,7 @@
             const currentSession = AuthService.getCurrentUser();
 
             let allOrders = [];
-            const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-                ? 'http://127.0.0.1:5001/api' 
-                : '/api';
+            const API_URL = API_BASE_URL;
             try {
                 const res = await fetch(`${API_URL}/orders`);
                 if (res.ok) allOrders = await res.json();
