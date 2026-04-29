@@ -9,29 +9,31 @@ const Payment = {
     },
 
     processMobileMoney: async (method, phone) => {
-        console.log(`Initialisation paiement ${method} pour ${phone}...`);
+        const providerName = method === 'orange' ? 'Orange Money' : 'Wave';
+        UI.showToast(`Initialisation du paiement ${providerName}...`, "info");
         
-        // Simulation réseau
-        await Payment.delay(1000);
+        await Payment.delay(1500);
 
-        // Notification de simulation
-        UI.showToast(`Notification de paiement envoyée sur votre téléphone (${method})...`, "info");
-        
-        // Temps de validation utilisateur simulé
-        await Payment.delay(3000); 
-        
+        if (method === 'wave') {
+            UI.showToast("Redirection vers votre application Wave Sénégal...", "success");
+            // Simulation d'ouverture d'app (Deep Link)
+            await Payment.delay(2000);
+        } else {
+            UI.showToast("Veuillez composer le #144#77# pour recevoir votre code de validation Orange Money.", "info");
+            await Payment.delay(4000);
+        }
+
         return Payment.generateTransactionRef();
     },
 
     processCard: async (cardDetails) => {
-        console.log("Validation de la carte...");
+        UI.showToast("Communication sécurisée avec la banque (Visa/Mastercard)...", "info");
         
-        // Basic frontend validation simulation
-        if (cardDetails.number.length < 16) {
-            throw new Error("Numéro de carte invalide.");
+        if (cardDetails.number.replace(/\s/g, '').length < 16) {
+            throw new Error("Numéro de carte invalide. Veuillez vérifier les 16 chiffres.");
         }
 
-        await Payment.delay(3000); // Bank verification
+        await Payment.delay(4000); // Bank 3D Secure
         return Payment.generateTransactionRef();
     }
 };
