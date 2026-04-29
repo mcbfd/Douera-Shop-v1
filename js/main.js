@@ -2,6 +2,10 @@
  * Douéra Shop - Main App Controller v4.0 (Excellence)
  */
 
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+    ? 'http://127.0.0.1:5001/api' 
+    : '/api';
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENTS ---
     const productGrid = document.getElementById('productGrid');
@@ -38,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? 'http://127.0.0.1:5001/api' 
             : '/api';
         try {
-            const res = await fetch(`${API_URL}/products`);
+            const res = await fetch(`${API_BASE_URL}/products`);
             if (res.ok) {
                 allProducts = await res.json();
             } else {
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('dataSynced', async () => { 
             const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
             try {
-                const res = await fetch(`${API_URL}/products`);
+                const res = await fetch(`${API_BASE_URL}/products`);
                 if (res.ok) allProducts = await res.json();
             } catch(e) {}
             renderAppProducts(); 
@@ -152,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             try {
                 const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
-                const res = await fetch(`${API_URL}/orders`);
+                const res = await fetch(`${API_BASE_URL}/orders`);
                 if (res.ok) {
                     const orders = await res.json();
                     const userOrders = orders.filter(o => o.userId === user.userId);
@@ -563,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let allReviews = [];
         try {
-            const res = await fetch(`${API_URL}/reviews`);
+            const res = await fetch(`${API_BASE_URL}/reviews`);
             if (res.ok) {
                 const data = await res.json();
                 allReviews = data.filter(r => r.productId === product.id);
