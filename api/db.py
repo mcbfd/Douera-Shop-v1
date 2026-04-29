@@ -4,7 +4,8 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 
 # Supabase Connection String (priorité à la variable d'environnement)
-DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres"
+# Ajout de ?sslmode=require pour assurer la compatibilité
+DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
 
 def get_db_connection():
     if DATABASE_URL:

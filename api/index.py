@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from db import get_db_connection, init_db, DB
+from .db import get_db_connection, init_db, DB
 
 app = Flask(__name__)
 CORS(app)
