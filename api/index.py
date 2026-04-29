@@ -50,14 +50,16 @@ def health():
 def get_products():
     try:
         db = DB(get_db_connection())
-        products = db.execute('SELECT * FROM products').fetchall()
+        db.execute('SELECT * FROM products')
+        products = db.fetchall()
         
         # Auto-init if empty
         if len(products) == 0:
             db.close()
             init_db()
             db = DB(get_db_connection())
-            products = db.execute('SELECT * FROM products').fetchall()
+            db.execute('SELECT * FROM products')
+            products = db.fetchall()
             
         db.close()
         return jsonify(products)
