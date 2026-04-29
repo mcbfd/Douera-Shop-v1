@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (saveDefault && saveDefault.checked && user) {
                     const address = document.getElementById('address').value;
                     const phone = document.getElementById('delivery-phone').value;
-                    const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+                    const API_URL = API_BASE_URL;
                     
                     await fetch(`${API_URL}/users/${user.userId}/profile`, {
                         method: 'PATCH',
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
             customer_phone: document.getElementById('delivery-phone').value
         };
         
-        const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+        const API_URL = API_BASE_URL;
         await fetch(`${API_URL}/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
