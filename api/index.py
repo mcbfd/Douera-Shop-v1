@@ -19,15 +19,19 @@ except Exception as e:
 def health():
     try:
         db = DB(get_db_connection())
-        u_count = db.execute('SELECT count(*) FROM users').fetchone()['count']
-        p_count = db.execute('SELECT count(*) FROM products').fetchone()['count']
+        # Utilisation de list().pop() pour être indépendant du nom de la colonne
+        u_row = db.execute('SELECT count(*) FROM users').fetchone()
+        u_count = list(u_row.values())[0] if u_row else 0
+        
+        p_row = db.execute('SELECT count(*) FROM products').fetchone()
+        p_count = list(p_row.values())[0] if p_row else 0
+        
         db.close()
         return jsonify({
             "status": "ok", 
             "db": "postgres", 
             "users": u_count, 
-            "products": p_count,
-            "msg": "Si users=0, rafraîchissez pour forcer l'init"
+            "products": p_count
         })
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)})
