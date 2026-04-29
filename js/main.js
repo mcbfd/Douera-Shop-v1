@@ -34,7 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         // Load Data from Backend API
-        const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+            ? 'http://127.0.0.1:5001/api' 
+            : '/api';
         try {
             const res = await fetch(`${API_URL}/products`);
             if (res.ok) {
@@ -555,7 +557,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('qv-reviews-list');
         if (!container) return;
 
-        const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+            ? 'http://127.0.0.1:5001/api' 
+            : '/api';
         
         let allReviews = [];
         try {

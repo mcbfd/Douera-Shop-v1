@@ -2,7 +2,9 @@
  * Douéra Shop - Client Auth Service (REST API)
  */
 
-const API_BASE_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+    ? 'http://127.0.0.1:5001/api' 
+    : '/api';
 
 const AuthService = {
     KEYS: {

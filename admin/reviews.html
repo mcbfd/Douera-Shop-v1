@@ -86,7 +86,9 @@
             if (!AdminService.checkAuth()) return;
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
 
-            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+                ? 'http://127.0.0.1:5001/api' 
+                : '/api';
             
             try {
                 const res = await fetch(`${API_URL}/reviews`);
