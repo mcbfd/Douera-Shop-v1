@@ -4,16 +4,19 @@ import time
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import traceback
 from .db import get_db_connection, init_db, DB
 
 app = Flask(__name__)
 CORS(app)
 
 # --- Ensure DB Initialized ---
+# On tente une init légère au démarrage
 try:
     init_db()
 except Exception as e:
     print(f"Init DB Error: {e}")
+    traceback.print_exc()
 
 @app.route('/api/health')
 def health():
