@@ -1,21 +1,42 @@
-import sqlite3
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import sqlite3
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'douera.db')
+# Supabase Connection String (priorité à la variable d'environnement)
+DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres"
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    if DATABASE_URL:
+        try:
+            conn = psycopg2.connect(DATABASE_URL)
+            return conn
+        except Exception as e:
+            print(f"Postgres Connection Error: {e}")
+            # Fallback to sqlite if postgres fails
+            return get_sqlite_connection()
+    else:
+        return get_sqlite_connection()
+
+def get_sqlite_connection():
+    db_path = os.path.join(os.path.dirname(__file__), 'douera.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
     conn = get_db_connection()
-    c = conn.cursor()
+    cur = conn.cursor()
 
+    # Determine if we are on Postgres or SQLite
+    is_postgres = hasattr(conn, 'tpc_begin') # Simple check for psycopg2 connection
+    
+    id_type = "TEXT PRIMARY KEY"
+    
     # Users Table
-    c.execute('''
+    cur.execute(f'''
         CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
+            id {id_type},
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             name TEXT NOT NULL,
@@ -27,9 +48,9 @@ def init_db():
     ''')
 
     # Products Table
-    c.execute('''
+    cur.execute(f'''
         CREATE TABLE IF NOT EXISTS products (
-            id TEXT PRIMARY KEY,
+            id {id_type},
             name TEXT NOT NULL,
             price INTEGER NOT NULL,
             category TEXT NOT NULL,
@@ -41,9 +62,9 @@ def init_db():
     ''')
 
     # Orders Table
-    c.execute('''
+    cur.execute(f'''
         CREATE TABLE IF NOT EXISTS orders (
-            id TEXT PRIMARY KEY,
+            id {id_type},
             userId TEXT,
             date TEXT NOT NULL,
             method TEXT NOT NULL,
@@ -58,9 +79,9 @@ def init_db():
     ''')
 
     # Reviews Table
-    c.execute('''
+    cur.execute(f'''
         CREATE TABLE IF NOT EXISTS reviews (
-            id TEXT PRIMARY KEY,
+            id {id_type},
             orderId TEXT NOT NULL,
             productId TEXT,
             userId TEXT NOT NULL,
@@ -69,46 +90,85 @@ def init_db():
             rating_service INTEGER NOT NULL,
             comment TEXT,
             admin_reply TEXT,
-            date TEXT NOT NULL,
-            FOREIGN KEY (orderId) REFERENCES orders(id),
-            FOREIGN KEY (userId) REFERENCES users(id)
+            date TEXT NOT NULL
         )
     ''')
 
     # Insert default Super Admin if not exists
-    c.execute('SELECT count(*) FROM users')
-    if c.fetchone()[0] == 0:
-        c.execute('''
+    cur.execute('SELECT count(*) FROM users')
+    count = cur.fetchone()[0]
+    if count == 0:
+        cur.execute('''
+            INSERT INTO users (id, email, password, name, role, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''' if is_postgres else '''
             INSERT INTO users (id, email, password, name, role, status)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', ('u1', 'admin@douerashop.sn', 'admin123', 'Super Admin', 'super_admin', 'active'))
         
-        c.execute('''
+        cur.execute('''
+            INSERT INTO users (id, email, password, name, role, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''' if is_postgres else '''
             INSERT INTO users (id, email, password, name, role, status)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', ('u2', 'demo@douerashop.sn', 'password123', 'Admin Démo', 'admin', 'active'))
 
     # Insert default Products if not exists
-    c.execute('SELECT count(*) FROM products')
-    if c.fetchone()[0] == 0:
+    cur.execute('SELECT count(*) FROM products')
+    count = cur.fetchone()[0]
+    if count == 0:
         default_products = [
             ('p1', 'iPhone 11 Pro 64Go', 280000, 'Téléphone', 'assets/electronics_1.png', 5, 'Un produit d\'exception.'),
-            ('p2', 'iPhone XR 128Go', 175000, 'Téléphone', 'assets/electronics_1.png', 8, 'Un produit d\'exception.'),
-            ('p3', 'iPhone XR 64Go', 150000, 'Téléphone', 'assets/electronics_1.png', 12, 'Un produit d\'exception.'),
-            ('p4', 'iPhone 11 Simple', 220000, 'Téléphone', 'assets/electronics_2.png', 6, 'Un produit d\'exception.'),
-            ('p5', 'Bracelets Luxe', 5000, 'Mode', 'assets/fashion_1.png', 25, 'Un produit d\'exception.'),
-            ('p6', 'Colliers Élégance', 12000, 'Luxe', 'assets/fashion_1.png', 15, 'Un produit d\'exception.'),
-            ('p7', 'Gants pour sport Pro', 7500, 'Sport', 'assets/electronics_2.png', 20, 'Un produit d\'exception.'),
-            ('p8', 'Chaussure de Sport Nike', 35000, 'Sport', 'assets/fashion_1.png', 10, 'Un produit d\'exception.')
+            ('p2', 'iPhone XR 128Go', 175000, 'Téléphone', 'assets/Iphone XR.jpg', 8, 'Un produit d\'exception.'),
+            ('p3', 'iPhone XR 64Go', 150000, 'Téléphone', 'assets/Iphone XR.jpeg', 12, 'Un produit d\'exception.'),
+            ('p4', 'iPhone 11 Simple', 220000, 'Téléphone', 'assets/iPhone11_Visuel1-DM.webp', 6, 'Un produit d\'exception.'),
+            ('p5', 'Bracelets Luxe', 5000, 'Mode', 'assets/Bracelet.webp', 25, 'Un produit d\'exception.'),
+            ('p6', 'Colliers Élégance', 12000, 'Luxe', 'assets/Colier.webp', 15, 'Un produit d\'exception.'),
+            ('p7', 'Gants pour sport Pro', 7500, 'Sport', 'assets/Gantdesporthomme_1.webp', 20, 'Un produit d\'exception.'),
+            ('p8', 'Chaussure de Sport Nike', 35000, 'Sport', 'assets/Chaussure nike.jpg', 10, 'Un produit d\'exception.')
         ]
-        c.executemany('''
-            INSERT INTO products (id, name, price, category, image, stock, description)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', default_products)
+        placeholder = "(%s, %s, %s, %s, %s, %s, %s)" if is_postgres else "(?, ?, ?, ?, ?, ?, ?)"
+        for p in default_products:
+            cur.execute(f'''
+                INSERT INTO products (id, name, price, category, image, stock, description)
+                VALUES {placeholder}
+            ''', p)
 
     conn.commit()
+    cur.close()
     conn.close()
-    print("Database initialized successfully.")
+class DB:
+    def __init__(self, conn):
+        self.conn = conn
+        self.is_postgres = hasattr(conn, 'tpc_begin')
+        self.cur = conn.cursor(cursor_factory=RealDictCursor) if self.is_postgres else conn.cursor()
 
-if __name__ == '__main__':
-    init_db()
+    def execute(self, query, params=None):
+        if self.is_postgres:
+            query = query.replace('?', '%s')
+        if params:
+            self.cur.execute(query, params)
+        else:
+            self.cur.execute(query)
+        return self.cur
+
+    def fetchall(self):
+        rows = self.cur.fetchall()
+        if self.is_postgres:
+            return rows
+        return [dict(r) for r in rows]
+
+    def fetchone(self):
+        row = self.cur.fetchone()
+        if not row: return None
+        if self.is_postgres:
+            return row
+        return dict(row)
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.cur.close()
+        self.conn.close()
