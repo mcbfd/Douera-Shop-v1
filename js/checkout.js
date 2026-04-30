@@ -137,6 +137,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cart = Cart.getItems();
                 if (cart.length === 0) throw new Error("Votre panier est vide.");
 
+                // DEEP UPDATE: Pre-payment stock verification
+                const serverProducts = await (await fetch(`${API_BASE_URL}/products`)).json();
+                for (const item of cart) {
+                    const serverProd = serverProducts.find(p => p.id === item.id);
+                    if (!serverProd || serverProd.stock < item.quantity) {
+                        throw new Error(`Désolé, le stock pour "${item.name}" n'est plus suffisant (${serverProd ? serverProd.stock : 0} restant).`);
+                    }
+                }
+
                 let trxRef = null;
 
                 if (selectedMethod === 'orange' || selectedMethod === 'wave') {

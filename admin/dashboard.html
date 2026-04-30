@@ -43,7 +43,7 @@
             <header class="admin-header">
                 <div>
                     <h1 style="font-size: 2rem;">Bonjour, <span id="admin-name">Admin</span></h1>
-                    <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique aujourd'hui.</p>
+                    <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique. <span id="sync-status" style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 4px 10px; border-radius: 20px; font-weight: 800; margin-left: 10px; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #31C48D; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span> SYNCHRONISÉ</span></p>
                 </div>
                 <div style="display: flex; gap: 16px;">
                     <button class="btn btn-outline" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; color: var(--color-primary-dark); border: 2px solid rgba(43, 89, 162, 0.2);"><i data-lucide="download"></i> Exporter Rapport</button>
@@ -141,59 +141,75 @@
             document.getElementById('admin-name').textContent = session.name;
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
 
-            const stats = await AdminService.getStats();
+            const refreshAll = async () => {
+                const statusDot = document.querySelector('#sync-status span');
+                if(statusDot) statusDot.style.background = '#FACA15'; // Yellow during sync
+                
+                const stats = await AdminService.getStats();
+                
+                // UI Update
+                document.getElementById('stat-sales').textContent = (stats.totalVentes || 0).toLocaleString() + ' XOF';
+                document.getElementById('stat-orders').textContent = stats.nbCommandes || 0;
+                document.getElementById('stat-clients').textContent = stats.nbClients || 0;
+                document.getElementById('stat-rupture').textContent = stats.nbRupture || 0;
 
-            // UI Update
-            document.getElementById('stat-sales').textContent = (stats.totalVentes || 0).toLocaleString() + ' XOF';
-            document.getElementById('stat-orders').textContent = stats.nbCommandes || 0;
-            document.getElementById('stat-clients').textContent = stats.nbClients || 0;
-            document.getElementById('stat-rupture').textContent = stats.nbRupture || 0;
+                // Recent Orders
+                const list = document.getElementById('recent-orders-list');
+                list.innerHTML = '';
+                if (stats.recentOrders.length === 0) {
+                    list.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-muted);">Aucune commande pour le moment.</td></tr>';
+                } else {
+                    stats.recentOrders.forEach(o => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="font-family: monospace; font-weight: 700;">#${(o.id || 'N/A').substring(0, 8)}</td>
+                            <td style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
+                            <td>
+                                <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.9rem;">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
+                                <div style="font-size: 0.75rem; color: var(--color-muted);">${o.customer_phone || 'N/A'}</div>
+                            </td>
+                            <td><span class="badge badge-paid">${o.status}</span></td>
+                            <td style="font-weight: 800; color: var(--color-primary);">${(o.total || 0).toLocaleString()} XOF</td>
+                        `;
+                        list.appendChild(tr);
+                    });
+                }
 
-            // Recent Orders
-            const list = document.getElementById('recent-orders-list');
-            if (stats.recentOrders.length === 0) {
-                list.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-muted);">Aucune commande pour le moment.</td></tr>';
-            } else {
-                stats.recentOrders.forEach(o => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-family: monospace; font-weight: 700;">#${(o.id || 'N/A').substring(0, 8)}</td>
-                        <td style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
-                        <td>
-                            <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.9rem;">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
-                            <div style="font-size: 0.75rem; color: var(--color-muted);">${o.customer_phone || 'N/A'}</div>
-                        </td>
-                        <td><span class="badge badge-paid">${o.status}</span></td>
-                        <td style="font-weight: 800; color: var(--color-primary);">${(o.total || 0).toLocaleString()} XOF</td>
-                    `;
-                    list.appendChild(tr);
-                });
-            }
-
-            // Top Products
-            const topList = document.getElementById('top-products-list');
-            topList.innerHTML = '';
-            stats.popularProducts.forEach((p, idx) => {
-                const card = document.createElement('div');
-                card.style.cssText = `display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(43, 89, 162, 0.03); border-radius: 16px; border: 1px solid rgba(43, 89, 162, 0.05);`;
-                card.innerHTML = `
-                    <div style="position: relative;">
-                        <img src="../${p.image || 'assets/electronics_1.png'}" style="width: 70px; height: 70px; border-radius: 12px; object-fit: cover;">
-                        <div style="position: absolute; top: -10px; left: -10px; width: 30px; height: 30px; background: ${idx === 0 ? '#FFD700' : idx === 1 ? '#C0C0C0' : '#CD7F32'}; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; border: 3px solid white; box-shadow: var(--shadow-sm);">${idx + 1}</div>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 800; color: var(--color-primary-dark); margin-bottom: 4px;">${p.name}</div>
-                        <div style="display: flex; align-items: center; gap: 6px; color: var(--color-muted); font-size: 0.9rem;">
-                            <i data-lucide="trending-up" style="width: 14px; color: #10B981;"></i>
-                            <strong>${p.sales} ventes</strong>
+                // Top Products
+                const topList = document.getElementById('top-products-list');
+                topList.innerHTML = '';
+                stats.popularProducts.forEach((p, idx) => {
+                    const card = document.createElement('div');
+                    card.style.cssText = `display: flex; align-items: center; gap: 20px; padding: 20px; background: rgba(43, 89, 162, 0.03); border-radius: 16px; border: 1px solid rgba(43, 89, 162, 0.05);`;
+                    card.innerHTML = `
+                        <div style="position: relative;">
+                            <div style="width: 60px; height: 60px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid var(--color-border);">
+                                <img src="../${p.image || 'assets/electronics_1.png'}" style="width: 100%; height: 100%; object-fit: contain;">
+                            </div>
+                            <div style="position: absolute; -top: 10px; -left: 10px; width: 24px; height: 24px; background: var(--color-primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; border: 3px solid white;">${idx + 1}</div>
                         </div>
-                    </div>
-                    <div style="font-weight: 800; color: var(--color-primary); font-size: 1.1rem;">
-                        ${(p.price || 0).toLocaleString()} XOF
-                    </div>
-                `;
-                topList.appendChild(card);
-            });
+                        <div style="flex: 1;">
+                            <div style="font-weight: 800; font-size: 1.1rem; color: var(--color-primary-dark);">${p.name || 'Produit'}</div>
+                            <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
+                                <span style="font-size: 0.85rem; color: var(--color-muted); font-weight: 600;"><i data-lucide="trending-up" style="width: 14px; display: inline; vertical-align: middle;"></i> ${p.sales || 0} ventes</span>
+                                <span class="badge ${p.stock > 5 ? 'badge-paid' : 'badge-pending'}" style="font-size: 0.7rem;">${p.stock || 0} en stock</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 900; font-size: 1.1rem; color: var(--color-primary);">${(p.price || 0).toLocaleString()} <span style="font-size: 0.7rem;">XOF</span></div>
+                        </div>
+                    `;
+                    topList.appendChild(card);
+                });
+                if (window.lucide) lucide.createIcons();
+                if(statusDot) statusDot.style.background = '#31C48D'; // Back to green
+            };
+
+            // Initial call + Polling
+            AdminService.startAutoRefresh(refreshAll, 60000); // 60s for dashboard stats
+
+
+
 
             // Charts
             initCharts(stats);

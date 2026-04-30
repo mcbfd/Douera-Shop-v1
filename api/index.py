@@ -264,9 +264,28 @@ def create_order():
 def update_order_status(o_id):
     try:
         data = request.json
-        status = data.get('status')
+        new_status = data.get('status')
         db = DB(get_db_connection())
-        db.execute('UPDATE orders SET status = ? WHERE id = ?', (status, o_id))
+        
+        # Get current status to see if we need to adjust stock
+        db.execute('SELECT status, items FROM orders WHERE id = ?', (o_id,))
+        order = db.fetchone()
+        
+        if order:
+            old_status = order['status']
+            # If cancelling an active order, return items to stock
+            if new_status == 'Annulée' and old_status != 'Annulée':
+                items = json.loads(order['items']) if isinstance(order['items'], str) else order['items']
+                for item in items:
+                    db.execute('UPDATE products SET stock = stock + ? WHERE id = ?', (item.get('quantity', 1), item.get('id')))
+            
+            # If restoring a cancelled order, reduce stock
+            elif old_status == 'Annulée' and new_status != 'Annulée':
+                items = json.loads(order['items']) if isinstance(order['items'], str) else order['items']
+                for item in items:
+                    db.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (item.get('quantity', 1), item.get('id')))
+
+        db.execute('UPDATE orders SET status = ? WHERE id = ?', (new_status, o_id))
         db.commit()
         db.close()
         return jsonify({"success": True})

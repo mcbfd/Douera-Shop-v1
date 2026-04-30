@@ -145,6 +145,13 @@ const AdminService = {
             recentOrders: orders.slice(0, 5),
             popularProducts 
         };
+    },
+    
+    // 7. Automation & Sync
+    startAutoRefresh: (callback, interval = 30000) => {
+        // Exécute le callback immédiatement puis toutes les N ms
+        callback();
+        return setInterval(callback, interval);
     }
 };
 
