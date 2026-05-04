@@ -252,13 +252,15 @@
                 document.getElementById('u-email').value = u.email;
                 document.getElementById('u-role').value = u.role;
                 document.getElementById('u-status').value = u.status;
-                document.getElementById('u-password').value = u.password;
+                document.getElementById('u-password').value = ''; // Laisser vide pour ne pas changer
+                document.getElementById('u-password').placeholder = 'Laisser vide pour ne pas changer';
                 document.getElementById('u-address').value = u.address || '';
                 document.getElementById('u-phone').value = u.phone || '';
                 document.getElementById('modalTitle').textContent = "Modifier l'utilisateur";
                 document.getElementById('u-password').required = false;
             } else {
                 document.getElementById('u-role').value = defaultRole;
+                document.getElementById('u-password').placeholder = 'Entrez un mot de passe';
                 document.getElementById('modalTitle').textContent = defaultRole === 'admin' ? "Nouvel Administrateur" : "Nouveau Client";
             }
 

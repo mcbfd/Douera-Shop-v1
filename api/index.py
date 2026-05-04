@@ -173,16 +173,33 @@ def save_user():
         phone = data.get('phone')
         
         db = DB(get_db_connection())
+        
+        # Vérifier si l'email existe déjà pour un nouvel utilisateur
+        if not u_id:
+            db.execute('SELECT id FROM users WHERE email = ?', (email,))
+            if db.fetchone():
+                db.close()
+                return jsonify({"error": "Cet email est déjà utilisé par un autre compte."}), 400
+
         if u_id:
-            db.execute('''
-                UPDATE users SET email=?, password=?, name=?, role=?, status=?, address=?, phone=? WHERE id=?
-            ''', (email, password, name, role, status, address, phone, u_id))
+            # Update user logic
+            if password and password != '********': # '********' is a placeholder we might use
+                db.execute('''
+                    UPDATE users SET email=?, password=?, name=?, role=?, status=?, address=?, phone=? WHERE id=?
+                ''', (email, password, name, role, status, address, phone, u_id))
+            else:
+                db.execute('''
+                    UPDATE users SET email=?, name=?, role=?, status=?, address=?, phone=? WHERE id=?
+                ''', (email, name, role, status, address, phone, u_id))
         else:
+            # Create user logic
             u_id = 'u' + str(int(time.time() * 1000))
+            # Use provided password or default
+            final_pass = password if password else 'douera123'
             db.execute('''
                 INSERT INTO users (id, email, password, name, role, status, address, phone)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (u_id, email, password, name, role, status, address, phone))
+            ''', (u_id, email, final_pass, name, role, status, address, phone))
             
         db.commit()
         db.close()

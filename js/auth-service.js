@@ -41,7 +41,8 @@ const AuthService = {
         });
 
         if (!response.ok) {
-            throw new Error("Erreur lors de l'inscription.");
+            const data = await response.json();
+            throw new Error(data.error || "Erreur lors de l'inscription.");
         }
 
         // Auto-login after register
