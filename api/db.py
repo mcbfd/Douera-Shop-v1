@@ -20,7 +20,12 @@ def get_db_connection():
         return get_sqlite_connection()
 
 def get_sqlite_connection():
-    db_path = os.path.join(os.path.dirname(__file__), 'douera.db')
+    # Sur Vercel, le système de fichiers est en lecture seule sauf /tmp
+    if os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'):
+        db_path = '/tmp/douera.db'
+    else:
+        db_path = os.path.join(os.path.dirname(__file__), 'douera.db')
+        
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn

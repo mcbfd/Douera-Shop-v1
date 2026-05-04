@@ -24,24 +24,20 @@ except Exception as e:
 @app.route('/api/health')
 def health():
     try:
-        db = DB(get_db_connection())
+        conn = get_db_connection()
+        is_postgres = hasattr(conn, 'tpc_begin')
+        db = DB(conn)
         db.execute('SELECT count(*) FROM users')
-        u_row = db.fetchone()
-        u_count = list(u_row.values())[0] if u_row else 0
-        
-        db.execute('SELECT count(*) FROM products')
-        p_row = db.fetchone()
-        p_count = list(p_row.values())[0] if p_row else 0
-        
+        u_count = list(db.fetchone().values())[0]
         db.close()
         return jsonify({
             "status": "ok", 
-            "db": "postgres", 
-            "users": u_count, 
-            "products": p_count
+            "db_type": "postgres" if is_postgres else "sqlite", 
+            "vercel": bool(os.environ.get('VERCEL')),
+            "users": u_count
         })
     except Exception as e:
-        return jsonify({"status": "error", "error": str(e), "trace": traceback.format_exc()})
+        return jsonify({"status": "error", "message": str(e), "trace": traceback.format_exc()}), 500
 
 # --- 1. Products API ---
 @app.route('/api/products', methods=['GET'])
