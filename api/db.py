@@ -8,9 +8,17 @@ import sys
 DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
 
 def get_db_connection():
-    if DATABASE_URL:
+    # Détection de psycopg2
+    try:
+        import psycopg2
+        has_psycopg2 = True
+    except ImportError:
+        has_psycopg2 = False
+        sys.stderr.write("Critical: psycopg2 not found. Database will NOT be persistent on Vercel.\n")
+
+    if DATABASE_URL and has_psycopg2:
         try:
-            conn = psycopg2.connect(DATABASE_URL)
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=5)
             return conn
         except Exception as e:
             sys.stderr.write(f"Postgres Connection Error: {e}\n")

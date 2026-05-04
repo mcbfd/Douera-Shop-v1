@@ -24,6 +24,13 @@ except Exception as e:
 @app.route('/api/health')
 def health():
     try:
+        # Check for psycopg2
+        try:
+            import psycopg2
+            psycopg2_installed = True
+        except ImportError:
+            psycopg2_installed = False
+
         conn = get_db_connection()
         is_postgres = hasattr(conn, 'tpc_begin')
         db = DB(conn)
@@ -33,6 +40,7 @@ def health():
         return jsonify({
             "status": "ok", 
             "db_type": "postgres" if is_postgres else "sqlite", 
+            "psycopg2": psycopg2_installed,
             "vercel": bool(os.environ.get('VERCEL')),
             "users": u_count
         })
