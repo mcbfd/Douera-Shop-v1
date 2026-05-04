@@ -16,15 +16,20 @@ def get_db_connection():
         has_psycopg2 = False
         sys.stderr.write("Critical: psycopg2 not found. Database will NOT be persistent on Vercel.\n")
 
+    is_vercel = os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')
+
     if DATABASE_URL and has_psycopg2:
         try:
-            conn = psycopg2.connect(DATABASE_URL, connect_timeout=5)
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
             return conn
         except Exception as e:
             sys.stderr.write(f"Postgres Connection Error: {e}\n")
-            # Fallback to sqlite if postgres fails
+            if is_vercel:
+                raise Exception(f"DATABASE CONNECTION FAILURE: {e}. Please check your DATABASE_URL on Vercel.")
             return get_sqlite_connection()
     else:
+        if is_vercel:
+            raise Exception("DATABASE_URL or psycopg2 missing on Vercel. Persistence is impossible.")
         return get_sqlite_connection()
 
 def get_sqlite_connection():
