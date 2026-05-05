@@ -15,12 +15,14 @@
         table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
         .total-section { text-align: right; font-size: 1.2rem; }
         .footer { margin-top: 50px; text-align: center; font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-        .btn-print { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; float: right; }
-        @media print { .btn-print { display: none; } }
+        .btn-print { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; float: right; margin-left: 10px; }
+        .btn-whatsapp { background: #25d366; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; float: right; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+        @media print { .btn-print, .btn-whatsapp { display: none; } }
     </style>
 </head>
 <body>
     <button class="btn-print" onclick="window.print()">Imprimer la facture</button>
+    <a id="whatsapp-share" href="#" class="btn-whatsapp">Partager sur WhatsApp</a>
     <div class="invoice-box" id="invoice">
         <div class="header">
             <div class="logo"><img src="assets/logo douera shop.png" alt="Douéra Shop"></div>
@@ -99,6 +101,10 @@
 
                 document.getElementById('subtotal').innerText = subtotal.toLocaleString();
                 document.getElementById('total').innerText = order.total.toLocaleString();
+
+                // Configuration du partage WhatsApp
+                const whatsappMsg = encodeURIComponent(`Bonjour, voici ma facture pour la commande #${order.id} chez Douéra Shop. Vous pouvez la consulter ici : ${window.location.href}`);
+                document.getElementById('whatsapp-share').href = `https://wa.me/?text=${whatsappMsg}`;
             }
         }
         loadInvoice();
