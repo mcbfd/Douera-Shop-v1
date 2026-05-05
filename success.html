@@ -66,10 +66,11 @@
             </div>
 
             <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                <a href="index.html" class="btn btn-primary" style="flex: 1; min-width: 200px; padding: 18px;">Retour à
-                    l'accueil</a>
-                <a href="orders.html" class="btn btn-outline" style="flex: 1; min-width: 200px; padding: 18px;">Suivre
-                    ma commande</a>
+                <a href="index.html" class="btn btn-primary" style="flex: 1; min-width: 200px; padding: 18px;">Retour à l'accueil</a>
+                <a id="whatsapp-share" href="#" class="btn btn-outline" style="flex: 1; min-width: 200px; padding: 18px; background: #25D366; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i data-lucide="message-circle"></i> Envoyer via WhatsApp
+                </a>
+                <a id="track-order-link" href="track-order.html" class="btn btn-outline" style="flex: 1; min-width: 200px; padding: 18px;">Suivre ma commande</a>
             </div>
         </div>
 
@@ -184,10 +185,16 @@
             const ref = params.get('ref') || 'TRX-DEFAULT';
             document.getElementById('transaction-ref').textContent = ref;
 
-            // Mise à jour du lien "Suivre ma commande" avec la référence
-            const trackBtn = document.querySelector('a[href="orders.html"]');
-            if (trackBtn) {
-                trackBtn.href = `orders.html?ref=${ref}`;
+            // Mise à jour des liens de suivi et partage
+            const trackOrderLink = document.getElementById('track-order-link');
+            if (trackOrderLink) {
+                trackOrderLink.href = `track-order.html?id=${ref}`;
+            }
+
+            const whatsappBtn = document.getElementById('whatsapp-share');
+            if (whatsappBtn) {
+                const message = encodeURIComponent(`Bonjour Douéra Shop ! Je viens de passer commande (Réf: ${ref}). Voici mon lien pour le suivi : ${window.location.origin}/track-order.html?id=${ref}`);
+                whatsappBtn.href = `https://wa.me/221781607468?text=${message}`;
             }
 
             // Fetch delivery details
