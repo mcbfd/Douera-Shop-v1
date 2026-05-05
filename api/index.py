@@ -100,7 +100,7 @@ def init_db():
         # Admin default
         cur.execute('SELECT count(*) FROM users')
         if cur.fetchone()[0] == 0:
-            p = (%s, %s, %s, %s, %s, %s) if is_postgres else (?, ?, ?, ?, ?, ?)
+            p = "(%s, %s, %s, %s, %s, %s)" if is_postgres else "(?, ?, ?, ?, ?, ?)"
             cur.execute(f"INSERT INTO users (id, email, password, name, role, status) VALUES {p}", ('u1', 'admin@douerashop.sn', 'admin123', 'Super Admin', 'super_admin', 'active'))
 
         conn.commit()
@@ -144,6 +144,7 @@ def get_products():
         if db: db.close()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/auth/login', methods=['POST'])
 @app.route('/api/login', methods=['POST'])
 def login():
     try:
@@ -155,12 +156,18 @@ def login():
         user = db.fetchone()
         db.close()
         if user:
-            return jsonify({"userId": user['id'], "name": user['name'], "role": user['role']})
+            return jsonify({
+                "userId": user['id'], 
+                "name": user['name'], 
+                "role": user['role'],
+                "expires": int(time.time() * 1000) + (3600 * 1000 * 8)
+            })
         return jsonify({"error": "Identifiants incorrects"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/orders', methods=['GET'])
+@app.route('/api/user/orders', methods=['GET'])
 def get_orders():
     try:
         db = DB(get_db_connection())
