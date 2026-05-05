@@ -279,16 +279,42 @@
 
                 const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
+                // Fonction de confirmation
+                window.confirmReceipt = async (orderId) => {
+                    if (!confirm("Avez-vous bien reçu tous les produits de votre commande ?")) return;
+                    
+                    try {
+                        const res = await fetch(`${API_URL}/orders/${orderId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'Livrée' })
+                        });
+                        
+                        if (res.ok) {
+                            UI.showToast("Réception confirmée ! Vous pouvez maintenant laisser un avis.", "success");
+                            setTimeout(() => window.location.reload(), 1500);
+                        }
+                    } catch (err) {
+                        UI.showToast("Erreur lors de la confirmation.", "error");
+                    }
+                };
+
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative; flex-wrap: wrap; gap: 16px;">
                         <div>
                             <p style="font-size: 0.75rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 8px;">Commande du ${date}</p>
                             <h3 class="order-ref" style="font-family: monospace; font-size: 1.5rem; color: var(--color-primary-dark); margin: 0;">REF: ${order.id}</h3>
                         </div>
-                        <div style="text-align: right;">
+                        <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
                             <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 900; border: 1px solid ${activeColor}40; letter-spacing: 0.05em; display: inline-block;">
                                 ${order.status === 'En cours' ? 'EXPÉDIÉE' : order.status.toUpperCase()}
                             </span>
+                            
+                            ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
+                                <button onclick="confirmReceipt('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
+                                    Confirmer la réception
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
 

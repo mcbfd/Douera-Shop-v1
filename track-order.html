@@ -144,9 +144,26 @@
                                     </div>
                                     <div style="text-align: right;">
                                         <p style="color: var(--color-muted); font-size: 0.85rem; margin-bottom: 4px;">Commande #${order.id}</p>
-                                        <p style="font-weight: 800; font-size: 1.1rem; margin: 0;">${order.total.toLocaleString()} XOF</p>
+                                        <p style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">${order.total.toLocaleString()} XOF</p>
+                                        
+                                        ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
+                                            <button onclick="confirmReceiptPublic('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
+                                                Confirmer la réception
+                                            </button>
+                                        ` : ''}
                                     </div>
                                 </div>
+                                <script>
+                                    window.confirmReceiptPublic = async (id) => {
+                                        if(!confirm("Confirmez-vous avoir reçu votre colis ?")) return;
+                                        const res = await fetch(\`\${API_BASE_URL}/orders/\${id}\`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ status: 'Livrée' })
+                                        });
+                                        if(res.ok) window.location.reload();
+                                    };
+                                <\/script>
                                 
                                 <!-- Stepper Multi-Couleurs Alibaba -->
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 48px; position: relative; padding: 0 5px;">
