@@ -9,7 +9,8 @@ const AuthService = {
 
     // 1. Core Auth
     login: async (email, password) => {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const baseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+        const response = await fetch(`${baseUrl}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

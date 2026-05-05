@@ -217,3 +217,47 @@ def get_orders():
         return jsonify(orders)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/orders/<o_id>', methods=['GET'])
+def get_single_order(o_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('SELECT * FROM orders WHERE id = ?', (o_id,))
+        order = db.fetchone()
+        db.close()
+        if order:
+            if isinstance(order.get('items'), str):
+                try: order['items'] = json.loads(order['items'])
+                except: pass
+            return jsonify(order)
+        return jsonify({"error": "Commande introuvable"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/orders/<o_id>', methods=['PUT'])
+def update_order(o_id):
+    try:
+        data = request.json
+        status = data.get('status')
+        db = DB(get_db_connection())
+        db.execute('UPDATE orders SET status = ? WHERE id = ?', (status, o_id))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/reviews', methods=['POST'])
+def add_review():
+    try:
+        data = request.json
+        r_id = 'REV' + str(int(time.time()))
+        db = DB(get_db_connection())
+        db.execute('INSERT INTO reviews (id, orderId, userId, rating_product, rating_service, comment, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                   (r_id, data.get('orderId'), data.get('userId'), data.get('rating_product'), data.get('rating_service'), data.get('comment'), datetime.now().isoformat()))
+        db.execute('UPDATE orders SET review_id = ? WHERE id = ?', (r_id, data.get('orderId')))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
