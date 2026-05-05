@@ -23,28 +23,14 @@ CORS(app)
 @app.route('/api/health')
 def health():
     try:
-        # Check for psycopg2
-        try:
-            import psycopg2
-            psycopg2_installed = True
-        except ImportError:
-            psycopg2_installed = False
-
-        conn = get_db_connection()
-        is_postgres = hasattr(conn, 'tpc_begin')
-        db = DB(conn)
-        db.execute('SELECT count(*) FROM users')
-        u_count = list(db.fetchone().values())[0]
-        db.close()
+        import psycopg2
         return jsonify({
-            "status": "ok", 
-            "db_type": "postgres" if is_postgres else "sqlite", 
-            "psycopg2": psycopg2_installed,
-            "vercel": bool(os.environ.get('VERCEL')),
-            "users": u_count
+            "status": "online",
+            "psycopg2": "installed",
+            "vercel": bool(os.environ.get('VERCEL'))
         })
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e), "trace": traceback.format_exc()}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # --- 1. Products API ---
 @app.route('/api/products', methods=['GET'])
