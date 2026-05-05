@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture Douéra Shop</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }
+        .invoice-box { max-width: 800px; margin: auto; padding: 40px; border: 1px solid #e2e8f0; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); background: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo img { height: 60px; }
+        .info { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .info div { width: 45%; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+        table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        .total-section { text-align: right; font-size: 1.2rem; }
+        .footer { margin-top: 50px; text-align: center; font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .btn-print { background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; float: right; }
+        @media print { .btn-print { display: none; } }
+    </style>
+</head>
+<body>
+    <button class="btn-print" onclick="window.print()">Imprimer la facture</button>
+    <div class="invoice-box" id="invoice">
+        <div class="header">
+            <div class="logo"><img src="assets/logo douera shop.png" alt="Douéra Shop"></div>
+            <div>
+                <h1 style="margin:0; color: #1e3a8a;">FACTURE</h1>
+                <p id="invoice-id" style="margin:5px 0; font-weight: bold;"></p>
+            </div>
+        </div>
+
+        <div class="info">
+            <div>
+                <h3 style="color: #3b82f6; margin-bottom: 10px;">Vendeur</h3>
+                <p><strong>Douéra Shop</strong><br>Import International & Luxe<br>Dakar, Sénégal<br>Contact: +221 XX XXX XX XX</p>
+            </div>
+            <div style="text-align: right;">
+                <h3 style="color: #3b82f6; margin-bottom: 10px;">Client</h3>
+                <p id="client-info"></p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantité</th>
+                    <th>Prix Unitaire</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-items"></tbody>
+        </table>
+
+        <div class="total-section">
+            <p>Sous-total: <span id="subtotal">0</span> XOF</p>
+            <p style="font-size: 1.5rem; color: #1e3a8a;"><strong>TOTAL: <span id="total">0</span> XOF</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>Merci de votre confiance en Douéra Shop !<br>Cette facture est générée numériquement et ne nécessite pas de signature.</p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        async function loadInvoice() {
+            const res = await fetch(`/api/orders`);
+            const orders = await res.json();
+            const order = orders.find(o => o.id === orderId);
+
+            if (order) {
+                document.getElementById('invoice-id').innerText = `RÉF: ${order.id}`;
+                document.getElementById('client-info').innerHTML = `
+                    <strong>${order.customer_firstname} ${order.customer_lastname}</strong><br>
+                    ${order.customer_address}<br>
+                    Tél: ${order.customer_phone}
+                `;
+
+                const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                const tbody = document.getElementById('invoice-items');
+                let subtotal = 0;
+
+                items.forEach(item => {
+                    const lineTotal = item.price * item.quantity;
+                    subtotal += lineTotal;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.price.toLocaleString()} XOF</td>
+                            <td>${lineTotal.toLocaleString()} XOF</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('subtotal').innerText = subtotal.toLocaleString();
+                document.getElementById('total').innerText = order.total.toLocaleString();
+            }
+        }
+        loadInvoice();
+    </script>
+</body>
+</html>

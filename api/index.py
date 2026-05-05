@@ -306,10 +306,10 @@ def update_order_status(o_id):
                 for item in items:
                     db.execute('UPDATE products SET stock = stock - ? WHERE id = ?', (item.get('quantity', 1), item.get('id')))
 
-        db.execute('UPDATE orders SET status = ? WHERE id = ?', (new_status, o_id))
-        db.commit()
-        db.close()
-        return jsonify({"success": True})
+            db.execute('UPDATE orders SET status = ? WHERE id = ?', (new_status, o_id))
+            db.commit()
+            db.close()
+            return jsonify({"success": True, "notification": f"Statut mis à jour: {new_status}"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -310,11 +310,17 @@
                                 ${order.status === 'En cours' ? 'EXPÉDIÉE' : order.status.toUpperCase()}
                             </span>
                             
-                            ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
-                                <button onclick="confirmReceipt('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
-                                    Confirmer la réception
-                                </button>
-                            ` : ''}
+                            <div style="display: flex; gap: 8px;">
+                                <a href="invoice.html?orderId=${order.id}" target="_blank" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="file-text" style="width: 14px;"></i> Facture
+                                </a>
+                                
+                                ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
+                                    <button onclick="confirmReceipt('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
+                                        Confirmer la réception
+                                    </button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
 
