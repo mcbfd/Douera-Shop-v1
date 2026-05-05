@@ -91,25 +91,24 @@
                         `;
                     } else {
                         const steps = [
-                            { key: 'En attente', label: 'Commande reçue', icon: 'package' },
-                            { key: 'En cours', label: 'Prise en charge', icon: 'truck' },
-                            { key: 'Livrée', label: 'Livrée', icon: 'check-circle' },
-                            { key: 'Avis', label: 'Votre Avis', icon: 'star' }
+                            { key: 'En attente', label: 'Reçue', icon: 'package', color: '#3B82F6' },
+                            { key: 'En cours', label: 'Expédiée', icon: 'truck', color: '#F59E0B' },
+                            { key: 'Livrée', label: 'Livrée', icon: 'check-circle', color: '#10B981' },
+                            { key: 'Avis', label: 'Votre Avis', icon: 'star', color: '#8B5CF6' }
                         ];
 
                         let currentStepIndex = steps.findIndex(s => s.key === order.status);
                         if (order.status === 'Livrée' && order.review_id) currentStepIndex = 3; // Avis déjà donné
                         else if (order.status === 'Livrée') currentStepIndex = 2;
 
-                        const statusColors = { 'En attente': '#F59E0B', 'En cours': '#3B82F6', 'Livrée': '#10B981', 'Annulée': '#EF4444' };
-                        const statusColor = statusColors[order.status] || '#6B7280';
+                        const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
                         resultArea.innerHTML = `
                             <div style="background: white; padding: 40px; border-radius: 24px; border: 1px solid var(--color-border); box-shadow: var(--shadow-premium);">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; gap: 20px;">
                                     <div>
                                         <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Status actuel</p>
-                                        <h2 style="font-size: 2.2rem; color: ${statusColor};">${order.status}</h2>
+                                        <h2 style="font-size: 2.2rem; color: ${activeColor};">${order.status === 'En cours' ? 'Expédiée' : order.status}</h2>
                                     </div>
                                     <div style="text-align: right;">
                                         <p style="color: var(--color-muted); font-size: 0.85rem;">Commande #${order.id}</p>
@@ -120,16 +119,23 @@
                                 <!-- Stepper Premium -->
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 48px; position: relative;">
                                     <div style="position: absolute; top: 20px; left: 0; width: 100%; height: 4px; background: #E5E7EB; z-index: 0;"></div>
-                                    <div style="position: absolute; top: 20px; left: 0; width: ${(currentStepIndex / 3) * 100}%; height: 4px; background: var(--color-primary); z-index: 1; transition: width 0.8s ease;"></div>
+                                    <div style="position: absolute; top: 20px; left: 0; width: ${(currentStepIndex / 3) * 100}%; height: 4px; background: ${activeColor}; z-index: 1; transition: all 1s ease;"></div>
                                     
-                                    ${steps.map((step, index) => `
-                                        <div style="z-index: 2; text-align: center; width: 80px;">
-                                            <div style="width: 44px; height: 44px; border-radius: 50%; background: ${index <= currentStepIndex ? 'var(--color-primary)' : 'white'}; border: 3px solid ${index <= currentStepIndex ? 'var(--color-primary)' : '#E5E7EB'}; color: ${index <= currentStepIndex ? 'white' : '#9CA3AF'}; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; transition: all 0.4s ease;">
-                                                <i data-lucide="${step.icon}" style="width: 20px;"></i>
+                                    ${steps.map((step, index) => {
+                                        const isReached = index <= currentStepIndex;
+                                        const stepColor = isReached ? step.color : '#E5E7EB';
+                                        const iconColor = isReached ? 'white' : '#9CA3AF';
+                                        const textColor = isReached ? step.color : '#9CA3AF';
+
+                                        return `
+                                            <div style="z-index: 2; text-align: center; width: 80px;">
+                                                <div style="width: 44px; height: 44px; border-radius: 50%; background: ${isReached ? step.color : 'white'}; border: 3px solid ${stepColor}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; transition: all 0.4s ease; box-shadow: ${isReached ? `0 4px 12px ${step.color}40` : 'none'};">
+                                                    <i data-lucide="${step.icon}" style="width: 20px;"></i>
+                                                </div>
+                                                <span style="font-size: 0.75rem; font-weight: 900; color: ${textColor}; white-space: nowrap; text-transform: uppercase;">${step.label}</span>
                                             </div>
-                                            <span style="font-size: 0.75rem; font-weight: 800; color: ${index <= currentStepIndex ? 'var(--color-primary-dark)' : '#9CA3AF'}; white-space: nowrap;">${step.label}</span>
-                                        </div>
-                                    `).join('')}
+                                        `;
+                                    }).join('')}
                                 </div>
 
                                 <div style="background: var(--color-background); padding: 32px; border-radius: 20px; border: 1px solid var(--color-border);">
@@ -146,7 +152,7 @@
                                     ${order.status === 'Livrée' && !order.review_id ? `
                                         <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--color-border); text-align: center;">
                                             <p style="margin-bottom: 16px; font-weight: 700;">Votre avis nous est précieux !</p>
-                                            <a href="account/reviews.html?orderId=${order.id}" class="btn btn-primary" style="width: 100%; border-radius: 14px;">Laisser un avis sur ma commande</a>
+                                            <a href="account/review.html?orderId=${order.id}" class="btn btn-primary" style="width: 100%; border-radius: 14px; background: ${steps[3].color}; border: none;">Laisser un avis sur ma commande</a>
                                         </div>
                                     ` : ''}
                                     

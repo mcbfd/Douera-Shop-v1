@@ -218,18 +218,17 @@
                 });
 
                 const steps = [
-                    { key: 'En attente', label: 'Reçue', icon: 'package' },
-                    { key: 'En cours', label: 'Prise en charge', icon: 'truck' },
-                    { key: 'Livrée', label: 'Livrée', icon: 'check-circle' },
-                    { key: 'Avis', label: 'Avis', icon: 'star' }
+                    { key: 'En attente', label: 'Reçue', icon: 'package', color: '#3B82F6' },
+                    { key: 'En cours', label: 'Expédiée', icon: 'truck', color: '#F59E0B' },
+                    { key: 'Livrée', label: 'Livrée', icon: 'check-circle', color: '#10B981' },
+                    { key: 'Avis', label: 'Votre Avis', icon: 'star', color: '#8B5CF6' }
                 ];
 
                 let currentStepIndex = steps.findIndex(s => s.key === order.status);
                 if (order.status === 'Livrée' && order.review_id) currentStepIndex = 3;
                 else if (order.status === 'Livrée') currentStepIndex = 2;
 
-                const statusColors = { 'En attente': '#F59E0B', 'En cours': '#3B82F6', 'Livrée': '#10B981', 'Annulée': '#EF4444' };
-                const statusColor = statusColors[order.status] || '#6B7280';
+                const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative;">
@@ -238,25 +237,32 @@
                             <h3 style="font-family: monospace; font-size: 1.5rem; color: var(--color-primary-dark);">REF: ${order.id}</h3>
                         </div>
                         <div style="text-align: right;">
-                            <span style="background: ${statusColor}15; color: ${statusColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; border: 1px solid ${statusColor}40;">
-                                ${order.status.toUpperCase()}
+                            <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 900; border: 1px solid ${activeColor}40; letter-spacing: 0.05em;">
+                                ${order.status === 'En cours' ? 'EXPÉDIÉE' : order.status.toUpperCase()}
                             </span>
                         </div>
                     </div>
 
-                    <!-- Stepper Alibaba Style -->
+                    <!-- Stepper Multi-Couleurs Alibaba -->
                     <div style="display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; padding: 0 10px;">
                         <div style="position: absolute; top: 18px; left: 40px; right: 40px; height: 3px; background: #E5E7EB; z-index: 0;"></div>
-                        <div style="position: absolute; top: 18px; left: 40px; width: calc(${(currentStepIndex / 3) * 100}%); height: 3px; background: var(--color-primary); z-index: 1; transition: width 0.8s ease;"></div>
+                        <div style="position: absolute; top: 18px; left: 40px; width: calc(${(currentStepIndex / 3) * 100}%); height: 3px; background: ${activeColor}; z-index: 1; transition: all 1s ease;"></div>
                         
-                        ${steps.map((step, index) => `
-                            <div style="z-index: 2; text-align: center; width: 60px;">
-                                <div style="width: 36px; height: 36px; border-radius: 50%; background: ${index <= currentStepIndex ? 'var(--color-primary)' : 'white'}; border: 2px solid ${index <= currentStepIndex ? 'var(--color-primary)' : '#E5E7EB'}; color: ${index <= currentStepIndex ? 'white' : '#9CA3AF'}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.4s ease;">
-                                    <i data-lucide="${step.icon}" style="width: 16px;"></i>
+                        ${steps.map((step, index) => {
+                            const isReached = index <= currentStepIndex;
+                            const stepColor = isReached ? step.color : '#E5E7EB';
+                            const iconColor = isReached ? 'white' : '#9CA3AF';
+                            const textColor = isReached ? step.color : '#9CA3AF';
+                            
+                            return `
+                                <div style="z-index: 2; text-align: center; width: 60px;">
+                                    <div style="width: 38px; height: 38px; border-radius: 50%; background: ${isReached ? step.color : 'white'}; border: 2px solid ${stepColor}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.4s ease; box-shadow: ${isReached ? `0 4px 12px ${step.color}40` : 'none'};">
+                                        <i data-lucide="${step.icon}" style="width: 18px;"></i>
+                                    </div>
+                                    <span style="font-size: 0.65rem; font-weight: 900; color: ${textColor}; text-transform: uppercase;">${step.label}</span>
                                 </div>
-                                <span style="font-size: 0.65rem; font-weight: 800; color: ${index <= currentStepIndex ? 'var(--color-primary-dark)' : '#9CA3AF'};">${step.label}</span>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
