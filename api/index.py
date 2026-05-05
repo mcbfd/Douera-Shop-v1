@@ -17,9 +17,10 @@ CORS(app)
 # --- Ensure DB Initialized ---
 try:
     init_db()
+    sys.stderr.write("Database initialized successfully.\n")
 except Exception as e:
-    sys.stderr.write(f"Init DB Error: {e}\n")
-    traceback.print_exc()
+    sys.stderr.write(f"Database Initialization Warning: {e}\n")
+    # Server continues to start anyway
 
 @app.route('/api/health')
 def health():
@@ -51,15 +52,23 @@ def health():
 @app.route('/api/products', methods=['GET'])
 @app.route('/products', methods=['GET'])
 def get_products():
+    db = None
     try:
         db = DB(get_db_connection())
-        db.execute('SELECT * FROM products')
-        rows = db.fetchall()
-        
-        # MANUALLY CONVERT TO DICT (ROBUST METHOD)
-        products = [dict(row) for row in rows]
+        try:
+            db.execute('SELECT * FROM products')
+            rows = db.fetchall()
+            products = [dict(row) for row in rows]
+        except Exception as table_err:
+            sys.stderr.write(f"Table products missing, initializing... {table_err}\n")
+            db.close()
+            init_db()
+            db = DB(get_db_connection())
+            db.execute('SELECT * FROM products')
+            products = [dict(row) for row in db.fetchall()]
         
         if len(products) == 0:
+            sys.stderr.write("Products table empty, re-initializing...\n")
             db.close()
             init_db()
             db = DB(get_db_connection())
@@ -69,7 +78,8 @@ def get_products():
         db.close()
         return jsonify(products)
     except Exception as e:
-        sys.stderr.write(f"API Products Error: {e}\n")
+        sys.stderr.write(f"Critical API Products Error: {e}\n")
+        if db: db.close()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/products', methods=['POST'])
