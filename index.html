@@ -36,8 +36,10 @@
                 </a>
 
                 <div class="nav-icons" id="nav-auth-area">
-                    <!-- Dynamic Auth & Cart Badge will be injected here -->
                     <div style="display: flex; align-items: center; gap: 24px;">
+                        <a href="track-order.html" class="nav-link" style="color: var(--color-muted); font-weight: 700; text-decoration: none; font-size: 0.9rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-muted)'">
+                            <i data-lucide="package" style="width: 18px; vertical-align: middle; margin-right: 4px;"></i> Suivre ma commande
+                        </a>
                         <a href="checkout.html" class="btn btn-outline" id="cartRedirectLink"
                             style="padding: 10px; border-radius: 12px; position: relative; border: none; background: transparent;">
                             <i data-lucide="shopping-cart"
@@ -45,7 +47,7 @@
                             <span class="cart-count">0</span>
                         </a>
                         <a href="account/login.html" class="btn btn-primary"
-                            style="padding: 10px 24px; font-size: 0.9rem;">Connexion</a>
+                            style="padding: 10px 24px; font-size: 0.9rem; border-radius: 12px;">Connexion</a>
                     </div>
                 </div>
             </nav>

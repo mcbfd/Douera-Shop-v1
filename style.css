@@ -1,43 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap');
 
 :root {
-    /* Douéra Shop Identity v4.2 - Royal Blue Logo */
-    --color-primary: #2B59A2;      /* Official Logo Blue */
-    --color-primary-light: #F0F7FF;
-    --color-primary-dark: #1A365D;
+    /* Douéra Shop Premium Identity - Royal Blue & Amber */
+    --color-primary: #1E40AF;      /* Premium Royal Blue */
+    --color-primary-light: #EFF6FF;
+    --color-primary-dark: #1E3A8A;
     --color-on-primary: #FFFFFF;
     
-    --color-secondary: #4A90E2;    /* Soft Brand Blue */
-    --color-accent: #2B59A2;       /* Staying consistent with brand */
-    --color-accent-light: #F0F7FF;
+    --color-secondary: #3B82F6;    /* Vibrant Blue */
+    --color-accent: #F59E0B;       /* Amber for Premium CTAs */
+    --color-accent-light: #FFFBEB;
     
-    --color-background: #FAFBFF;
-    --color-foreground: #0F172A;
-    --color-muted: #64748B;
-    --color-muted-light: #F1F5F9;
-    --color-border: #E2E8F0;
+    --color-background: #F9FAFB;
+    --color-foreground: #111827;
+    --color-muted: #6B7280;
+    --color-muted-light: #F3F4F6;
+    --color-border: #E5E7EB;
     
-    --color-success: #10B981;      /* Keeping green for functional success as per common practice, unless specified */
+    --color-success: #10B981;
     --color-error: #EF4444;
     --color-warning: #F59E0B;
 
-    /* Spacing & Radii */
-    --radius-sm: 8px;
-    --radius-md: 14px;
-    --radius-lg: 24px;
+    /* Spacing & Radii - Premium Bento Style */
+    --radius-sm: 10px;
+    --radius-md: 18px;
+    --radius-lg: 32px;
     --radius-full: 9999px;
     
-    --transition-base: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-fast: all 0.2s ease;
+    --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease;
     
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-premium: 0 10px 15px -3px rgba(26, 54, 93, 0.05), 0 4px 6px -4px rgba(26, 54, 93, 0.05);
-    --shadow-hero: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-premium: 0 20px 25px -5px rgb(30 64 175 / 0.1), 0 8px 10px -6px rgb(30 64 175 / 0.1);
+    --shadow-hero: 0 35px 60px -15px rgba(0, 0, 0, 0.2);
     
     /* Luxury Glassmorphism */
-    --glass-bg: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.6);
-    --glass-blur: blur(16px);
+    --glass-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-blur: blur(24px);
 }
 
 /* --- Base & Reset --- */

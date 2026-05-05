@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivre ma Commande | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+<body class="animate-fade-in">
+    <header id="main-header">
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
+                    <div style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                        <img src="assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; object-fit: contain;">
+                    </div>
+                </a>
+                <div class="nav-icons">
+                    <a href="index.html" class="btn btn-outline">Retour à la boutique</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 100px 20px; max-width: 800px;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <h1 style="font-size: 3rem; margin-bottom: 16px;">Où est mon colis ?</h1>
+            <p style="color: var(--color-muted); font-size: 1.1rem;">Entrez votre numéro de commande pour connaître l'état de votre livraison en temps réel.</p>
+        </div>
+
+        <div style="background: white; padding: 48px; border-radius: var(--radius-lg); box-shadow: var(--shadow-premium); border: 1px solid var(--color-border);">
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 800; font-size: 0.9rem; color: var(--color-primary-dark);">NUMÉRO DE COMMANDE</label>
+                <div style="position: relative;">
+                    <i data-lucide="hash" style="position: absolute; left: 20px; top: 18px; width: 24px; color: var(--color-muted);"></i>
+                    <input type="text" id="orderIdInput" placeholder="Ex: ORD-1712345678" 
+                           style="width: 100%; padding: 20px 20px 20px 60px; border-radius: 18px; border: 2px solid var(--color-border); font-size: 1.1rem; outline: none; transition: var(--transition-base);">
+                </div>
+            </div>
+            <button id="trackBtn" class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 1.1rem; border-radius: 18px; justify-content: center;">
+                Suivre la livraison <i data-lucide="search" style="margin-left: 10px;"></i>
+            </button>
+        </div>
+
+        <div id="trackingResult" style="display: none; margin-top: 48px;" class="animate-fade-in">
+            <!-- Tracking result will be injected here -->
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+
+            const trackBtn = document.getElementById('trackBtn');
+            const orderIdInput = document.getElementById('orderIdInput');
+            const resultArea = document.getElementById('trackingResult');
+
+            trackBtn.addEventListener('click', async () => {
+                const orderId = orderIdInput.value.trim();
+                if (!orderId) {
+                    UI.showToast("Veuillez entrer un numéro de commande", "error");
+                    return;
+                }
+
+                UI.setLoading(trackBtn, true, "Recherche...");
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/orders`);
+                    const orders = await response.json();
+                    const order = orders.find(o => o.id === orderId);
+
+                    if (!order) {
+                        resultArea.innerHTML = `
+                            <div style="text-align: center; padding: 40px; background: #FFF1F2; border-radius: 24px; border: 1px solid #FECACA; color: #991B1B;">
+                                <i data-lucide="alert-circle" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                <h3 style="color: #991B1B;">Commande introuvable</h3>
+                                <p>Vérifiez le numéro et réessayez. Si le problème persiste, contactez notre support WhatsApp.</p>
+                            </div>
+                        `;
+                    } else {
+                        const statusColors = {
+                            'En attente': '#F59E0B',
+                            'En cours': '#3B82F6',
+                            'Livrée': '#10B981',
+                            'Annulée': '#EF4444'
+                        };
+                        const statusColor = statusColors[order.status] || '#6B7280';
+
+                        resultArea.innerHTML = `
+                            <div style="background: white; padding: 40px; border-radius: 24px; border: 1px solid var(--color-border); box-shadow: var(--shadow-premium);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
+                                    <div>
+                                        <p style="color: var(--color-muted); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Status de la commande</p>
+                                        <h2 style="font-size: 2.5rem; color: ${statusColor};">${order.status}</h2>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <p style="color: var(--color-muted); font-size: 0.9rem;">Passée le ${new Date(order.date).toLocaleDateString('fr-FR')}</p>
+                                        <p style="font-weight: 800; font-size: 1.2rem;">Total : ${order.total.toLocaleString()} XOF</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 12px; margin-bottom: 32px;">
+                                    <div style="flex: 1; height: 8px; border-radius: 4px; background: ${order.status !== 'Annulée' ? statusColor : '#E5E7EB'}; opacity: 1;"></div>
+                                    <div style="flex: 1; height: 8px; border-radius: 4px; background: ${['En cours', 'Livrée'].includes(order.status) ? statusColor : '#E5E7EB'}; opacity: ${['En cours', 'Livrée'].includes(order.status) ? 1 : 0.3};"></div>
+                                    <div style="flex: 1; height: 8px; border-radius: 4px; background: ${order.status === 'Livrée' ? statusColor : '#E5E7EB'}; opacity: ${order.status === 'Livrée' ? 1 : 0.3};"></div>
+                                </div>
+
+                                <div style="background: var(--color-background); padding: 24px; border-radius: 16px;">
+                                    <h4 style="margin-bottom: 16px;">Détails de livraison</h4>
+                                    <p style="font-weight: 600;">${order.customer_firstname} ${order.customer_lastname}</p>
+                                    <p style="color: var(--color-muted);">${order.customer_address}</p>
+                                    <p style="color: var(--color-muted);">${order.customer_phone}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    resultArea.style.display = 'block';
+                    if (window.lucide) lucide.createIcons();
+                } catch (err) {
+                    UI.showToast("Erreur lors de la recherche", "error");
+                } finally {
+                    UI.setLoading(trackBtn, false, "Suivre la livraison");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,8 +4,15 @@ from psycopg2.extras import RealDictCursor
 import sqlite3
 import sys
 
-# Supabase Connection String (priorité à la variable d'environnement)
-DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
+# Supabase Connection String
+DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:6543/postgres?sslmode=require&pgbouncer=true"
+
+# Sécurité : Si on est sur Vercel et que l'URL utilise encore le port 5432, on force le passage au port 6543
+if (os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')) and ":5432/" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace(":5432/", ":6543/")
+    if "pgbouncer=true" not in DATABASE_URL:
+        separator = "&" if "?" in DATABASE_URL else "?"
+        DATABASE_URL += f"{separator}pgbouncer=true"
 
 def get_db_connection():
     # Détection de psycopg2
