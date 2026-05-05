@@ -1,12 +1,16 @@
+import sys
 import os
+
+# Ajout du dossier courant au path pour les imports directs sur Vercel
+sys.path.append(os.path.dirname(__file__))
+
 import json
 import time
 from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
-from .db import get_db_connection, init_db, DB
-import sys
+from db import get_db_connection, init_db, DB
 
 # Redirection forcée pour éviter la pollution de la réponse HTTP par des prints
 sys.stdout = sys.stderr

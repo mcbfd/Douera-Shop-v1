@@ -5,16 +5,11 @@ import sqlite3
 import sys
 
 # Supabase Connection String
-DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:6543/postgres?sslmode=require&pgbouncer=true"
+DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:6543/postgres?sslmode=require"
 
 # Sécurité : Si on est sur Vercel et que l'URL utilise encore le port 5432, on force le passage au port 6543
-if (os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')) and ":5432/" in DATABASE_URL:
+if DATABASE_URL and ":5432/" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace(":5432/", ":6543/")
-
-# Nettoyage pour psycopg2 : On enlève "pgbouncer=true" qui cause une erreur DSN
-if "pgbouncer=true" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("pgbouncer=true", "")
-    DATABASE_URL = DATABASE_URL.replace("&&", "&").replace("?&", "?").rstrip("?").rstrip("&")
 
 def get_db_connection():
     # Détection de psycopg2
