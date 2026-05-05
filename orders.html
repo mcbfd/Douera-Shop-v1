@@ -10,6 +10,44 @@
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <style>
+        .order-card {
+            padding: 40px;
+            transition: var(--transition-fast);
+        }
+        .order-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg) !important;
+        }
+
+        @media (max-width: 600px) {
+            .order-card {
+                padding: 20px !important;
+            }
+            .stepper-item {
+                width: 50px !important;
+            }
+            .stepper-icon {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            .stepper-icon i {
+                width: 14px !important;
+            }
+            .stepper-label {
+                font-size: 0.55rem !important;
+            }
+            .order-ref {
+                font-size: 1.1rem !important;
+            }
+            .stepper-line-bg, .stepper-line-active {
+                top: 15px !important;
+            }
+            .product-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="animate-fade-in">
@@ -211,7 +249,12 @@
             userOrders.forEach((order, index) => {
                 const card = document.createElement('div');
                 card.className = 'order-card animate-fade-in';
-                card.style.cssText = `animation-delay: ${index * 0.1}s; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-sm);`;
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.style.background = 'white';
+                card.style.border = '1px solid var(--color-border)';
+                card.style.borderRadius = 'var(--radius-lg)';
+                card.style.boxShadow = 'var(--shadow-sm)';
+                card.style.marginBottom = '24px';
 
                 const date = new Date(isNaN(order.date) ? order.date : parseInt(order.date)).toLocaleDateString('fr-FR', {
                     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -237,22 +280,22 @@
                 const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative; flex-wrap: wrap; gap: 16px;">
                         <div>
                             <p style="font-size: 0.75rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 8px;">Commande du ${date}</p>
-                            <h3 style="font-family: monospace; font-size: 1.5rem; color: var(--color-primary-dark);">REF: ${order.id}</h3>
+                            <h3 class="order-ref" style="font-family: monospace; font-size: 1.5rem; color: var(--color-primary-dark); margin: 0;">REF: ${order.id}</h3>
                         </div>
                         <div style="text-align: right;">
-                            <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 900; border: 1px solid ${activeColor}40; letter-spacing: 0.05em;">
+                            <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 900; border: 1px solid ${activeColor}40; letter-spacing: 0.05em; display: inline-block;">
                                 ${order.status === 'En cours' ? 'EXPÉDIÉE' : order.status.toUpperCase()}
                             </span>
                         </div>
                     </div>
 
                     <!-- Stepper Multi-Couleurs Alibaba -->
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; padding: 0 10px;">
-                        <div style="position: absolute; top: 18px; left: 40px; right: 40px; height: 3px; background: #E5E7EB; z-index: 0;"></div>
-                        <div style="position: absolute; top: 18px; left: 40px; width: calc(${(currentStepIndex / 3) * 100}%); height: 3px; background: ${activeColor}; z-index: 1; transition: all 1s ease;"></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; padding: 0 5px;">
+                        <div class="stepper-line-bg" style="position: absolute; top: 18px; left: 30px; right: 30px; height: 3px; background: #E5E7EB; z-index: 0;"></div>
+                        <div class="stepper-line-active" style="position: absolute; top: 18px; left: 30px; width: calc(${(currentStepIndex / 3) * 100}% - 10px); max-width: calc(100% - 60px); height: 3px; background: ${activeColor}; z-index: 1; transition: all 1s ease;"></div>
                         
                         ${steps.map((step, index) => {
                             const isReached = index <= currentStepIndex;
@@ -261,17 +304,17 @@
                             const textColor = isReached ? step.color : '#9CA3AF';
                             
                             return `
-                                <div style="z-index: 2; text-align: center; width: 60px;">
-                                    <div style="width: 38px; height: 38px; border-radius: 50%; background: ${isReached ? step.color : 'white'}; border: 2px solid ${stepColor}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.4s ease; box-shadow: ${isReached ? `0 4px 12px ${step.color}40` : 'none'};">
-                                        <i data-lucide="${step.icon}" style="width: 18px;"></i>
+                                <div class="stepper-item" style="z-index: 2; text-align: center;">
+                                    <div class="stepper-icon" style="border-radius: 50%; background: ${isReached ? step.color : 'white'}; border: 2px solid ${stepColor}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.4s ease; box-shadow: ${isReached ? `0 4px 12px ${step.color}40` : 'none'};">
+                                        <i data-lucide="${step.icon}"></i>
                                     </div>
-                                    <span style="font-size: 0.65rem; font-weight: 900; color: ${textColor}; text-transform: uppercase;">${step.label}</span>
+                                    <span class="stepper-label" style="font-weight: 900; color: ${textColor}; text-transform: uppercase; display: block;">${step.label}</span>
                                 </div>
                             `;
                         }).join('')}
                     </div>
 
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
+                    <div class="product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
                         ${order.items.map(item => `
                             <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--color-background); border-radius: 12px; border: 1px solid var(--color-border);">
                                 <img src="${item.image}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
