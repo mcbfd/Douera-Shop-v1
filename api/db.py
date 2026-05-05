@@ -12,24 +12,16 @@ if DATABASE_URL and ":5432/" in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace(":5432/", ":6543/")
 
 def get_db_connection():
-    # Détection de psycopg2
     try:
         import psycopg2
-        has_psycopg2 = True
-    except ImportError:
-        has_psycopg2 = False
-
-    is_vercel = os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')
-
-    if DATABASE_URL and has_psycopg2:
-        try:
-            # Connexion directe simplifiée
-            return psycopg2.connect(DATABASE_URL, connect_timeout=5)
-        except Exception as e:
-            sys.stderr.write(f"DB Error: {e}\n")
-            return get_sqlite_connection()
-    else:
-        return get_sqlite_connection()
+        # Si on a une URL, on l'utilise directement, c'est le plus fiable
+        if DATABASE_URL:
+            return psycopg2.connect(DATABASE_URL, connect_timeout=10)
+    except Exception as e:
+        sys.stderr.write(f"Postgres failed: {e}\n")
+    
+    # Secours SQLite ultra-simple
+    return get_sqlite_connection()
 
 def get_sqlite_connection():
     db_path = '/tmp/douera.db' if (os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')) else os.path.join(os.path.dirname(__file__), 'douera.db')
