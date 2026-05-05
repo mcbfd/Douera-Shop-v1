@@ -59,6 +59,14 @@
             const orderIdInput = document.getElementById('orderIdInput');
             const resultArea = document.getElementById('trackingResult');
 
+            // --- Auto-Search Logic ---
+            const params = new URLSearchParams(window.location.search);
+            const idFromUrl = params.get('id');
+            if (idFromUrl) {
+                orderIdInput.value = idFromUrl;
+                setTimeout(() => trackBtn.click(), 500);
+            }
+
             trackBtn.addEventListener('click', async () => {
                 const orderId = orderIdInput.value.trim();
                 if (!orderId) {
