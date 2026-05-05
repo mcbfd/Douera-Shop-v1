@@ -313,14 +313,40 @@ def update_order_status(o_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/orders/<o_id>', methods=['DELETE'])
-def delete_order(o_id):
+@app.route('/api/reviews', methods=['POST'])
+def add_review():
     try:
+        data = request.json
+        order_id = data.get('orderId')
+        user_id = data.get('userId')
+        comment = data.get('comment')
+        rating_product = data.get('rating_product')
+        rating_service = data.get('rating_service')
+        
+        review_id = 'REV-' + str(int(time.time()))
+        
         db = DB(get_db_connection())
-        db.execute('DELETE FROM orders WHERE id = ?', (o_id,))
+        db.execute('''
+            INSERT INTO reviews (id, orderId, userId, rating_product, rating_service, comment, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (review_id, order_id, user_id, rating_product, rating_service, comment, datetime.now().isoformat()))
+        
+        # Mettre à jour la commande pour marquer qu'un avis a été laissé
+        db.execute('UPDATE orders SET review_id = ? WHERE id = ?', (review_id, order_id))
+        
         db.commit()
         db.close()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "reviewId": review_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/reviews', methods=['GET'])
+def get_reviews():
+    try:
+        db = DB(get_db_connection())
+        reviews = db.query('SELECT * FROM reviews ORDER BY date DESC')
+        db.close()
+        return jsonify(reviews)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
