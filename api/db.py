@@ -23,38 +23,22 @@ def get_db_connection():
         has_psycopg2 = True
     except ImportError:
         has_psycopg2 = False
-        sys.stderr.write("Critical: psycopg2 not found. Database will NOT be persistent on Vercel.\n")
 
     is_vercel = os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')
 
     if DATABASE_URL and has_psycopg2:
         try:
-            # Diagnostic simple pour l'utilisateur (masquage du mot de passe)
-            display_url = DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else DATABASE_URL
-            sys.stderr.write(f"Attempting connection to: {display_url}\n")
-            
-            conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
-            return conn
+            # Connexion directe simplifiée
+            return psycopg2.connect(DATABASE_URL, connect_timeout=5)
         except Exception as e:
-            # On extrait l'hôte et le port du message d'erreur ou de l'URL pour le diagnostic
-            debug_info = DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else "URL Inconnue"
-            sys.stderr.write(f"Postgres Connection Error: {e}\n")
-            if is_vercel:
-                raise Exception(f"DATABASE CONNECTION FAILURE on {debug_info}: {e}. Please verify your credentials on Vercel Dashboard.")
+            sys.stderr.write(f"DB Error: {e}\n")
             return get_sqlite_connection()
     else:
-        if is_vercel:
-            raise Exception("DATABASE_URL or psycopg2 missing on Vercel. Persistence is impossible.")
         return get_sqlite_connection()
 
 def get_sqlite_connection():
-    # Sur Vercel, le système de fichiers est en lecture seule sauf /tmp
-    if os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV'):
-        db_path = '/tmp/douera.db'
-    else:
-        db_path = os.path.join(os.path.dirname(__file__), 'douera.db')
-        
-    conn = sqlite3.connect(db_path)
+    db_path = '/tmp/douera.db' if (os.environ.get('VERCEL') or os.environ.get('VERCEL_ENV')) else os.path.join(os.path.dirname(__file__), 'douera.db')
+    conn = sqlite3.connect(db_path, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 

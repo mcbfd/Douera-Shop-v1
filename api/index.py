@@ -14,13 +14,7 @@ sys.stdout = sys.stderr
 app = Flask(__name__)
 CORS(app)
 
-# --- Ensure DB Initialized ---
-try:
-    init_db()
-    sys.stderr.write("Database initialized successfully.\n")
-except Exception as e:
-    sys.stderr.write(f"Database Initialization Warning: {e}\n")
-    # Server continues to start anyway
+# --- Database initialization is now handled dynamically inside routes to prevent startup timeouts ---
 
 @app.route('/api/health')
 def health():
