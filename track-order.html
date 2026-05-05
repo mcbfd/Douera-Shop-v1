@@ -97,9 +97,15 @@
                             { key: 'Avis', label: 'Votre Avis', icon: 'star', color: '#8B5CF6' }
                         ];
 
-                        let currentStepIndex = steps.findIndex(s => s.key === order.status);
-                        if (order.status === 'Livrée' && order.review_id) currentStepIndex = 3; // Avis déjà donné
-                        else if (order.status === 'Livrée') currentStepIndex = 2;
+                        // Normalisation du statut pour la correspondance
+                        const statusNorm = order.status.toLowerCase().trim();
+                        let currentStepIndex = 0; // Par défaut: Reçue
+                        
+                        if (statusNorm.includes('cours') || statusNorm.includes('expédi') || statusNorm.includes('en route')) {
+                            currentStepIndex = 1; // Expédiée
+                        } else if (statusNorm.includes('livré')) {
+                            currentStepIndex = order.review_id ? 3 : 2; // Livrée ou Avis
+                        }
 
                         const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
