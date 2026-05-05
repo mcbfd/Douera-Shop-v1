@@ -138,6 +138,59 @@ def get_products():
         if db: db.close()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/products', methods=['POST'])
+def save_product():
+    try:
+        data = request.json
+        p_id = data.get('id')
+        name = data.get('name')
+        price = data.get('price')
+        category = data.get('category')
+        image = data.get('image', 'assets/electronics_1.png')
+        stock = data.get('stock', 0)
+        description = data.get('description', "Un produit d'exception.")
+        
+        db = DB(get_db_connection())
+        if p_id:
+            db.execute('UPDATE products SET name=?, price=?, category=?, image=?, stock=?, description=? WHERE id=?', (name, price, category, image, stock, description, p_id))
+        else:
+            p_id = 'p' + str(int(time.time() * 1000))
+            db.execute('INSERT INTO products (id, name, price, category, image, stock, description) VALUES (?, ?, ?, ?, ?, ?, ?)', (p_id, name, price, category, image, stock, description))
+        db.commit()
+        db.close()
+        return jsonify({"success": True, "id": p_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    try:
+        db = DB(get_db_connection())
+        db.execute('SELECT * FROM users')
+        users = db.fetchall()
+        db.close()
+        for u in users: u.pop('password', None)
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/users', methods=['POST'])
+def save_user():
+    try:
+        data = request.json
+        u_id = data.get('id')
+        db = DB(get_db_connection())
+        if u_id:
+            db.execute('UPDATE users SET name=?, email=?, role=?, status=?, address=?, phone=? WHERE id=?', (data.get('name'), data.get('email'), data.get('role'), data.get('status'), data.get('address'), data.get('phone'), u_id))
+        else:
+            u_id = 'u' + str(int(time.time() * 1000))
+            db.execute('INSERT INTO users (id, name, email, password, role, status, address, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (u_id, data.get('name'), data.get('email'), data.get('password', 'default123'), data.get('role', 'client'), data.get('status', 'active'), data.get('address'), data.get('phone')))
+        db.commit()
+        db.close()
+        return jsonify({"success": True, "id": u_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/auth/login', methods=['POST'])
 @app.route('/api/login', methods=['POST'])
 def login():
