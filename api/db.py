@@ -27,12 +27,18 @@ def get_db_connection():
 
     if DATABASE_URL and has_psycopg2:
         try:
+            # Diagnostic simple pour l'utilisateur (masquage du mot de passe)
+            display_url = DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else DATABASE_URL
+            sys.stderr.write(f"Attempting connection to: {display_url}\n")
+            
             conn = psycopg2.connect(DATABASE_URL, connect_timeout=10)
             return conn
         except Exception as e:
+            # On extrait l'hôte et le port du message d'erreur ou de l'URL pour le diagnostic
+            debug_info = DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else "URL Inconnue"
             sys.stderr.write(f"Postgres Connection Error: {e}\n")
             if is_vercel:
-                raise Exception(f"DATABASE CONNECTION FAILURE: {e}. Please check your DATABASE_URL on Vercel.")
+                raise Exception(f"DATABASE CONNECTION FAILURE on {debug_info}: {e}. Please verify your credentials on Vercel Dashboard.")
             return get_sqlite_connection()
     else:
         if is_vercel:
