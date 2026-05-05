@@ -111,6 +111,13 @@ def init_db():
             customer_phone TEXT
         )
     ''')
+    
+    # Add review_id column if not exists (Migration)
+    try:
+        cur.execute('ALTER TABLE orders ADD COLUMN review_id TEXT')
+    except:
+        conn.rollback() # Column might already exist
+        pass
 
     # Reviews Table
     cur.execute(f'''
