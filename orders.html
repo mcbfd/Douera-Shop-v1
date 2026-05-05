@@ -178,13 +178,20 @@
 
             // LOGIQUE DE FILTRAGE :
             // 1. Si on a une REF dans l'URL, on cherche cette commande précise
-            // 2. Sinon, on affiche les commandes du compte connecté
+            // 2. Sinon, on affiche les commandes du compte connecté (par ID ou par téléphone)
             let userOrders = [];
             
             if (refParam) {
                 userOrders = allOrders.filter(o => o.id === refParam);
             } else if (currentSession) {
+                // Recherche par ID utilisateur
                 userOrders = allOrders.filter(o => o.userId === currentSession.userId);
+                
+                // Si rien trouvé par ID, on tente par numéro de téléphone (très utile pour les guest checkouts)
+                if (userOrders.length === 0 && currentSession.phone) {
+                    console.log("Recherche par téléphone car aucune commande liée à l'ID...");
+                    userOrders = allOrders.filter(o => o.customer_phone === currentSession.phone);
+                }
             } else {
                 // Pas de session et pas de REF -> Rediriger vers login
                 window.location.href = 'account/login.html';
