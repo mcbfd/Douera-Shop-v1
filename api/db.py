@@ -114,10 +114,15 @@ def init_db():
     
     # Add review_id column if not exists (Migration)
     try:
-        cur.execute('ALTER TABLE orders ADD COLUMN review_id TEXT')
-    except:
-        conn.rollback() # Column might already exist
-        pass
+        # Check if column exists first to avoid unnecessary errors
+        if is_postgres:
+            cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_id TEXT")
+        else:
+            cur.execute("ALTER TABLE orders ADD COLUMN review_id TEXT")
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        sys.stderr.write(f"Migration Info: {e}\n")
 
     # Reviews Table
     cur.execute(f'''
