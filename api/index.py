@@ -245,6 +245,12 @@ def save_order():
         # Serialization of items for DB
         items_json = json.dumps(data.get('items', []))
         
+        # Récupération flexible des données client (Frontend vs Backend naming)
+        c_fn = data.get('customer_firstname') or data.get('firstname') or 'Invité'
+        c_ln = data.get('customer_lastname') or data.get('lastname') or ''
+        c_addr = data.get('customer_address') or data.get('address') or 'Non précisée'
+        c_phone = data.get('customer_phone') or data.get('phone') or 'Non précisé'
+        
         db.execute('''
             INSERT INTO orders (id, userId, date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -252,14 +258,13 @@ def save_order():
             o_id, data.get('userId'), datetime.now().isoformat(),
             data.get('method', 'Livraison'), 'En attente',
             data.get('total', 0), items_json,
-            data.get('firstname'), data.get('lastname'),
-            data.get('address'), data.get('phone')
+            c_fn, c_ln, c_addr, c_phone
         ))
         db.commit()
         db.close()
         
         # NOTIFICATION ADMIN : Nouvelle commande
-        sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {data.get('firstname')} {data.get('lastname')}\n")
+        sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {c_fn} {c_ln}\n")
         
         return jsonify({"success": True, "id": o_id})
     except Exception as e:

@@ -182,30 +182,40 @@
         function openOrderModal(id) {
             currentOrderId = id;
             const order = allOrders.find(o => o.id === id);
+            if (!order) return;
+
+            // Parsing des items si c'est une chaîne JSON
+            let items = order.items;
+            if (typeof items === 'string') {
+                try { items = JSON.parse(items); } catch(e) { items = []; }
+            }
 
             document.getElementById('order-id-title').textContent = "Commande #" + id.substring(0, 8);
-            document.getElementById('order-date').textContent = "Passée le " + new Date(order.date).toLocaleString();
+            document.getElementById('order-date').textContent = "Passée le " + new Date(isNaN(order.date) ? order.date : parseInt(order.date)).toLocaleString();
 
             const badge = document.getElementById('order-status-badge');
             badge.innerHTML = `<span class="badge ${getStatusClass(order.status)}" style="font-size: 1rem; padding: 10px 20px;">${order.status}</span>`;
 
             const itemsList = document.getElementById('order-items-list');
             itemsList.innerHTML = '';
-            order.items.forEach(item => {
-                const div = document.createElement('div');
-                div.style.cssText = 'display: flex; gap: 12px; align-items: center; background: var(--color-background); padding: 12px; border-radius: 12px;';
-                div.innerHTML = `
-                    <div style="font-weight: 800; color: var(--color-primary); width: 24px;">${item.quantity}x</div>
-                    <div style="flex: 1; font-weight: 600;">${item.name}</div>
-                    <div style="color: var(--color-muted);">${item.price.toLocaleString()} XOF</div>
-                `;
-                itemsList.appendChild(div);
-            });
+            
+            if (Array.isArray(items)) {
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display: flex; gap: 12px; align-items: center; background: var(--color-background); padding: 12px; border-radius: 12px;';
+                    div.innerHTML = `
+                        <div style="font-weight: 800; color: var(--color-primary); width: 24px;">${item.quantity || 1}x</div>
+                        <div style="flex: 1; font-weight: 600;">${item.name || 'Produit'}</div>
+                        <div style="color: var(--color-muted);">${(item.price || 0).toLocaleString()} XOF</div>
+                    `;
+                    itemsList.appendChild(div);
+                });
+            }
 
-            // Customer Info
-            document.getElementById('customer-name').textContent = (order.customer_firstname || 'N/A') + ' ' + (order.customer_lastname || '');
-            document.getElementById('customer-phone').textContent = "📞 " + (order.customer_phone || 'N/A');
-            document.getElementById('customer-address').textContent = "📍 " + (order.customer_address || 'Non spécifiée');
+            // Customer Info (Nettoyage des null)
+            document.getElementById('customer-name').textContent = (order.customer_firstname || 'Invité') + ' ' + (order.customer_lastname || '');
+            document.getElementById('customer-phone').textContent = "📞 " + (order.customer_phone || 'Non renseigné');
+            document.getElementById('customer-address').textContent = "📍 " + (order.customer_address || 'Adresse non précisée');
 
             document.getElementById('orderModal').classList.add('active');
         }
