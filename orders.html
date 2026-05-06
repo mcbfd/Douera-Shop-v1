@@ -247,6 +247,13 @@
             }
 
             userOrders.forEach((order, index) => {
+                // Parsing des items si c'est une chaîne JSON
+                let items = order.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch(e) { items = []; }
+                }
+                order.items = items;
+
                 const card = document.createElement('div');
                 card.className = 'order-card animate-fade-in';
                 card.style.animationDelay = `${index * 0.1}s`;
