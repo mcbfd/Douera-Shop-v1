@@ -109,20 +109,27 @@ def init_db():
 @app.route('/api/health')
 def health():
     db_type = "Inconnu"
+    error_msg = None
     try:
-        conn = get_db_connection()
-        if hasattr(conn, 'tpc_begin'):
-            db_type = "Postgres (SÉCURISÉ & PERMANENT) ✅"
+        # Tentative de connexion pour test
+        if DATABASE_URL and has_psycopg2:
+            try:
+                conn = psycopg2.connect(DATABASE_URL, connect_timeout=5)
+                db_type = "Postgres (SÉCURISÉ & PERMANENT) ✅"
+                conn.close()
+            except Exception as e:
+                error_msg = str(e)
+                db_type = f"SQLite (TEMPORAIRE - ATTENTION) ⚠️ | Erreur Postgres: {error_msg}"
         else:
-            db_type = "SQLite (TEMPORAIRE - ATTENTION) ⚠️"
-        conn.close()
-    except:
-        db_type = "Erreur de connexion"
+            db_type = "SQLite (TEMPORAIRE) - Pas de DATABASE_URL ou psycopg2"
+    except Exception as e:
+        db_type = f"Erreur critique: {str(e)}"
         
     return jsonify({
         "status": "online", 
         "database": db_type,
-        "psycopg2": has_psycopg2
+        "psycopg2": has_psycopg2,
+        "postgres_error": error_msg
     })
 
 @app.route('/api/products', methods=['GET'])
