@@ -363,6 +363,20 @@ def get_reviews():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/reviews/<r_id>', methods=['DELETE'])
+def delete_review(r_id):
+    try:
+        db = DB(get_db_connection())
+        # On nettoie d'abord la référence dans la table orders
+        db.execute('UPDATE orders SET review_id = NULL WHERE review_id = ?', (r_id,))
+        # On supprime l'avis
+        db.execute('DELETE FROM reviews WHERE id = ?', (r_id,))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/reviews', methods=['POST'])
 def add_review():
     try:

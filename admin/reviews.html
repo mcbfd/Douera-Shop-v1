@@ -157,10 +157,16 @@
                             <div style="background: rgba(43, 89, 162, 0.05); padding: 12px; border-radius: 10px; border-left: 3px solid var(--color-primary); margin-top: 8px;">
                                 <p style="font-size: 0.8rem; font-weight: 800; color: var(--color-primary); margin-bottom: 4px;">Votre réponse :</p>
                                 <p style="font-size: 0.85rem; color: var(--color-primary-dark);">${rev.admin_reply}</p>
-                                <button onclick="toggleReply('${rev.id}')" style="background: none; border: none; color: var(--color-muted); font-size: 0.75rem; text-decoration: underline; cursor: pointer; margin-top: 4px;">Modifier</button>
+                                <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
+                                    <button onclick="toggleReply('${rev.id}')" style="background: none; border: none; color: var(--color-muted); font-size: 0.75rem; text-decoration: underline; cursor: pointer;">Modifier</button>
+                                    <button onclick="confirmDeleteReview('${rev.id}')" style="background: none; border: none; color: #DC2626; font-size: 0.75rem; text-decoration: underline; cursor: pointer;">Supprimer l'avis</button>
+                                </div>
                             </div>
                         ` : `
-                            <button class="btn btn-outline" onclick="toggleReply('${rev.id}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Répondre</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-outline" onclick="toggleReply('${rev.id}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">Répondre</button>
+                                <button class="btn" onclick="confirmDeleteReview('${rev.id}')" style="padding: 6px; border-radius: 8px; background: #FEF2F2; color: #DC2626; border: none; cursor: pointer;"><i data-lucide="trash-2" style="width: 16px;"></i></button>
+                            </div>
                         `}
 
                         <div id="reply-form-${rev.id}" style="display: none; margin-top: 12px;">
@@ -182,6 +188,26 @@
         function toggleReply(id) {
             const form = document.getElementById(`reply-form-${id}`);
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function confirmDeleteReview(id) {
+            if (!confirm("Êtes-vous sûr de vouloir supprimer cet avis définitivement ? Cette action est irréversible.")) return;
+            
+            const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
+
+            try {
+                const res = await fetch(`${API_URL}/reviews/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert("Erreur lors de la suppression");
+                }
+            } catch (err) {
+                alert("Erreur de connexion au serveur");
+            }
         }
 
         async function submitReply(id) {
