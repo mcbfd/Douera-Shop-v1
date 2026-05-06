@@ -64,6 +64,7 @@
         </div>
     </main>
 
+    <script src="../js/config.js"></script>
     <script src="../js/auth-service.js"></script>
     <script src="../js/ui.js"></script>
     <script>
@@ -126,10 +127,8 @@
                     comment: document.getElementById('review-comment').value
                 };
 
-                // Détection de l'URL de l'API (relative ou locale)
-                const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-                    ? 'http://127.0.0.1:5001/api' 
-                    : '/api';
+                // Détection de l'URL de l'API via config.js ou fallback
+                const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
                 
                 try {
                     const res = await fetch(`${API_URL}/reviews`, {

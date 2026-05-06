@@ -187,16 +187,20 @@
                                     }).join('')}
                                 </div>
 
-                                <div style="background: var(--color-background); padding: 32px; border-radius: 20px; border: 1px solid var(--color-border);">
-                                    <div style="display: flex; gap: 20px; align-items: center;">
-                                        <div style="width: 60px; height: 60px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
-                                            <i data-lucide="map-pin" style="color: var(--color-primary);"></i>
+                                    <div style="background: var(--color-background); padding: 32px; border-radius: 20px; border: 1px solid var(--color-border);">
+                                        <div style="display: flex; gap: 20px; align-items: center;">
+                                            <div style="width: 60px; height: 60px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-border);">
+                                                <i data-lucide="map-pin" style="color: var(--color-primary);"></i>
+                                            </div>
+                                            <div>
+                                                <h4 style="margin-bottom: 4px;">Destination de livraison</h4>
+                                                <p style="color: var(--color-muted); font-size: 0.9rem;">
+                                                    ${order.customer_firstname || order.customerfirstname || 'Client'} 
+                                                    ${order.customer_lastname || order.customerlastname || ''} • 
+                                                    ${order.customer_address || order.customeraddress || 'Adresse non précisée'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 style="margin-bottom: 4px;">Destination de livraison</h4>
-                                            <p style="color: var(--color-muted); font-size: 0.9rem;">${order.customer_firstname} ${order.customer_lastname} • ${order.customer_address}</p>
-                                        </div>
-                                    </div>
                                     
                                     ${order.status === 'Livrée' && !order.review_id ? `
                                         <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--color-border); text-align: center;">

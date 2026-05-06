@@ -159,7 +159,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch(`${API_URL}/orders`);
                 if (res.ok) {
                     const orders = await res.json();
-                    const userOrders = orders.filter(o => o.userId === user.userId);
+                    const userOrders = orders.filter(o => {
+                        const oUserId = o.userId || o.userid;
+                        return String(oUserId).toLowerCase() === String(user.userId).toLowerCase();
+                    });
                     
                     // Get seen reply IDs from localStorage
                     const seenReplies = JSON.parse(localStorage.getItem('seen_replies') || '[]');
