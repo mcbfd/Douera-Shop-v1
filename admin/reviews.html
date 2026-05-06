@@ -212,7 +212,7 @@
 
         async function submitReply(id) {
             const text = document.getElementById(`reply-text-${id}`).value;
-            const API_URL = (window.location.protocol === 'file:') ? 'http://127.0.0.1:5001/api' : `http://${window.location.hostname}:5001/api`;
+            const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
 
             try {
                 const res = await fetch(`${API_URL}/reviews/${id}/reply`, {
@@ -223,9 +223,11 @@
 
                 if (res.ok) {
                     location.reload();
+                } else {
+                    alert("Erreur lors de l'enregistrement de la réponse");
                 }
             } catch (err) {
-                alert("Erreur lors de l'enregistrement de la réponse");
+                alert("Erreur de connexion au serveur");
             }
         }
 

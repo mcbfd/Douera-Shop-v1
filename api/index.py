@@ -377,6 +377,19 @@ def delete_review(r_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/reviews/<r_id>/reply', methods=['PATCH'])
+def reply_review(r_id):
+    try:
+        data = request.json
+        reply = data.get('reply')
+        db = DB(get_db_connection())
+        db.execute('UPDATE reviews SET admin_reply = ? WHERE id = ?', (reply, r_id))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/reviews', methods=['POST'])
 def add_review():
     try:
