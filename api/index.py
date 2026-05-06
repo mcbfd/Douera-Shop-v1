@@ -25,6 +25,15 @@ CORS(app)
 # --- DATABASE CONFIGURATION ---
 DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
 
+# Nettoyage de l'URL pour éviter les erreurs de paramètres (ex: pgbouncer)
+if DATABASE_URL and "?" in DATABASE_URL:
+    base_url = DATABASE_URL.split("?")[0]
+    # On garde seulement sslmode si présent car c'est souvent requis
+    if "sslmode=require" in DATABASE_URL:
+        DATABASE_URL = base_url + "?sslmode=require"
+    else:
+        DATABASE_URL = base_url
+
 def get_db_connection():
     try:
         if DATABASE_URL and has_psycopg2:
