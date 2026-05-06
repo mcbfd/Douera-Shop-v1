@@ -366,7 +366,7 @@
                         <div style="color: var(--color-muted); font-size: 0.9rem;">Total: <strong style="color: var(--color-primary-dark); font-size: 1.4rem; margin-left: 8px;">${order.total.toLocaleString()} XOF</strong></div>
                         
                         ${(order.status === 'Livrée' && !order.review_id) ? `
-                            <a href="account/review.html?orderId=${order.id}" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-size: 0.85rem;">
+                            <a href="account/review.html?orderId=${order.id}&productId=${order.items && order.items[0] ? order.items[0].id : ''}" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-size: 0.85rem;">
                                 <i data-lucide="star" style="width: 16px; margin-right: 8px; fill: currentColor;"></i> Laisser un avis
                             </a>
                         ` : ''}

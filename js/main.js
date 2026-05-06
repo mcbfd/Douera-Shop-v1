@@ -575,19 +575,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_BASE_URL}/reviews`);
             if (res.ok) {
                 const data = await res.json();
-                allReviews = data.filter(r => r.productId === product.id);
+                // Filtrage robuste (gère productId et productid)
+                allReviews = data.filter(r => (r.productId === product.id) || (r.productid === product.id));
             }
         } catch (e) {
             console.error("Erreur chargement avis", e);
         }
 
-        const displayReviews = allReviews.length > 0 ? allReviews : [
-            { userName: "Moussa Diop", date: new Date().toISOString(), comment: "Franchement, la qualité est au rendez-vous. Livraison rapide à Douéra en moins de 24h. Je recommande !", rating_product: 5, rating_service: 5 },
-            { userName: "Aminata Sow", date: new Date().toISOString(), comment: "Très satisfaite de mon achat. Le produit correspond exactement à la description. Service client au top.", rating_product: 5, rating_service: 4 }
-        ];
-
         container.innerHTML = '';
-        displayReviews.forEach(review => {
+        
+        if (allReviews.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; background: #F8FAFC; border-radius: 20px; border: 2px dashed #E2E8F0;">
+                    <i data-lucide="message-square" style="width: 48px; height: 48px; color: #CBD5E1; margin-bottom: 16px;"></i>
+                    <h3 style="color: var(--color-primary-dark); margin-bottom: 8px;">Aucun avis pour le moment</h3>
+                    <p style="color: var(--color-muted); font-size: 0.9rem;">Soyez le premier à partager votre expérience après votre achat !</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        allReviews.forEach(review => {
             const date = new Date(review.date || review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
             const uName = review.userName || review.username || 'Client Douéra';
             const rProd = parseInt(review.rating_product || review.ratingproduct || 5);
