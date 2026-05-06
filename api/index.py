@@ -126,7 +126,7 @@ def health():
         db_type = f"Erreur critique: {str(e)}"
         
     return jsonify({
-        "status": "online", 
+        "status": "online-v2", 
         "database": db_type,
         "psycopg2": has_psycopg2,
         "postgres_error": error_msg
