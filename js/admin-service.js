@@ -112,39 +112,52 @@ const AdminService = {
 
     // 6. Stats Dashboard
     getStats: async () => {
-        const orders = await AdminService.getOrders();
-        const products = await AdminService.getProducts();
-        const users = await AdminService.getUsers();
+        try {
+            const orders = await AdminService.getOrders();
+            const products = await AdminService.getProducts();
+            const users = await AdminService.getUsers();
 
-        const totalVentes = orders.reduce((acc, o) => acc + (o.total || 0), 0);
-        const nbClients = users.filter(u => u.role === 'client').length;
-        const nbRupture = products.filter(p => (p.stock || 0) <= 0).length;
-        // Top Products Logic
-        const productSales = {};
-        orders.forEach(o => {
-            o.items.forEach(item => {
-                productSales[item.id] = (productSales[item.id] || 0) + (item.quantity || 1);
+            const totalVentes = orders.reduce((acc, o) => acc + (parseInt(o.total) || 0), 0);
+            const nbClients = users.filter(u => u.role === 'client' || u.role === 'user').length;
+            const nbRupture = products.filter(p => (parseInt(p.stock) || 0) <= 0).length;
+            
+            // Top Products Logic
+            const productSales = {};
+            orders.forEach(o => {
+                let items = o.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch(e) { items = []; }
+                }
+                if (Array.isArray(items)) {
+                    items.forEach(item => {
+                        const pId = item.id || item.productId;
+                        productSales[pId] = (productSales[pId] || 0) + (parseInt(item.quantity) || 1);
+                    });
+                }
             });
-        });
 
-        const popularProducts = Object.entries(productSales)
-            .map(([id, sales]) => {
-                const p = products.find(prod => prod.id === id);
-                return p ? { ...p, sales } : null;
-            })
-            .filter(p => p !== null)
-            .sort((a, b) => b.sales - a.sales)
-            .slice(0, 3);
-        
-        return {
-            totalVentes,
-            nbCommandes: orders.length,
-            nbClients,
-            nbProduits: products.length,
-            nbRupture,
-            recentOrders: orders.slice(0, 5),
-            popularProducts 
-        };
+            const popularProducts = Object.entries(productSales)
+                .map(([id, sales]) => {
+                    const p = products.find(prod => prod.id === id);
+                    return p ? { ...p, sales } : null;
+                })
+                .filter(p => p !== null)
+                .sort((a, b) => b.sales - a.sales)
+                .slice(0, 3);
+            
+            return {
+                totalVentes,
+                nbCommandes: orders.length,
+                nbClients,
+                nbProduits: products.length,
+                nbRupture,
+                recentOrders: orders.slice(0, 5),
+                popularProducts 
+            };
+        } catch (err) {
+            console.error("Stats Error:", err);
+            return { totalVentes: 0, nbCommandes: 0, nbClients: 0, nbProduits: 0, nbRupture: 0, recentOrders: [], popularProducts: [] };
+        }
     },
     
     // 7. Automation & Sync
