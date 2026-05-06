@@ -588,16 +588,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = '';
         displayReviews.forEach(review => {
-            const date = new Date(review.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+            const date = new Date(review.date || review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+            const uName = review.userName || review.username || 'Client Douéra';
+            const rProd = parseInt(review.rating_product || review.ratingproduct || 5);
+
             const div = document.createElement('div');
             div.style.cssText = `padding: 24px; background: #FFF; border-radius: 20px; border: 1px solid #F1F5F9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);`;
             
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                     <div>
-                        <div style="font-weight: 800; font-size: 1rem; color: var(--color-primary-dark);">${review.userName}</div>
+                        <div style="font-weight: 800; font-size: 1rem; color: var(--color-primary-dark);">${uName}</div>
                         <div style="display: flex; gap: 4px; color: #F59E0B; margin-top: 6px;">
-                            ${Array(review.rating_product || 5).fill('<i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor;"></i>').join('')}
+                            ${Array(rProd).fill('<i data-lucide="star" style="width: 14px; height: 14px; fill: currentColor;"></i>').join('')}
                         </div>
                     </div>
                     <div style="text-align: right;">

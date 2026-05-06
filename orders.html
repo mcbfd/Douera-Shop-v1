@@ -206,12 +206,18 @@
             const currentSession = AuthService.getCurrentUser();
             
             let allOrders = [];
+            let allReviews = [];
             const API_URL = API_BASE_URL;
             try {
-                const res = await fetch(`${API_URL}/orders`);
-                if (res.ok) allOrders = await res.json();
+                const [ordersRes, reviewsRes] = await Promise.all([
+                    fetch(`${API_URL}/orders`),
+                    fetch(`${API_URL}/reviews`)
+                ]);
+                
+                if (ordersRes.ok) allOrders = await ordersRes.json();
+                if (reviewsRes.ok) allReviews = await reviewsRes.json();
             } catch (err) {
-                console.error("Erreur chargement commandes:", err);
+                console.error("Erreur chargement données:", err);
             }
 
             // LOGIQUE DE FILTRAGE :
@@ -371,6 +377,34 @@
                             </span>
                         ` : ''}
                     </div>
+
+                    ${order.review_id ? (() => {
+                        const review = allReviews.find(r => (r.id === order.review_id) || (r.orderid === order.id) || (r.orderId === order.id));
+                        if (!review) return '';
+                        
+                        const rProd = parseInt(review.rating_product || review.ratingproduct || 5);
+                        return `
+                            <div style="margin-top: 24px; padding: 20px; background: #F8FAFC; border-radius: 16px; border: 1px solid var(--color-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <div style="display: flex; gap: 4px; color: #F59E0B;">
+                                        ${'★'.repeat(rProd)}${'☆'.repeat(5-rProd)}
+                                    </div>
+                                    <span style="font-size: 0.75rem; color: var(--color-muted);">Votre avis</span>
+                                </div>
+                                <p style="font-size: 0.9rem; color: var(--color-primary-dark); line-height: 1.5; font-style: italic;">"${review.comment || 'Aucun commentaire laissé.'}"</p>
+                                
+                                ${review.admin_reply ? `
+                                    <div style="margin-top: 16px; padding: 12px; background: white; border-radius: 12px; border-left: 4px solid var(--color-primary); box-shadow: var(--shadow-sm);">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <img src="assets/logo.png" style="width: 18px; height: 18px; border-radius: 4px;">
+                                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-primary); text-transform: uppercase;">Réponse Douéra Shop</span>
+                                        </div>
+                                        <p style="font-size: 0.85rem; color: var(--color-primary-dark); line-height: 1.4;">${review.admin_reply}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    })() : ''}
                 `;
                 container.appendChild(card);
             });
