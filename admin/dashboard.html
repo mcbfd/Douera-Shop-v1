@@ -203,29 +203,34 @@
                 });
                 if (window.lucide) lucide.createIcons();
                 if(statusDot) statusDot.style.background = '#31C48D'; // Back to green
+                
+                // Charts Update
+                initCharts(stats);
             };
 
             // Initial call + Polling
-            AdminService.startAutoRefresh(refreshAll, 60000); // 60s for dashboard stats
-
-
-
-
-            // Charts
-            initCharts(stats);
-            if (window.lucide) lucide.createIcons();
+            await refreshAll();
+            AdminService.startAutoRefresh(refreshAll, 60000); 
         });
 
+        let chartsInitialized = false;
+        let salesChart, paymentChart;
+
         function initCharts(stats) {
-            // Sales Chart (Simulated Data)
+            if (chartsInitialized) {
+                salesChart.destroy();
+                paymentChart.destroy();
+            }
+            
+            // Sales Chart (Simulated Data + Real Total)
             const salesCtx = document.getElementById('salesChart').getContext('2d');
-            new Chart(salesCtx, {
+            salesChart = new Chart(salesCtx, {
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin'],
                     datasets: [{
                         label: 'Revenus (XOF)',
-                        data: [120000, 190000, 150000, 250000, 220000, stats.totalVentes || 300000],
+                        data: [120000, 190000, 150000, 250000, 220000, stats.totalVentes || 0],
                         borderColor: '#2B59A2',
                         backgroundColor: 'rgba(43, 89, 162, 0.1)',
                         fill: true,
@@ -238,7 +243,7 @@
 
             // Payment Distribution
             const payCtx = document.getElementById('paymentChart').getContext('2d');
-            new Chart(payCtx, {
+            paymentChart = new Chart(payCtx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Orange Money', 'Wave', 'Carte', 'Espèce'],
@@ -250,6 +255,8 @@
                 },
                 options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
             });
+            
+            chartsInitialized = true;
         }
     </script>
 </body>
