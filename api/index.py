@@ -206,12 +206,47 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/orders', methods=['POST'])
+def save_order():
+    try:
+        data = request.json
+        o_id = data.get('id') or ('TRX-' + str(int(time.time() * 1000)))
+        db = DB(get_db_connection())
+        
+        # Serialization of items for DB
+        items_json = json.dumps(data.get('items', []))
+        
+        db.execute('''
+            INSERT INTO orders (id, userId, date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            o_id, data.get('userId'), datetime.now().isoformat(),
+            data.get('method', 'Livraison'), 'En attente',
+            data.get('total', 0), items_json,
+            data.get('firstname'), data.get('lastname'),
+            data.get('address'), data.get('phone')
+        ))
+        db.commit()
+        db.close()
+        
+        # NOTIFICATION ADMIN : Nouvelle commande
+        sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {data.get('firstname')} {data.get('lastname')}\n")
+        
+        return jsonify({"success": True, "id": o_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/orders', methods=['GET'])
 @app.route('/api/user/orders', methods=['GET'])
 def get_orders():
     try:
         db = DB(get_db_connection())
-        db.execute('SELECT * FROM orders')
+        # Filter by userId if provided
+        u_id = request.args.get('userId')
+        if u_id:
+            db.execute('SELECT * FROM orders WHERE userId = ? ORDER BY date DESC', (u_id,))
+        else:
+            db.execute('SELECT * FROM orders ORDER BY date DESC')
         orders = db.fetchall()
         db.close()
         return jsonify(orders)
@@ -243,6 +278,16 @@ def update_order(o_id):
         db.execute('UPDATE orders SET status = ? WHERE id = ?', (status, o_id))
         db.commit()
         db.close()
+        
+        # LOGIQUE DE NOTIFICATION DE STATUT (Flexible)
+        status_clean = status.lower().strip()
+        if 'expédi' in status_clean:
+            sys.stderr.write(f"📲 NOTIFICATION CLIENT : Votre commande {o_id} a été expédiée ! 🚚\n")
+        elif 'livré' in status_clean:
+            sys.stderr.write(f"✨ NOTIFICATION CLIENT : Commande {o_id} livrée ! Merci de confirmer la réception. ✅\n")
+        elif 'confirm' in status_clean or 'reçu' in status_clean:
+            sys.stderr.write(f"🏆 NOTIFICATION ADMIN : Le client a confirmé la réception de la commande {o_id} ! 💰\n")
+            
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
