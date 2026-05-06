@@ -22,6 +22,32 @@ sys.stdout = sys.stderr
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/api/debug-db')
+def debug_db():
+    try:
+        db = DB(get_db_connection())
+        db.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+        tables = db.fetchall()
+        
+        reviews_count = 0
+        latest_reviews = []
+        try:
+            db.execute("SELECT COUNT(*) as count FROM reviews")
+            reviews_count = db.fetchone()['count']
+            db.execute("SELECT * FROM reviews ORDER BY date DESC LIMIT 5")
+            latest_reviews = db.fetchall()
+        except Exception as inner_e:
+            latest_reviews = [{"error_inner": str(inner_e)}]
+            
+        return jsonify({
+            "tables": [t['table_name'] for t in tables],
+            "reviews_count": reviews_count,
+            "latest_reviews": latest_reviews,
+            "status": "DB Connected"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e), "status": "DB Error"})
+
 # --- DATABASE CONFIGURATION ---
 DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
 
