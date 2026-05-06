@@ -222,8 +222,11 @@
             if (refParam) {
                 userOrders = allOrders.filter(o => o.id === refParam);
             } else if (currentSession) {
-                // Recherche par ID utilisateur
-                userOrders = allOrders.filter(o => String(o.userId) === String(currentSession.userId));
+                // Recherche par ID utilisateur (Robuste: gère userId et userid pour Postgres)
+                userOrders = allOrders.filter(o => {
+                    const oUserId = o.userId || o.userid;
+                    return String(oUserId).toLowerCase() === String(currentSession.userId).toLowerCase();
+                });
                 
                 // Si rien trouvé par ID, on tente par numéro de téléphone (normalisé)
                 if (userOrders.length === 0 && currentSession.phone) {
@@ -231,7 +234,10 @@
                     const targetPhone = cleanPhone(currentSession.phone);
                     
                     console.log("Recherche par téléphone (normalisé)...", targetPhone);
-                    userOrders = allOrders.filter(o => cleanPhone(o.customer_phone) === targetPhone);
+                    userOrders = allOrders.filter(o => {
+                        const oPhone = o.customer_phone || o.customerphone || '';
+                        return cleanPhone(oPhone) === targetPhone;
+                    });
                 }
             } else {
                 // Pas de session et pas de REF -> Rediriger vers login
