@@ -23,9 +23,7 @@ app = Flask(__name__)
 CORS(app)
 
 # --- DATABASE CONFIGURATION ---
-DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:6543/postgres?sslmode=require"
-if DATABASE_URL and ":5432/" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace(":5432/", ":6543/")
+DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
 
 def get_db_connection():
     try:
