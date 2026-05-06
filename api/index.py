@@ -352,6 +352,17 @@ def update_order(o_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/reviews', methods=['GET'])
+def get_reviews():
+    try:
+        db = DB(get_db_connection())
+        db.execute('SELECT * FROM reviews ORDER BY date DESC')
+        reviews = db.fetchall()
+        db.close()
+        return jsonify(reviews)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/reviews', methods=['POST'])
 def add_review():
     try:
