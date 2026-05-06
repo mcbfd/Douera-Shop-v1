@@ -223,12 +223,15 @@
                 userOrders = allOrders.filter(o => o.id === refParam);
             } else if (currentSession) {
                 // Recherche par ID utilisateur
-                userOrders = allOrders.filter(o => o.userId === currentSession.userId);
+                userOrders = allOrders.filter(o => String(o.userId) === String(currentSession.userId));
                 
-                // Si rien trouvé par ID, on tente par numéro de téléphone (très utile pour les guest checkouts)
+                // Si rien trouvé par ID, on tente par numéro de téléphone (normalisé)
                 if (userOrders.length === 0 && currentSession.phone) {
-                    console.log("Recherche par téléphone car aucune commande liée à l'ID...");
-                    userOrders = allOrders.filter(o => o.customer_phone === currentSession.phone);
+                    const cleanPhone = phone => String(phone).replace(/\D/g, '');
+                    const targetPhone = cleanPhone(currentSession.phone);
+                    
+                    console.log("Recherche par téléphone (normalisé)...", targetPhone);
+                    userOrders = allOrders.filter(o => cleanPhone(o.customer_phone) === targetPhone);
                 }
             } else {
                 // Pas de session et pas de REF -> Rediriger vers login
