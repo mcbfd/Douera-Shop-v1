@@ -296,24 +296,6 @@
                 const activeColor = steps[currentStepIndex]?.color || '#6B7280';
 
                 // Fonction de confirmation
-                window.confirmReceipt = async (orderId) => {
-                    if (!confirm("Avez-vous bien reçu tous les produits de votre commande ?")) return;
-                    
-                    try {
-                        const res = await fetch(`${API_URL}/orders/${orderId}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: 'Livrée' })
-                        });
-                        
-                        if (res.ok) {
-                            UI.showToast("Réception confirmée ! Vous pouvez maintenant laisser un avis.", "success");
-                            setTimeout(() => window.location.reload(), 1500);
-                        }
-                    } catch (err) {
-                        UI.showToast("Erreur lors de la confirmation.", "error");
-                    }
-                };
 
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative; flex-wrap: wrap; gap: 16px;">
@@ -395,6 +377,34 @@
 
             if (window.lucide) lucide.createIcons();
         });
+
+        // Fonction GLOBALE pour confirmer la réception
+        async function confirmReceipt(orderId) {
+            if (!confirm("Avez-vous bien reçu tous les produits de votre commande ?")) return;
+            
+            try {
+                const API_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+                const res = await fetch(`${API_URL}/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Livrée' })
+                });
+                
+                if (res.ok) {
+                    if (typeof UI !== 'undefined') {
+                        UI.showToast("Réception confirmée ! Merci de votre confiance.", "success");
+                    } else {
+                        alert("Réception confirmée !");
+                    }
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    throw new Error("Erreur serveur");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erreur lors de la confirmation de réception.");
+            }
+        }
     </script>
 </body>
 
