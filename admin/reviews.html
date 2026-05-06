@@ -112,30 +112,38 @@
             }
 
             reviews.forEach(rev => {
-                const tr = document.createElement('tr');
-                const date = new Date(isNaN(rev.date) ? rev.date : parseInt(rev.date)).toLocaleDateString();
-                
-                tr.innerHTML = `
-                    <td style="color: var(--color-muted); font-size: 0.85rem;">${date}</td>
-                    <td>
-                        <div style="font-weight: 700; color: var(--color-primary-dark);">${rev.userName || rev.username || 'Client'}</div>
-                        <div style="font-size: 0.75rem; color: var(--color-muted);">ID: ${rev.userId || rev.userid || 'N/A'}</div>
-                    </td>
-                    <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">#${(rev.orderId || rev.orderid || 'N/A').substring(0,8)}</td>
-                    <td>
-                        <div style="display: flex; gap: 2px; color: #F59E0B;">
-                            ${'★'.repeat(rev.rating_product)}${'☆'.repeat(5-rev.rating_product)}
-                        </div>
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 2px; color: var(--color-primary);">
-                            ${'★'.repeat(rev.rating_service)}${'☆'.repeat(5-rev.rating_service)}
-                        </div>
-                    </td>
-                    <td style="max-width: 400px;">
-                        <div style="margin-bottom: 12px;">
-                            <p style="font-size: 0.9rem; color: var(--color-foreground); line-height: 1.4; font-style: italic;">"${rev.comment || 'Sans commentaire'}"</p>
-                        </div>
+                try {
+                    const tr = document.createElement('tr');
+                    const rawDate = rev.date || rev.created_at || new Date();
+                    const date = new Date(isNaN(rawDate) ? rawDate : parseInt(rawDate)).toLocaleDateString();
+                    
+                    const ratingProd = parseInt(rev.rating_product) || parseInt(rev.ratingproduct) || 5;
+                    const ratingServ = parseInt(rev.rating_service) || parseInt(rev.ratingservice) || 5;
+                    const oId = rev.orderId || rev.orderid || 'N/A';
+                    const uName = rev.userName || rev.username || 'Client';
+                    const uId = rev.userId || rev.userid || 'N/A';
+
+                    tr.innerHTML = `
+                        <td style="color: var(--color-muted); font-size: 0.85rem;">${date}</td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--color-primary-dark);">${uName}</div>
+                            <div style="font-size: 0.75rem; color: var(--color-muted);">ID: ${uId}</div>
+                        </td>
+                        <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">#${oId.substring(0,8)}</td>
+                        <td>
+                            <div style="display: flex; gap: 2px; color: #F59E0B;">
+                                ${'★'.repeat(ratingProd)}${'☆'.repeat(5-ratingProd)}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 2px; color: var(--color-primary);">
+                                ${'★'.repeat(ratingServ)}${'☆'.repeat(5-ratingServ)}
+                            </div>
+                        </td>
+                        <td style="max-width: 400px;">
+                            <div style="margin-bottom: 12px;">
+                                <p style="font-size: 0.9rem; color: var(--color-foreground); line-height: 1.4; font-style: italic;">"${rev.comment || 'Sans commentaire'}"</p>
+                            </div>
                         
                         ${rev.admin_reply ? `
                             <div style="background: rgba(43, 89, 162, 0.05); padding: 12px; border-radius: 10px; border-left: 3px solid var(--color-primary); margin-top: 8px;">
@@ -156,7 +164,10 @@
                         </div>
                     </td>
                 `;
-                list.appendChild(tr);
+                    list.appendChild(tr);
+                } catch (e) {
+                    console.error("Review skip:", e);
+                }
             });
         }
 
@@ -185,13 +196,25 @@
         }
 
         function updateStats(reviews) {
-            if (reviews.length === 0) return;
+            if (!Array.isArray(reviews) || reviews.length === 0) return;
             
-            const totalProduct = reviews.reduce((acc, r) => acc + r.rating_product, 0);
-            const totalService = reviews.reduce((acc, r) => acc + r.rating_service, 0);
+            let totalProduct = 0;
+            let totalService = 0;
+            let validCount = 0;
+
+            reviews.forEach(r => {
+                const rp = parseInt(r.rating_product) || parseInt(r.ratingproduct) || 0;
+                const rs = parseInt(r.rating_service) || parseInt(r.ratingservice) || 0;
+                if (rp > 0 || rs > 0) {
+                    totalProduct += rp;
+                    totalService += rs;
+                    validCount++;
+                }
+            });
             
-            document.getElementById('avg-product').textContent = (totalProduct / reviews.length).toFixed(1) + " / 5";
-            document.getElementById('avg-service').textContent = (totalService / reviews.length).toFixed(1) + " / 5";
+            const count = validCount || 1;
+            document.getElementById('avg-product').textContent = (totalProduct / count).toFixed(1) + " / 5";
+            document.getElementById('avg-service').textContent = (totalService / count).toFixed(1) + " / 5";
             document.getElementById('total-reviews').textContent = reviews.length;
         }
     </script>
