@@ -358,8 +358,19 @@ def add_review():
         data = request.json
         r_id = 'REV' + str(int(time.time()))
         db = DB(get_db_connection())
-        db.execute('INSERT INTO reviews (id, orderId, userId, rating_product, rating_service, comment, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                   (r_id, data.get('orderId'), data.get('userId'), data.get('rating_product'), data.get('rating_service'), data.get('comment'), datetime.now().isoformat()))
+        db.execute('''
+            INSERT INTO reviews (id, orderId, userId, userName, rating_product, rating_service, comment, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            r_id, 
+            data.get('orderId', 'N/A'), 
+            data.get('userId', 'guest'), 
+            data.get('userName') or data.get('username') or 'Client Douéra', 
+            data.get('rating_product', 5), 
+            data.get('rating_service', 5), 
+            data.get('comment', ''), 
+            datetime.now().isoformat()
+        ))
         db.execute('UPDATE orders SET review_id = ? WHERE id = ?', (r_id, data.get('orderId')))
         db.commit()
         db.close()

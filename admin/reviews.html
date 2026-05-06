@@ -111,25 +111,33 @@
                 return;
             }
 
+            console.log("Avis reçus:", reviews);
             reviews.forEach(rev => {
                 try {
                     const tr = document.createElement('tr');
-                    const rawDate = rev.date || rev.created_at || new Date();
-                    const date = new Date(isNaN(rawDate) ? rawDate : parseInt(rawDate)).toLocaleDateString();
+                    tr.className = 'animate-fade-in';
                     
-                    const ratingProd = parseInt(rev.rating_product) || parseInt(rev.ratingproduct) || 5;
-                    const ratingServ = parseInt(rev.rating_service) || parseInt(rev.ratingservice) || 5;
+                    // Date robuste
+                    let dateStr = 'Récent';
+                    try {
+                        const rawDate = rev.date || rev.created_at;
+                        const d = new Date(rawDate);
+                        if (!isNaN(d.getTime())) {
+                            dateStr = d.toLocaleDateString();
+                        }
+                    } catch(e) {}
+                    
+                    const ratingProd = parseInt(rev.rating_product || rev.ratingproduct || 5);
+                    const ratingServ = parseInt(rev.rating_service || rev.ratingservice || 5);
                     const oId = rev.orderId || rev.orderid || 'N/A';
-                    const uName = rev.userName || rev.username || 'Client';
-                    const uId = rev.userId || rev.userid || 'N/A';
+                    const uName = rev.userName || rev.username || 'Client Douéra';
 
                     tr.innerHTML = `
-                        <td style="color: var(--color-muted); font-size: 0.85rem;">${date}</td>
+                        <td style="color: var(--color-muted); font-size: 0.85rem;">${dateStr}</td>
                         <td>
                             <div style="font-weight: 700; color: var(--color-primary-dark);">${uName}</div>
-                            <div style="font-size: 0.75rem; color: var(--color-muted);">ID: ${uId}</div>
                         </td>
-                        <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">#${oId.substring(0,8)}</td>
+                        <td style="font-family: monospace; font-weight: 700; color: var(--color-primary);">#${String(oId).substring(0,8)}</td>
                         <td>
                             <div style="display: flex; gap: 2px; color: #F59E0B;">
                                 ${'★'.repeat(ratingProd)}${'☆'.repeat(5-ratingProd)}
