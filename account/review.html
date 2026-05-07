@@ -68,37 +68,59 @@
     <script src="../js/auth-service.js"></script>
     <script src="../js/ui.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const orderId = params.get('orderId');
+            const isEdit = params.get('edit') === 'true';
+            
             if (!orderId) window.location.href = '../orders.html';
-
             document.getElementById('display-order-id').textContent = orderId;
+
+            const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
+            let existingReviewId = null;
+
+            // Pre-fill if editing
+            if (isEdit) {
+                try {
+                    const res = await fetch(`${API_URL}/reviews`);
+                    if (res.ok) {
+                        const reviews = await res.json();
+                        const myReview = reviews.find(r => r.orderId === orderId || r.orderid === orderId);
+                        if (myReview) {
+                            existingReviewId = myReview.id;
+                            document.getElementById('review-comment').value = myReview.comment || '';
+                            setRating('product', myReview.rating_product || myReview.ratingproduct);
+                            setRating('service', myReview.rating_service || myReview.ratingservice);
+                            document.getElementById('submit-review-btn').innerHTML = `Mettre à jour mon avis <i data-lucide="refresh-cw" style="margin-left: 8px; width: 20px;"></i>`;
+                        }
+                    }
+                } catch(e) {}
+            }
+
             if (window.lucide) lucide.createIcons();
 
+            function setRating(type, val) {
+                const input = document.getElementById('rating-' + type);
+                input.value = val;
+                const container = document.querySelector(`.star-rating[data-type="${type}"]`);
+                const stars = container.querySelectorAll('svg, i');
+                stars.forEach(s => {
+                    const sVal = parseInt(s.getAttribute('data-value'));
+                    if (sVal <= val) {
+                        s.style.color = '#F59E0B';
+                        s.style.fill = '#F59E0B';
+                    } else {
+                        s.style.color = '#E2E8F0';
+                        s.style.fill = 'none';
+                    }
+                });
+            }
+
             // Star Rating Logic
-            const ratingContainers = document.querySelectorAll('.star-rating');
-            ratingContainers.forEach(container => {
+            document.querySelectorAll('.star-rating').forEach(container => {
                 container.addEventListener('click', (e) => {
                     const star = e.target.closest('svg, i');
-                    if (!star) return;
-
-                    const val = parseInt(star.getAttribute('data-value'));
-                    const input = document.getElementById('rating-' + container.dataset.type);
-                    input.value = val;
-
-                    // Color stars
-                    const allStars = container.querySelectorAll('svg, i');
-                    allStars.forEach(s => {
-                        const sVal = parseInt(s.getAttribute('data-value'));
-                        if (sVal <= val) {
-                            s.style.color = '#F59E0B';
-                            s.style.fill = '#F59E0B';
-                        } else {
-                            s.style.color = '#E2E8F0';
-                            s.style.fill = 'none';
-                        }
-                    });
+                    if (star) setRating(container.dataset.type, star.getAttribute('data-value'));
                 });
             });
 
@@ -111,37 +133,36 @@
                 const ratingService = parseInt(document.getElementById('rating-service').value);
 
                 if (ratingProduct === 0 || ratingService === 0) {
-                    UI.showToast("Veuillez donner une note pour le produit et le service.", "error");
+                    UI.showToast("Veuillez donner une note.", "error");
                     return;
                 }
 
-                const productId = params.get('productId');
-
                 const payload = {
                     orderId: orderId,
-                    productId: productId,
                     userId: user.userId,
                     userName: user.name,
                     rating_product: ratingProduct,
                     rating_service: ratingService,
-                    comment: document.getElementById('review-comment').value
+                    comment: document.getElementById('review-comment').value,
+                    date: Date.now()
                 };
 
-                // Détection de l'URL de l'API via config.js ou fallback
-                const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
-                
                 try {
-                    const res = await fetch(`${API_URL}/reviews`, {
-                        method: 'POST',
+                    const url = isEdit ? `${API_URL}/reviews/${existingReviewId}` : `${API_URL}/reviews`;
+                    const method = isEdit ? 'PUT' : 'POST';
+                    
+                    const res = await fetch(url, {
+                        method: method,
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
                     if (res.ok) {
-                        UI.showToast("Merci pour votre avis !", "success");
+                        UI.showToast(isEdit ? "Avis mis à jour !" : "Merci pour votre avis !", "success");
                         setTimeout(() => window.location.href = '../orders.html', 1500);
                     }
                 } catch (err) {
-                    UI.showToast("Erreur lors de l'envoi de l'avis", "error");
+                    UI.showToast("Erreur lors de l'envoi", "error");
                 }
             };
         });

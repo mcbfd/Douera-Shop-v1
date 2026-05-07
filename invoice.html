@@ -65,20 +65,21 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');
 
         async function loadInvoice() {
             try {
-                const res = await fetch(`/api/orders`);
+                const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : '/api';
+                const res = await fetch(`${API_URL}/orders`);
                 const orders = await res.json();
                 const order = orders.find(o => o.id === orderId);
 
                 if (order) {
                     document.getElementById('invoice-id').innerText = `RÉF: ${order.id}`;
                     
-                    // Nettoyage des infos client (Robustesse Postgres + Protection null)
                     const fn = order.customer_firstname || order.customerfirstname || 'Invité';
                     const ln = order.customer_lastname || order.customerlastname || '';
                     const addr = order.customer_address || order.customeraddress || 'Non précisée';
@@ -90,7 +91,6 @@
                         Tél: ${phone}
                     `;
 
-                    // Parsing robuste des items
                     let items = order.items;
                     if (typeof items === 'string') {
                         try { items = JSON.parse(items); } catch(e) { items = []; }
@@ -108,10 +108,10 @@
                             calculatedSubtotal += lineTotal;
                             tbody.innerHTML += `
                                 <tr>
-                                    <td>${item.name || 'Produit'}</td>
+                                    <td><strong>${item.name || 'Produit'}</strong></td>
                                     <td>${qty}</td>
                                     <td>${price.toLocaleString()} XOF</td>
-                                    <td>${lineTotal.toLocaleString()} XOF</td>
+                                    <td style="text-align: right;">${lineTotal.toLocaleString()} XOF</td>
                                 </tr>
                             `;
                         });
@@ -120,15 +120,13 @@
                     document.getElementById('subtotal').innerText = calculatedSubtotal.toLocaleString();
                     document.getElementById('total').innerText = (parseInt(order.total) || calculatedSubtotal).toLocaleString();
 
-                    // Configuration du partage WhatsApp
-                    const whatsappMsg = encodeURIComponent(`Bonjour, voici ma facture pour la commande #${order.id} chez Douéra Shop. Vous pouvez la consulter ici : ${window.location.href}`);
-                    document.getElementById('whatsapp-share').href = `https://wa.me/?text=${whatsappMsg}`;
+                    const whatsappMsg = encodeURIComponent(`Bonjour Douéra Shop, voici ma facture pour la commande #${order.id}.`);
+                    document.getElementById('whatsapp-share').href = `https://wa.me/221781607468?text=${whatsappMsg}`;
                 } else {
-                    document.body.innerHTML = "<h2 style='text-align:center;margin-top:100px;'>Facture introuvable ou en cours de génération...</h2>";
+                    document.body.innerHTML = "<h2 style='text-align:center;margin-top:100px;font-family:sans-serif;'>Facture introuvable...</h2>";
                 }
             } catch (err) {
                 console.error("Invoice Error:", err);
-                document.body.innerHTML = "<h2 style='text-align:center;margin-top:100px;'>Erreur lors du chargement de la facture.</h2>";
             }
         }
         loadInvoice();

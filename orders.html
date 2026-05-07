@@ -52,23 +52,36 @@
 
 <body class="animate-fade-in">
 
-    <header>
+    <!-- Header Luxury -->
+    <header id="main-header" style="padding: 8px 0; background: white; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 1000;">
         <div class="container">
-            <nav>
-                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
-                    <div
-                        style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                        <img src="assets/logo douera shop.png" alt="Douéra Shop"
-                            style="width: 100%; height: auto; object-fit: contain; transform: translateY(0);">
-                    </div>
+            <nav style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <a href="index.html" class="logo" style="flex-shrink: 0;">
+                    <img src="assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
-                <div class="nav-icons" style="margin-left: auto;">
-                    <a href="index.html" class="btn btn-outline" style="padding: 10px 20px;">
-                        <i data-lucide="home" style="width: 18px;"></i> Boutique
+
+                <!-- Desktop Search Bar (Hidden on Mobile) -->
+                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none;">
+                    <div style="position: relative; display: flex; align-items: center; background: #F8FAFC; border-radius: 10px; border: 1px solid var(--color-border); width: 100%;">
+                        <i data-lucide="search" style="margin-left: 12px; width: 18px; color: var(--color-muted);"></i>
+                        <input type="text" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
+                    </div>
+                </div>
+
+                <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
+                        <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
+                        <span class="cart-count nav-badge" style="top: -2px; right: -8px;">0</span>
                     </a>
                 </div>
             </nav>
         </div>
+        <style>
+            @media (min-width: 769px) {
+                .desktop-search-container { display: block !important; }
+                header { padding: 12px 0 !important; }
+            }
+        </style>
     </header>
 
     <main class="container" style="padding: 64px 0;">
@@ -262,7 +275,6 @@
             }
 
             userOrders.forEach((order, index) => {
-                // Parsing des items si c'est une chaîne JSON
                 let items = order.items;
                 if (typeof items === 'string') {
                     try { items = JSON.parse(items); } catch(e) { items = []; }
@@ -276,130 +288,120 @@
                 card.style.border = '1px solid var(--color-border)';
                 card.style.borderRadius = 'var(--radius-lg)';
                 card.style.boxShadow = 'var(--shadow-sm)';
-                card.style.marginBottom = '24px';
+                card.style.marginBottom = '32px';
+                card.style.padding = '32px';
 
                 const date = new Date(isNaN(order.date) ? order.date : parseInt(order.date)).toLocaleDateString('fr-FR', {
-                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    day: 'numeric', month: 'long', year: 'numeric'
                 });
 
                 const steps = [
-                    { key: 'En attente', label: 'Reçue', icon: 'package', color: '#3B82F6' },
+                    { key: 'En attente', label: 'Reçue', icon: 'package', color: 'var(--color-muted)' },
                     { key: 'En cours', label: 'Expédiée', icon: 'truck', color: '#F59E0B' },
                     { key: 'Livrée', label: 'Livrée', icon: 'check-circle', color: '#10B981' },
-                    { key: 'Avis', label: 'Votre Avis', icon: 'star', color: '#8B5CF6' }
+                    { key: 'Avis', label: 'Avis Client', icon: 'star', color: 'var(--color-primary)' }
                 ];
 
-                // Normalisation du statut pour la correspondance
                 const statusNorm = order.status.toLowerCase().trim();
-                let currentStepIndex = 0; // Par défaut: Reçue
-                
-                if (statusNorm.includes('cours') || statusNorm.includes('expédi') || statusNorm.includes('en route')) {
-                    currentStepIndex = 1; // Expédiée
-                } else if (statusNorm.includes('livré')) {
-                    currentStepIndex = order.review_id ? 3 : 2; // Livrée ou Avis
-                }
+                let currentStepIndex = 0;
+                if (statusNorm.includes('cours') || statusNorm.includes('expédi') || statusNorm.includes('en route')) currentStepIndex = 1;
+                else if (statusNorm.includes('livré')) currentStepIndex = order.review_id ? 3 : 2;
 
-                const activeColor = steps[currentStepIndex]?.color || '#6B7280';
-
-                // Fonction de confirmation
+                const activeColor = currentStepIndex === 1 ? '#F59E0B' : (currentStepIndex >= 2 ? '#10B981' : 'var(--color-primary)');
 
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; position: relative; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 1px solid var(--color-border); padding-bottom: 24px; flex-wrap: wrap; gap: 16px;">
                         <div>
-                            <p style="font-size: 0.75rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 8px;">Commande du ${date}</p>
-                            <h3 class="order-ref" style="font-family: monospace; font-size: 1.5rem; color: var(--color-primary-dark); margin: 0;">REF: ${order.id}</h3>
+                            <p style="font-size: 0.7rem; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; margin-bottom: 8px;">Commande du ${date}</p>
+                            <h3 class="order-ref" style="font-family: monospace; font-size: 1.3rem; color: var(--color-primary-dark); margin: 0;">REF: ${order.id}</h3>
                         </div>
-                        <div style="text-align: right; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-                            <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 900; border: 1px solid ${activeColor}40; letter-spacing: 0.05em; display: inline-block;">
-                                ${order.status === 'En cours' ? 'EXPÉDIÉE' : order.status.toUpperCase()}
+                        <div style="text-align: right; display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+                            <span style="background: ${activeColor}15; color: ${activeColor}; padding: 8px 16px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 900; border: 1px solid ${activeColor}40;">
+                                ${order.status.toUpperCase()}
                             </span>
-                            
                             <div style="display: flex; gap: 8px;">
-                                <a href="invoice.html?orderId=${order.id}" target="_blank" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="file-text" style="width: 14px;"></i> Facture
+                                <a href="invoice.html?orderId=${order.id}" target="_blank" class="btn btn-outline" style="padding: 10px 16px; font-size: 0.8rem; border-radius: 10px;">
+                                    <i data-lucide="file-text" style="width: 16px; margin-right: 6px;"></i> Facture
                                 </a>
-                                
-                                ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
-                                    <button onclick="confirmReceipt('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
-                                        Confirmer la réception
+                                ${(currentStepIndex === 1) ? `
+                                    <button onclick="confirmReceipt('${order.id}')" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.8rem; border-radius: 10px; background: #10B981;">
+                                        Confirmer Réception
                                     </button>
                                 ` : ''}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Stepper Multi-Couleurs Alibaba -->
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px; position: relative; padding: 0 5px;">
-                        <div class="stepper-line-bg" style="position: absolute; top: 18px; left: 30px; right: 30px; height: 3px; background: #E5E7EB; z-index: 0;"></div>
-                        <div class="stepper-line-active" style="position: absolute; top: 18px; left: 30px; width: calc(${(currentStepIndex / 3) * 100}% - 10px); max-width: calc(100% - 60px); height: 3px; background: ${activeColor}; z-index: 1; transition: all 1s ease;"></div>
+                    <!-- Stepper Premium -->
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px; position: relative;">
+                        <div style="position: absolute; top: 20px; left: 10%; right: 10%; height: 2px; background: #E5E7EB; z-index: 0;"></div>
+                        <div style="position: absolute; top: 20px; left: 10%; width: ${currentStepIndex * 26.6 + 10}%; height: 2px; background: var(--color-primary); z-index: 1; transition: width 1s ease;"></div>
                         
-                        ${steps.map((step, index) => {
-                            const isReached = index <= currentStepIndex;
-                            const stepColor = isReached ? step.color : '#E5E7EB';
-                            const iconColor = isReached ? 'white' : '#9CA3AF';
-                            const textColor = isReached ? step.color : '#9CA3AF';
-                            
+                        ${steps.map((step, i) => {
+                            const isDone = i <= currentStepIndex;
+                            const isCurrent = i === currentStepIndex;
                             return `
-                                <div class="stepper-item" style="z-index: 2; text-align: center;">
-                                    <div class="stepper-icon" style="border-radius: 50%; background: ${isReached ? step.color : 'white'}; border: 2px solid ${stepColor}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; transition: all 0.4s ease; box-shadow: ${isReached ? `0 4px 12px ${step.color}40` : 'none'};">
-                                        <i data-lucide="${step.icon}"></i>
+                                <div style="z-index: 2; text-align: center; width: 25%;">
+                                    <div style="width: 42px; height: 42px; border-radius: 50%; background: ${isDone ? 'var(--color-primary)' : 'white'}; border: 2px solid ${isDone ? 'var(--color-primary)' : '#E5E7EB'}; color: ${isDone ? 'white' : '#9CA3AF'}; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; transition: all 0.3s; box-shadow: ${isCurrent ? '0 0 0 4px var(--color-primary-light)' : 'none'};">
+                                        <i data-lucide="${step.icon}" style="width: 20px;"></i>
                                     </div>
-                                    <span class="stepper-label" style="font-weight: 900; color: ${textColor}; text-transform: uppercase; display: block;">${step.label}</span>
+                                    <span style="font-size: 0.7rem; font-weight: 800; color: ${isDone ? 'var(--color-primary-dark)' : '#9CA3AF'}; text-transform: uppercase;">${step.label}</span>
                                 </div>
                             `;
                         }).join('')}
                     </div>
 
-                    <div class="product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px;">
                         ${order.items.map(item => `
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: var(--color-background); border-radius: 12px; border: 1px solid var(--color-border);">
-                                <img src="${item.image}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
-                                <div style="font-size: 0.85rem;">
-                                    <div style="font-weight: 700; color: var(--color-primary-dark); line-clamp: 1; -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">${item.name}</div>
-                                    <div style="color: var(--color-muted);">Qté: ${item.quantity}</div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #F8FAFC; border-radius: 12px; border: 1px solid var(--color-border);">
+                                <img src="${item.image}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.85rem;">${item.name}</div>
+                                    <div style="color: var(--color-muted); font-size: 0.75rem;">Qté: ${item.quantity} • ${item.price.toLocaleString()} XOF</div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--color-border); padding-top: 24px;">
-                        <div style="color: var(--color-muted); font-size: 0.9rem;">Total: <strong style="color: var(--color-primary-dark); font-size: 1.4rem; margin-left: 8px;">${order.total.toLocaleString()} XOF</strong></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--color-border); padding-top: 24px; flex-wrap: wrap; gap: 20px;">
+                        <div style="font-size: 0.95rem; color: var(--color-muted);">Total de la commande: <strong style="color: var(--color-primary-dark); font-size: 1.3rem; margin-left: 8px;">${order.total.toLocaleString()} XOF</strong></div>
                         
                         ${(order.status === 'Livrée' && !order.review_id) ? `
-                            <a href="account/review.html?orderId=${order.id}&productId=${order.items && order.items[0] ? order.items[0].id : ''}" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-size: 0.85rem;">
-                                <i data-lucide="star" style="width: 16px; margin-right: 8px; fill: currentColor;"></i> Laisser un avis
+                            <a href="account/review.html?orderId=${order.id}" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-size: 0.85rem;">
+                                <i data-lucide="star" style="width: 16px; margin-right: 8px; fill: currentColor;"></i> Laisser un avis client
                             </a>
                         ` : ''}
                         
                         ${order.review_id ? `
-                            <span style="color: var(--color-success); font-size: 0.85rem; font-weight: 700;">
-                                <i data-lucide="check-circle" style="width: 16px; vertical-align: middle;"></i> Avis envoyé
-                            </span>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span style="color: var(--color-success); font-size: 0.85rem; font-weight: 800;">
+                                    <i data-lucide="check-circle" style="width: 18px; vertical-align: middle; margin-right: 4px;"></i> Avis envoyé
+                                </span>
+                                <a href="account/review.html?orderId=${order.id}&edit=true" style="color: var(--color-primary); font-size: 0.8rem; font-weight: 700; text-decoration: underline;">Modifier mon avis</a>
+                            </div>
                         ` : ''}
                     </div>
 
                     ${order.review_id ? (() => {
                         const review = allReviews.find(r => (r.id === order.review_id) || (r.orderid === order.id) || (r.orderId === order.id));
                         if (!review) return '';
-                        
                         const rProd = parseInt(review.rating_product || review.ratingproduct || 5);
                         return `
-                            <div style="margin-top: 24px; padding: 20px; background: #F8FAFC; border-radius: 16px; border: 1px solid var(--color-border);">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="margin-top: 24px; padding: 20px; background: var(--color-primary-light); border-radius: 16px; border: 1px solid var(--color-primary-light);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                                     <div style="display: flex; gap: 4px; color: #F59E0B;">
                                         ${'★'.repeat(rProd)}${'☆'.repeat(5-rProd)}
                                     </div>
-                                    <span style="font-size: 0.75rem; color: var(--color-muted);">Votre avis</span>
+                                    <span style="font-size: 0.7rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase;">Votre Témoignage</span>
                                 </div>
-                                <p style="font-size: 0.9rem; color: var(--color-primary-dark); line-height: 1.5; font-style: italic;">"${review.comment || 'Aucun commentaire laissé.'}"</p>
-                                
+                                <p style="font-size: 0.9rem; color: var(--color-primary-dark); line-height: 1.6; font-style: italic;">"${review.comment || 'Aucun commentaire laissé.'}"</p>
                                 ${review.admin_reply ? `
-                                    <div style="margin-top: 16px; padding: 12px; background: white; border-radius: 12px; border-left: 4px solid var(--color-primary); box-shadow: var(--shadow-sm);">
+                                    <div style="margin-top: 20px; padding: 16px; background: white; border-radius: 12px; border-left: 4px solid var(--color-primary); box-shadow: var(--shadow-sm);">
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                            <img src="assets/logo.png" style="width: 18px; height: 18px; border-radius: 4px;">
-                                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--color-primary); text-transform: uppercase;">Réponse Douéra Shop</span>
+                                            <img src="assets/logo douera shop.png" style="width: 20px; height: 20px; object-fit: contain;">
+                                            <span style="font-size: 0.75rem; font-weight: 900; color: var(--color-primary); text-transform: uppercase;">Réponse de l'équipe Douéra</span>
                                         </div>
-                                        <p style="font-size: 0.85rem; color: var(--color-primary-dark); line-height: 1.4;">${review.admin_reply}</p>
+                                        <p style="font-size: 0.85rem; color: var(--color-primary-dark); line-height: 1.5;">${review.admin_reply}</p>
                                     </div>
                                 ` : ''}
                             </div>
