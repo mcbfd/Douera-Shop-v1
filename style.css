@@ -38,6 +38,42 @@
     --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* --- Premium Form Inputs --- */
+.pay-input {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 2px solid var(--color-border);
+    background: var(--color-background);
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition-base);
+    outline: none;
+    color: var(--color-foreground);
+}
+
+.pay-input:focus {
+    border-color: var(--color-primary);
+    background: white;
+    box-shadow: 0 0 0 4px var(--color-primary-light);
+}
+
+/* Custom styling for Select elements */
+select.pay-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 20px;
+    padding-right: 48px;
+    cursor: pointer;
+}
+
+select.pay-input:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231E40AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
 /* --- Base & Reset --- */
 * {
     margin: 0;

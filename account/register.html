@@ -32,27 +32,27 @@
             <p style="color: var(--color-muted); font-size: 0.95rem;">Rejoignez l'élite du shopping à Douéra.</p>
         </div>
         
-        <form id="registerForm" style="display: flex; flex-direction: column; gap: 20px;">
+        <form id="registerForm" style="display: flex; flex-direction: column; gap: 24px;">
             <div class="form-group">
                 <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nom complet</label>
                 <div style="position: relative;">
-                    <i data-lucide="user" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                    <input type="text" id="name" required class="pay-input" placeholder="Ex: Modou Fall" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <i data-lucide="user" style="position: absolute; left: 16px; top: 18px; width: 20px; color: var(--color-muted); z-index: 5;"></i>
+                    <input type="text" id="name" required class="pay-input" placeholder="Ex: Modou Fall" style="padding-left: 48px;">
                 </div>
             </div>
 
             <div class="form-group">
                 <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Email</label>
                 <div style="position: relative;">
-                    <i data-lucide="mail" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                    <input type="email" id="email" required class="pay-input" placeholder="modou@example.com" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <i data-lucide="mail" style="position: absolute; left: 16px; top: 18px; width: 20px; color: var(--color-muted); z-index: 5;"></i>
+                    <input type="email" id="email" required class="pay-input" placeholder="modou@example.com" style="padding-left: 48px;">
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="form-group">
                     <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Sexe</label>
-                    <select id="gender" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none; appearance: none; -webkit-appearance: none;">
+                    <select id="gender" required class="pay-input">
                         <option value="" disabled selected>Choisir...</option>
                         <option value="M">Homme</option>
                         <option value="F">Femme</option>
@@ -62,15 +62,15 @@
                 <div class="form-group">
                     <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Téléphone (+221)</label>
                     <div style="position: relative;">
-                        <i data-lucide="phone" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                        <input type="tel" id="phone" required class="pay-input" placeholder="77 000 00 00" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                        <i data-lucide="phone" style="position: absolute; left: 16px; top: 18px; width: 20px; color: var(--color-muted); z-index: 5;"></i>
+                        <input type="tel" id="phone" required class="pay-input" placeholder="77 000 00 00" style="padding-left: 48px;">
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Pays</label>
-                <select id="country" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                <select id="country" required class="pay-input">
                     <option value="Sénégal" selected>Sénégal</option>
                     <option value="France">France</option>
                     <option value="USA">USA</option>
@@ -78,52 +78,49 @@
                 </select>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="form-group">
                     <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Région</label>
-                    <select id="region" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                    <select id="region" required class="pay-input">
                         <option value="" disabled selected>Région...</option>
-                        <!-- Injected by JS -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville / Département</label>
-                    <select id="city" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville</label>
+                    <select id="city" required class="pay-input">
                         <option value="" disabled selected>Ville...</option>
-                        <!-- Injected by JS -->
                     </select>
                 </div>
             </div>
 
             <div class="form-group">
                 <label style="display: flex; justify-content: space-between; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">
-                    Adresse Précise (Quartier, Rue...)
-                    <button type="button" onclick="getLocation()" style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    Adresse Précise
+                    <button type="button" onclick="getLocation()" style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 800;">
                         <i data-lucide="map-pin" style="width: 14px;"></i> Ma position actuelle
                     </button>
                 </label>
                 <div style="position: relative;">
-                    <i data-lucide="home" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                    <input type="text" id="address" required class="pay-input" placeholder="Ex: Mermoz, Rue 12" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <i data-lucide="home" style="position: absolute; left: 16px; top: 18px; width: 20px; color: var(--color-muted); z-index: 5;"></i>
+                    <input type="text" id="address" required class="pay-input" placeholder="Ex: Mermoz, Rue 12" style="padding-left: 48px;">
                 </div>
             </div>
             
             <div class="form-group">
                 <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Mot de Passe</label>
                 <div style="position: relative;">
-                    <i data-lucide="lock" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                    <input type="password" id="password" required class="pay-input" placeholder="••••••••" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <i data-lucide="lock" style="position: absolute; left: 16px; top: 18px; width: 20px; color: var(--color-muted); z-index: 5;"></i>
+                    <input type="password" id="password" required class="pay-input" placeholder="••••••••" style="padding-left: 48px;">
                 </div>
-                <p style="font-size: 0.8rem; color: var(--color-muted); margin-top: 6px;">Minimum 8 caractères conseillé.</p>
             </div>
 
-            <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 4px;">
-                <input type="checkbox" id="terms" required style="width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; margin-top: 2px;">
-                <label for="terms" style="color: var(--color-muted); font-size: 0.85rem; cursor: pointer; line-height: 1.4;">J'accepte les <a href="#" style="color: var(--color-primary); text-decoration: none;">conditions d'utilisation</a> et la politique de confidentialité.</label>
+            <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 4px; background: var(--color-primary-light); padding: 12px; border-radius: 12px;">
+                <input type="checkbox" id="terms" required style="width: 20px; height: 20px; accent-color: var(--color-primary); cursor: pointer; margin-top: 2px;">
+                <label for="terms" style="color: var(--color-primary-dark); font-size: 0.85rem; cursor: pointer; line-height: 1.4; font-weight: 600;">J'accepte les conditions d'utilisation et la politique de confidentialité de Douéra Shop.</label>
             </div>
 
-            <button type="submit" id="regBtn" class="btn btn-primary" style="width: 100%; padding: 18px; font-size: 1.1rem; font-weight: 800; border-radius: 14px; margin-top: 8px; justify-content: center; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2);">
-                Créer mon compte <i data-lucide="arrow-right" style="margin-left: 8px; width: 20px;"></i>
+            <button type="submit" id="regBtn" class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 1.15rem; font-weight: 800; border-radius: 18px; margin-top: 8px; justify-content: center; box-shadow: 0 15px 30px rgba(30, 64, 175, 0.25);">
+                Créer mon compte <i data-lucide="sparkles" style="margin-left: 8px; width: 20px;"></i>
             </button>
         </form>
         
