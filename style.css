@@ -1158,3 +1158,31 @@ nav {
     font-weight: 500;
 }
 
+
+/* --- FILTER CHIPS SIGNATURE --- */
+.filter-chip {
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--color-border);
+    background: white;
+    color: var(--color-muted);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.filter-chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.filter-chip.active {
+    background: var(--color-primary) !important;
+    color: white !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 8px 16px rgba(43, 89, 162, 0.2);
+}
+
