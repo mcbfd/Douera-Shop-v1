@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Step Transitions
-    document.getElementById('btn-to-step-2').onclick = () => {
+    function goToStep2() {
         // Basic validation
         const phone = document.getElementById('delivery-phone').value;
         const firstName = document.getElementById('first-name').value;
@@ -86,7 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (window.lucide) lucide.createIcons();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    }
+
+    const btnStep2 = document.getElementById('btn-to-step-2');
+    if (btnStep2) btnStep2.onclick = goToStep2;
+    
+    const mobileBtnStep2 = document.getElementById('mobile-btn-to-step-2');
+    if (mobileBtnStep2) mobileBtnStep2.onclick = goToStep2;
 
     document.getElementById('btn-back-to-step-1').onclick = () => {
         step1.style.display = 'block';

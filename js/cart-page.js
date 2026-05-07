@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = Cart.getTotal();
         if (subtotalEl) subtotalEl.textContent = `${total.toLocaleString()} XOF`;
         if (totalEl) totalEl.textContent = `${total.toLocaleString()} XOF`;
+        
+        const mobileTotalEl = document.getElementById('mobile-cart-total');
+        if (mobileTotalEl) mobileTotalEl.textContent = `${total.toLocaleString()} XOF`;
 
         if (window.lucide) lucide.createIcons();
     }

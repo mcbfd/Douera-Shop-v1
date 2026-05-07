@@ -128,9 +128,22 @@
                             <label for="save-default-address" style="font-size: 0.9rem; font-weight: 600; color: var(--color-muted); cursor: pointer;">Sauvegarder cette adresse comme adresse par défaut</label>
                         </div>
 
-                        <div class="mobile-sticky-checkout">
+                        <div class="mobile-sticky-checkout" style="background: white; border-top: 1px solid var(--color-border); padding: 20px; position: fixed; bottom: 65px; left: 0; right: 0; z-index: 1000; display: none; box-shadow: 0 -10px 20px rgba(0,0,0,0.05);">
+                            <button class="btn btn-primary" id="mobile-btn-to-step-2" style="width: 100%; padding: 16px; font-weight: 800; border-radius: 12px; justify-content: center;">Continuer</button>
+                        </div>
+
+                        <style>
+                            @media (max-width: 768px) {
+                                .mobile-sticky-checkout { display: block !important; }
+                                .checkout-container { padding: 24px !important; border-radius: 16px !important; }
+                                #checkout-form-section h2 { font-size: 1.5rem !important; margin-bottom: 24px !important; }
+                                .checkout-steps { gap: 16px !important; margin-bottom: 32px !important; }
+                            }
+                        </style>
+
+                        <div class="desktop-action-area">
                             <button class="btn btn-primary" id="btn-to-step-2"
-                                style="width: 100%; padding: 20px; font-size: 1.15rem; font-weight: 800; border-radius: 16px; justify-content: center; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2);">
+                                style="width: 100%; padding: 20px; font-size: 1.15rem; font-weight: 800; border-radius: 16px; justify-content: center; box-shadow: 0 10px 20px rgba(255, 102, 0, 0.2);">
                                 Continuer vers le paiement <i data-lucide="arrow-right"
                                     style="margin-left: 8px; width: 22px;"></i>
                             </button>

@@ -24,34 +24,37 @@
     </div> -->
 
     <!-- Header Luxury -->
-    <header id="main-header">
+    <header id="main-header" style="padding: 8px 0;">
         <div class="container">
-            <nav>
-                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
-                    <div
-                        style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                        <img src="assets/logo douera shop.png" alt="Douéra Shop"
-                            style="width: 100%; height: auto; object-fit: contain; transform: translateY(0);">
-                    </div>
+            <nav style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <a href="index.html" class="logo" style="flex-shrink: 0;">
+                    <img src="assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
 
-                <div class="nav-icons" id="nav-auth-area">
-                    <div style="display: flex; align-items: center; gap: 24px;">
-                        <a href="track-order.html" id="track-nav-link" class="nav-link" style="color: var(--color-muted); font-weight: 700; text-decoration: none; font-size: 0.9rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--color-muted)'">
-                            <i data-lucide="package" style="width: 18px; vertical-align: middle; margin-right: 4px;"></i> Suivre ma commande
-                        </a>
-                        <a href="checkout.html" class="btn btn-outline" id="cartRedirectLink"
-                            style="padding: 10px; border-radius: 12px; position: relative; border: none; background: transparent;">
-                            <i data-lucide="shopping-cart"
-                                style="width: 24px; height: 24px; color: var(--color-primary);"></i>
-                            <span class="cart-count">0</span>
-                        </a>
-                        <a href="account/login.html" class="btn btn-primary"
-                            style="padding: 10px 24px; font-size: 0.9rem; border-radius: 12px;">Connexion</a>
+                <!-- Desktop Search Bar (Hidden on Mobile) -->
+                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none;">
+                    <div style="position: relative; display: flex; align-items: center; background: #F8FAFC; border-radius: 10px; border: 1px solid var(--color-border); width: 100%;">
+                        <i data-lucide="search" style="margin-left: 12px; width: 18px; color: var(--color-muted);"></i>
+                        <input type="text" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
                     </div>
+                </div>
+
+                <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
+                        <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
+                        <span class="cart-count nav-badge" style="top: -2px; right: -8px;">0</span>
+                    </a>
+                    <a href="account/login.html" class="desktop-only-btn btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem; border-radius: 10px; display: none;">Connexion</a>
                 </div>
             </nav>
         </div>
+        <style>
+            @media (min-width: 769px) {
+                .desktop-search-container { display: block !important; }
+                .desktop-only-btn { display: flex !important; }
+                header { padding: 12px 0 !important; }
+            }
+        </style>
     </header>
 
     <main>
@@ -124,27 +127,26 @@
                 </div>
 
                 <div
-                    style="background: white; padding: 32px; border-radius: var(--radius-lg); border: 1px solid var(--color-border); box-shadow: var(--shadow-premium);">
-                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 32px;">
-                        <div style="flex: 1; min-width: 300px; position: relative;">
+                    style="background: white; padding: 24px; border-radius: var(--radius-lg); border: 2px solid var(--color-primary); box-shadow: var(--shadow-xl); margin-top: -32px; position: relative; z-index: 50;">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px; position: relative; display: flex; align-items: center; background: #F8FAFC; border-radius: 12px; border: 1px solid var(--color-border); padding-right: 4px;">
                             <i data-lucide="search"
-                                style="position: absolute; left: 16px; top: 12px; width: 20px; color: var(--color-muted);"></i>
-                            <input type="text" id="storeSearch" placeholder="Rechercher par nom (iPhone, Gants, etc...)"
-                                style="width: 100%; padding: 12px 20px 12px 48px; border-radius: 12px; border: 1px solid var(--color-border); outline: none; font-family: inherit;">
+                                style="margin-left: 16px; width: 20px; color: var(--color-muted);"></i>
+                            <input type="text" id="storeSearch" placeholder="Qu'est-ce qui vous ferait plaisir ?"
+                                style="flex: 1; padding: 16px 12px; border: none; background: transparent; outline: none; font-family: inherit; font-size: 1rem; font-weight: 600;">
+                            <button class="btn btn-primary" style="padding: 10px 24px; border-radius: 10px; font-size: 0.9rem;">Chercher</button>
                         </div>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                            <button id="toggleFiltersBtn" class="btn btn-outline" style="border-radius: 12px; padding: 12px;">
-                                <i data-lucide="sliders-horizontal" style="width: 18px;"></i> Filtres
+                        <div style="display: flex; gap: 8px;">
+                            <button id="toggleFiltersBtn" class="btn btn-outline" style="border-radius: 12px; padding: 12px; border: 1px solid var(--color-border);">
+                                <i data-lucide="sliders-horizontal" style="width: 18px;"></i>
                             </button>
-                            <div style="flex: 1; min-width: 200px;">
-                                <select id="storeSort" class="btn btn-outline"
-                                    style="width: 100%; border-radius: 12px; font-size: 0.9rem; padding: 12px;">
-                                <option value="default">Trier par défaut</option>
-                                <option value="price-asc">Prix : Croissant</option>
-                                <option value="price-desc">Prix : Décroissant</option>
+                            <select id="storeSort" class="btn btn-outline"
+                                style="border-radius: 12px; font-size: 0.9rem; padding: 12px; border: 1px solid var(--color-border); background: white;">
+                                <option value="default">Pertinence</option>
+                                <option value="price-asc">Prix bas</option>
+                                <option value="price-desc">Prix haut</option>
                                 <option value="newest">Nouveautés</option>
                             </select>
-                            </div>
                         </div>
                     </div>
 
