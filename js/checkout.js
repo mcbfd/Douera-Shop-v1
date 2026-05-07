@@ -14,6 +14,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let selectedMethod = 'orange';
 
+    window.getLocation = function() {
+        if (!navigator.geolocation) {
+            UI.showToast("La géolocalisation n'est pas supportée par votre navigateur.", "error");
+            return;
+        }
+
+        UI.showToast("Récupération de votre position...", "info");
+        
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                const data = await response.json();
+                if (data && data.display_name) {
+                    const addrInput = document.getElementById('address');
+                    if (addrInput) {
+                        addrInput.value = data.display_name;
+                        addrInput.style.borderColor = 'var(--color-success)';
+                        UI.showToast("Position récupérée avec succès !", "success");
+                    }
+                }
+            } catch (error) {
+                UI.showToast("Erreur lors de la récupération de l'adresse.", "error");
+            }
+        }, () => {
+            UI.showToast("Accès à la position refusé.", "error");
+        });
+    };
+
+    window.removeItemFromCheckout = function(id) {
+        Cart.remove(id);
+        initCheckout();
+        // Sync with main page if needed (cart updated event)
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+    };
+
     function initCheckout() {
         const cart = Cart.getItems();
         if (cart.length === 0) {
@@ -25,12 +61,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof AuthService !== 'undefined') {
             const user = AuthService.getCurrentUser();
             if (user) {
-                if (document.getElementById('first-name')) document.getElementById('first-name').value = user.name.split(' ')[0];
-                if (document.getElementById('last-name')) document.getElementById('last-name').value = user.name.split(' ').slice(1).join(' ');
-                if (document.getElementById('delivery-phone') && user.phone) document.getElementById('delivery-phone').value = user.phone;
-                if (document.getElementById('address') && user.address) document.getElementById('address').value = user.address;
+                const firstNameInput = document.getElementById('first-name');
+                const lastNameInput = document.getElementById('last-name');
+                const phoneInput = document.getElementById('delivery-phone');
+                const addressInput = document.getElementById('address');
+
+                if (firstNameInput && !firstNameInput.value) firstNameInput.value = user.name.split(' ')[0];
+                if (lastNameInput && !lastNameInput.value) lastNameInput.value = user.name.split(' ').slice(1).join(' ');
+                if (phoneInput && !phoneInput.value && user.phone) phoneInput.value = user.phone;
+                if (addressInput && !addressInput.value && user.address) addressInput.value = user.address;
                 
-                // Show save default option if logged in
                 const saveDefaultContainer = document.getElementById('save-default-container');
                 if (saveDefaultContainer) saveDefaultContainer.style.display = 'flex';
             }
@@ -41,16 +81,22 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryList.innerHTML = '';
             cart.forEach(item => {
                 const row = document.createElement('div');
-                row.style.cssText = 'display: flex; gap: 1rem; align-items: center;';
+                row.style.cssText = 'display: flex; gap: 1rem; align-items: center; padding: 12px; border-radius: 12px; transition: background 0.3s;';
+                row.onmouseover = () => row.style.background = '#F8FAFC';
+                row.onmouseout = () => row.style.background = 'transparent';
+                
                 row.innerHTML = `
-                    <div style="position: relative;">
+                    <div style="position: relative; flex-shrink: 0;">
                         <img src="${item.image}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; background: #EEE; border: 1px solid var(--color-border);">
-                        <span style="position: absolute; top: -8px; right: -8px; background: var(--color-muted); color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;">${item.quantity}</span>
+                        <span style="position: absolute; top: -8px; right: -8px; background: var(--color-primary); color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: 800; border: 2px solid white;">${item.quantity}</span>
                     </div>
                     <div style="flex: 1; font-size: 0.85rem;">
-                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="font-weight: 700; color: var(--color-primary-dark);">${item.name}</div>
+                        <div style="font-weight: 800; color: var(--color-primary); margin-top: 2px;">${(item.price * item.quantity).toLocaleString()} XOF</div>
                     </div>
-                    <div style="font-weight: 700;">${(item.price * item.quantity).toLocaleString()} XOF</div>
+                    <button onclick="removeItemFromCheckout('${item.id}')" style="background: none; border: none; color: var(--color-error); cursor: pointer; padding: 8px; opacity: 0.4; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <i data-lucide="trash-2" style="width: 18px;"></i>
+                    </button>
                 `;
                 summaryList.appendChild(row);
             });

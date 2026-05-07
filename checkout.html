@@ -96,10 +96,14 @@
                             </div>
                         </div>
                         <div class="form-group" style="margin-top: 24px;">
-                            <label
-                                style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Adresse de livraison</label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="display: block; color: var(--color-foreground); font-weight: 700; font-size: 0.9rem;">Adresse de livraison</label>
+                                <button onclick="getLocation()" style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                    <i data-lucide="map-pin" style="width: 14px;"></i> Ma position actuelle
+                                </button>
+                            </div>
                             <div style="position: relative;">
-                                <i data-lucide="map-pin"
+                                <i data-lucide="navigation"
                                     style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
                                 <input type="text" class="pay-input" id="address"
                                     placeholder="Ex: Quartier Escale, face à la grande mosquée"
