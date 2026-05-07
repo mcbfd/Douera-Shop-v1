@@ -40,6 +40,9 @@
                 </div>
 
                 <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <a href="track-order.html" id="track-nav-link" class="nav-link desktop-only-btn" title="Suivre ma commande" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
+                        <i data-lucide="package" style="width: 24px; height: 24px;"></i>
+                    </a>
                     <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
                         <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
                         <span class="cart-count nav-badge" style="top: -2px; right: -8px;">0</span>
@@ -52,6 +55,7 @@
             @media (min-width: 769px) {
                 .desktop-search-container { display: block !important; }
                 .desktop-only-btn { display: flex !important; }
+                #track-nav-link { display: flex !important; }
                 header { padding: 12px 0 !important; }
             }
         </style>

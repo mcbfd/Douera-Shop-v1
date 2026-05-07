@@ -196,25 +196,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Common Cart Section (Redirect link to Checkout)
-        const cartIconHtml = `
-            <a href="checkout.html" class="btn btn-outline" id="cartRedirectLink" style="padding: 10px; border-radius: 12px; position: relative; border: none; background: transparent;">
-                <i data-lucide="shopping-cart" style="width: 24px; height: 24px; color: var(--color-primary);"></i>
-                <span class="cart-count">${cartCount}</span>
-            </a>
-        `;
-
-        const myOrdersBtnHtml = `
-            <a href="orders.html" class="btn btn-outline" style="padding: 10px; border-radius: 12px; border: none; background: transparent; color: var(--color-foreground); position: relative;" title="Mes Commandes">
+        // Tracking link update
+        const trackNavLink = document.getElementById('track-nav-link');
+        if (trackNavLink) {
+            trackNavLink.href = user ? 'orders.html' : 'track-order.html';
+            trackNavLink.innerHTML = `
                 <i data-lucide="package" style="width: 24px; height: 24px;"></i>
-                ${hasNewReply ? '<span style="position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);"></span>' : ''}
+                ${hasNewReply ? '<span style="position: absolute; top: 0; right: -4px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white;"></span>' : ''}
+            `;
+            if (window.lucide) lucide.createIcons({ root: trackNavLink });
+        }
+
+        const cartIconHtml = `
+            <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
+                <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
+                <span class="cart-count nav-badge" style="top: -2px; right: -8px;">${cartCount}</span>
             </a>
         `;
 
         if (user) {
             authArea.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    ${myOrdersBtnHtml}
                     ${cartIconHtml}
                     <div style="display: flex; align-items: center; gap: 12px; background: var(--color-primary-light); padding: 6px 16px; border-radius: 14px; border: 1px solid var(--color-primary-light);">
                         <div style="text-align: right; line-height: 1;">
