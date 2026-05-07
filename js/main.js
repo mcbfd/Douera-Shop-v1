@@ -274,26 +274,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasStock = p.stock > 0;
 
             card.innerHTML = `
-                <div class="product-image-wrapper" onclick="openQuickView('${p.id}')" style="cursor: pointer; position: relative; overflow: hidden; background: #F8FAFC; aspect-ratio: 1/1;">
+                <div class="product-image-wrapper">
                     <img src="${p.image}" alt="${p.name}" class="product-image" loading="lazy">
+                    <div class="product-overlay">
+                        <button class="overlay-btn" onclick="openQuickView('${p.id}')" title="Voir les détails">
+                            <i data-lucide="eye"></i>
+                        </button>
+                        <button class="overlay-btn" onclick="addToCart('${p.id}')" title="Ajout rapide">
+                            <i data-lucide="shopping-cart"></i>
+                        </button>
+                    </div>
                     ${!hasStock ? '<div style="position: absolute; inset: 0; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--color-danger); font-size: 0.8rem; text-transform: uppercase; z-index: 5;">Rupture</div>' : ''}
-                    <div class="product-badge" style="position: absolute; top: 10px; left: 10px; background: white; padding: 4px 8px; border-radius: 6px; font-size: 0.6rem; font-weight: 900; color: var(--color-primary); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 4px; z-index: 10;">
+                    <div class="product-badge">
                         <i data-lucide="shield-check" style="width: 12px;"></i> VERIFIED
                     </div>
                 </div>
-                <div class="product-info" style="padding: 12px; background: white; display: flex; flex-direction: column; flex: 1;">
-                    <div style="font-size: 0.65rem; color: var(--color-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.05em;">${p.category}</div>
-                    <h3 class="product-title" style="font-size: 0.9rem; margin-bottom: 12px; color: var(--color-foreground); font-weight: 600; line-clamp: 2; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; height: 2.6rem; line-height: 1.3;">${p.name}</h3>
+                <div class="product-info">
+                    <div class="product-category">${p.category}</div>
+                    <h3 class="product-title" style="line-clamp: 2; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; height: 2.8rem;">${p.name}</h3>
                     
                     <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <div class="product-price" style="font-size: 1.15rem; font-weight: 900; color: var(--color-primary); font-family: 'Outfit', sans-serif;">${price} <span style="font-size: 0.7rem; font-weight: 700;">XOF</span></div>
-                            <div style="font-size: 0.65rem; color: var(--color-success); font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
-                                <i data-lucide="truck" style="width: 10px;"></i> 24h
+                            <div class="product-price" style="font-size: 1.25rem;">${price} <span style="font-size: 0.75rem;">XOF</span></div>
+                            <div style="font-size: 0.7rem; color: var(--color-success); font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="truck" style="width: 12px;"></i> Livraison 24h
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="addToCart('${p.id}'); event.stopPropagation();" style="padding: 8px; border-radius: 10px; min-width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(43, 89, 162, 0.2);">
-                            <i data-lucide="shopping-cart" style="width: 18px;"></i>
+                        <button class="btn btn-primary" onclick="addToCart('${p.id}'); event.stopPropagation();" style="padding: 10px; border-radius: 12px; min-width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(43, 89, 162, 0.15);">
+                            <i data-lucide="shopping-bag" style="width: 20px;"></i>
                         </button>
                     </div>
                 </div>
