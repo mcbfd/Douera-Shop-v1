@@ -170,7 +170,7 @@
 
             // Initialiser les régions
             Object.keys(senegalData).sort().forEach(reg => {
-                const opt = new document.constructor().createElement('option');
+                const opt = document.createElement('option');
                 opt.value = reg;
                 opt.textContent = reg;
                 regionSelect.appendChild(opt);
@@ -182,7 +182,7 @@
                 const cities = senegalData[regionSelect.value];
                 if (cities) {
                     cities.sort().forEach(city => {
-                        const opt = new document.constructor().createElement('option');
+                        const opt = document.createElement('option');
                         opt.value = city;
                         opt.textContent = city;
                         citySelect.appendChild(opt);
@@ -196,24 +196,25 @@
                     UI.showToast("Localisation en cours...", "info");
                     navigator.geolocation.getCurrentPosition(async (pos) => {
                         const { latitude, longitude } = pos.coords;
-                        document.getElementById('address').value = `📍 GPS: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (Chargement adresse...)`;
+                        const addrField = document.getElementById('address');
+                        addrField.value = `📍 GPS: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
                         
-                        // Tentative de reverse geocoding via Nominatim (Gratuit/OpenSource)
                         try {
                             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
                             const data = await res.json();
                             if (data.display_name) {
-                                document.getElementById('address').value = data.display_name;
-                                UI.showToast("Position trouvée !", "success");
+                                addrField.value = data.display_name;
+                                UI.showToast("Adresse trouvée !", "success");
                             }
                         } catch(e) {
-                            UI.showToast("Position captée (GPS)", "success");
+                            UI.showToast("Coordonnées GPS captées", "success");
                         }
                     }, (err) => {
-                        UI.showToast("Accès GPS refusé ou indisponible.", "error");
-                    });
+                        console.error(err);
+                        UI.showToast("Erreur GPS : " + err.message, "error");
+                    }, { enableHighAccuracy: true });
                 } else {
-                    UI.showToast("Géolocalisation non supportée.", "error");
+                    UI.showToast("Géolocalisation non supportée", "error");
                 }
             };
 
