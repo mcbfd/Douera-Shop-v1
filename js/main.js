@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inStockToggle) inStockToggle.checked = false;
 
         document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
-        const allBtn = document.querySelector('[data-category="all"]');
+const allBtn = document.querySelector('[data-category="all"]');
         if (allBtn) allBtn.classList.add('active');
         renderAppProducts();
     };
@@ -394,13 +394,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('qv-image-container').innerHTML = `
             <img src="${p.image}" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);" id="qv-main-img">
-            <div style="position: absolute; top: 32px; left: 32px; z-index: 10;">
-                <span id="qv-badge" style="background: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 0.75rem; color: var(--color-primary); box-shadow: var(--shadow-soft); text-transform: uppercase;">${p.category === 'Électronique' ? 'PREMIUM' : 'NOUVEAUTÉ'}</span>
+            <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
+                <span style="background: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; color: var(--color-primary); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="shield-check" style="width: 12px;"></i> VERIFIED
+                </span>
             </div>
         `;
         document.getElementById('qv-category').textContent = p.category;
         document.getElementById('qv-title').textContent = p.name;
         document.getElementById('qv-price').textContent = p.price.toLocaleString() + ' XOF';
+        
+        const infoContainer = document.getElementById('qv-info-container');
+        const existingAction = infoContainer.querySelector('.sticky-action-area');
+        if (existingAction) existingAction.remove();
+
+        const actionArea = document.createElement('div');
+        actionArea.className = 'sticky-action-area';
+        actionArea.style.cssText = 'display: flex; gap: 12px; margin-top: 32px;';
+        actionArea.innerHTML = `
+            <button class="btn btn-outline" style="flex: 1; padding: 16px; border-radius: 12px;" onclick="addToCart('${p.id}'); UI.showToast('Ajouté au panier', 'success');">
+                <i data-lucide="shopping-cart" style="margin-right: 8px;"></i> Panier
+            </button>
+            <button class="btn btn-primary" style="flex: 2; padding: 16px; border-radius: 12px;" onclick="addToCart('${p.id}'); window.location.href='checkout.html';">
+                Acheter maintenant
+            </button>
+        `;
+        infoContainer.appendChild(actionArea);
+
         const intro = "Un produit d'exception sélectionné par Douéra Shop pour sa qualité supérieure et son design élégant.";
         document.getElementById('qv-description').textContent = p.description ? `${intro} ${p.description}` : intro;
         

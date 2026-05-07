@@ -972,6 +972,53 @@ nav {
     box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
 }
 
+/* Quick View Modal Alibaba Style */
+.modal-content {
+    background: white;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    max-width: 1100px;
+    width: 95%;
+    max-height: 90vh;
+}
+
+@media (max-width: 768px) {
+    .modal-content {
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-height: 95vh;
+        margin-top: 5vh;
+    }
+    .modal-content > div {
+        grid-template-columns: 1fr !important;
+    }
+    #qv-image-container {
+        height: 350px !important;
+    }
+    #qv-image-container img {
+        object-fit: contain !important;
+    }
+    #qv-info-container {
+        padding: 24px !important;
+    }
+    #qv-title {
+        font-size: 1.8rem !important;
+    }
+    .modal-content .sticky-action-area {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 16px 24px;
+        border-top: 1px solid var(--color-border);
+        z-index: 100;
+        display: flex !important;
+        gap: 12px;
+    }
+}
+
 @media (max-width: 768px) {
     .mobile-bottom-nav {
         display: flex;
@@ -1072,5 +1119,42 @@ nav {
 .btn-primary:hover {
     background: var(--color-primary-dark) !important;
     box-shadow: 0 10px 20px rgba(255, 102, 0, 0.2) !important;
+}
+
+
+/* --- FOOTER MOBILE OPTIMIZATION --- */
+@media (max-width: 768px) {
+    footer { padding: 40px 0 100px !important; }
+    footer > .container > div:first-child { 
+        grid-template-columns: 1fr !important; 
+        gap: 32px !important;
+        text-align: center;
+    }
+    footer .logo { margin: 0 auto 24px !important; display: block; }
+    footer p { margin: 0 auto 24px !important; }
+    footer .btn-outline { justify-content: center; }
+    footer h4 { margin-bottom: 16px !important; margin-top: 24px; }
+    footer ul { align-items: center; }
+    footer div[style*="display: flex; gap: 8px;"] { justify-content: center; }
+    footer .container > div:last-child {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 16px !important;
+    }
+}
+
+/* --- MISC UI POLISH --- */
+.product-card {
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.product-card:hover {
+    box-shadow: 0 12px 32px rgba(255, 102, 0, 0.15) !important;
+}
+
+#storeSearch::placeholder {
+    color: #A0AEC0;
+    font-weight: 500;
 }
 
