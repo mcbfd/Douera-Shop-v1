@@ -29,13 +29,14 @@
             <div>
                 <h1 style="margin:0; color: #1e3a8a;">FACTURE</h1>
                 <p id="invoice-id" style="margin:5px 0; font-weight: bold;"></p>
+                <p id="invoice-date" style="margin:5px 0; color: #64748b; font-size: 0.9rem;"></p>
             </div>
         </div>
 
         <div class="info">
             <div>
                 <h3 style="color: #3b82f6; margin-bottom: 10px;">Vendeur</h3>
-                <p><strong>Douéra Shop</strong><br>Import International & Luxe<br>Dakar, Sénégal<br>Contact: +221 XX XXX XX XX</p>
+                <p><strong>Douéra Shop</strong><br>Import International & Luxe<br>Dakar, Sénégal<br>Contact: +221 78 160 74 68</p>
             </div>
             <div style="text-align: right;">
                 <h3 style="color: #3b82f6; margin-bottom: 10px;">Client</h3>
@@ -79,6 +80,12 @@
 
                 if (order) {
                     document.getElementById('invoice-id').innerText = `RÉF: ${order.id}`;
+                    
+                    const orderDate = new Date(isNaN(order.date) ? order.date : parseInt(order.date));
+                    document.getElementById('invoice-date').innerText = "Émise le " + orderDate.toLocaleDateString('fr-FR', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                    });
                     
                     const fn = order.customer_firstname || order.customerfirstname || 'Invité';
                     const ln = order.customer_lastname || order.customerlastname || '';

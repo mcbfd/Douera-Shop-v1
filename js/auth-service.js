@@ -22,6 +22,12 @@ const AuthService = {
         }
 
         const session = await response.json();
+        
+        // Normalisation: s'assurer que userId est présent (copie de id si besoin)
+        if (session.id && !session.userId) {
+            session.userId = session.id;
+        }
+        
         localStorage.setItem(AuthService.KEYS.SESSION, JSON.stringify(session));
         return session;
     },

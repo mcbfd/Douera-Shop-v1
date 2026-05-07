@@ -103,7 +103,8 @@
                 UI.setLoading(trackBtn, true, "Recherche...");
                 
                 try {
-                    const response = await fetch(`${API_BASE_URL}/orders`);
+                    const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : API_BASE_URL;
+                    const response = await fetch(`${API_URL}/orders`);
                     const orders = await response.json();
                     const order = orders.find(o => o.id === orderId);
 
@@ -156,7 +157,8 @@
                                 <script>
                                     window.confirmReceiptPublic = async (id) => {
                                         if(!confirm("Confirmez-vous avoir reçu votre colis ?")) return;
-                                        const res = await fetch(\`\${API_BASE_URL}/orders/\${id}\`, {
+                                        const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : API_BASE_URL;
+                                        const res = await fetch(\`\${API_URL}/orders/\${id}\`, {
                                             method: 'PUT',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({ status: 'Livrée' })

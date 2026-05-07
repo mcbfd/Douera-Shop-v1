@@ -220,17 +220,24 @@
             
             let allOrders = [];
             let allReviews = [];
-            const API_URL = API_BASE_URL;
+            const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : API_BASE_URL;
             try {
                 const [ordersRes, reviewsRes] = await Promise.all([
                     fetch(`${API_URL}/orders`),
                     fetch(`${API_URL}/reviews`)
                 ]);
                 
-                if (ordersRes.ok) allOrders = await ordersRes.json();
+                if (ordersRes.ok) {
+                    allOrders = await ordersRes.json();
+                } else {
+                    container.innerHTML = `<div style="text-align:center; padding: 40px; color: #DC2626; font-weight: 700;">⚠️ Impossible de charger vos commandes. Veuillez réessayer plus tard.</div>`;
+                    return;
+                }
                 if (reviewsRes.ok) allReviews = await reviewsRes.json();
             } catch (err) {
                 console.error("Erreur chargement données:", err);
+                container.innerHTML = `<div style="text-align:center; padding: 40px; color: #DC2626; font-weight: 700;">⚠️ Erreur de connexion au serveur.</div>`;
+                return;
             }
 
             // LOGIQUE DE FILTRAGE :
@@ -239,20 +246,25 @@
             let userOrders = [];
             
             if (refParam) {
-                userOrders = allOrders.filter(o => o.id === refParam);
+                userOrders = allOrders.filter(o => String(o.id) === String(refParam));
             } else if (currentSession) {
-                // Recherche par ID utilisateur (Robuste: gère userId et userid pour Postgres)
+                // Recherche par ID utilisateur (Ultra-robuste: gère userId, userid et id)
+                const myId = currentSession.userId || currentSession.userid || currentSession.id;
+                
+                console.log("Ma Session ID:", myId);
+                
                 userOrders = allOrders.filter(o => {
-                    const oUserId = o.userId || o.userid;
-                    return String(oUserId).toLowerCase() === String(currentSession.userId).toLowerCase();
+                    const oUserId = o.userId || o.userid || o.user_id;
+                    return String(oUserId).toLowerCase() === String(myId).toLowerCase();
                 });
                 
                 // Si rien trouvé par ID, on tente par numéro de téléphone (normalisé)
-                if (userOrders.length === 0 && currentSession.phone) {
+                const myPhone = currentSession.phone || currentSession.customer_phone;
+                if (userOrders.length === 0 && myPhone) {
                     const cleanPhone = phone => String(phone).replace(/\D/g, '');
-                    const targetPhone = cleanPhone(currentSession.phone);
+                    const targetPhone = cleanPhone(myPhone);
                     
-                    console.log("Recherche par téléphone (normalisé)...", targetPhone);
+                    console.log("Tentative de recherche par téléphone...", targetPhone);
                     userOrders = allOrders.filter(o => {
                         const oPhone = o.customer_phone || o.customerphone || '';
                         return cleanPhone(oPhone) === targetPhone;
