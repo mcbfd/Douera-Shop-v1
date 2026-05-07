@@ -27,6 +27,11 @@ const AuthService = {
         if (session.id && !session.userId) {
             session.userId = session.id;
         }
+
+        // Sécurité: Ajouter une expiration par défaut (24h) si absente
+        if (!session.expires) {
+            session.expires = Date.now() + (24 * 60 * 60 * 1000);
+        }
         
         localStorage.setItem(AuthService.KEYS.SESSION, JSON.stringify(session));
         return session;
@@ -69,12 +74,23 @@ const AuthService = {
 
     // 2. Session Management
     getCurrentUser: () => {
-        const session = JSON.parse(localStorage.getItem(AuthService.KEYS.SESSION));
-        if (!session || Date.now() > session.expires) {
-            localStorage.removeItem(AuthService.KEYS.SESSION);
+        try {
+            const sessionStr = localStorage.getItem(AuthService.KEYS.SESSION);
+            if (!sessionStr) return null;
+            
+            const session = JSON.parse(sessionStr);
+            
+            // Si une expiration est définie, on la vérifie
+            if (session.expires && Date.now() > session.expires) {
+                console.warn("Session expirée.");
+                localStorage.removeItem(AuthService.KEYS.SESSION);
+                return null;
+            }
+            
+            return session;
+        } catch (e) {
             return null;
         }
-        return session;
     },
 
     isAuthenticated: () => {
