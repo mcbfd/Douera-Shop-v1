@@ -196,16 +196,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Tracking link update
-        const trackNavLink = document.getElementById('track-nav-link');
-        if (trackNavLink) {
-            trackNavLink.href = user ? 'orders.html' : 'track-order.html';
-            trackNavLink.innerHTML = `
-                <i data-lucide="package" style="width: 24px; height: 24px;"></i>
-                ${hasNewReply ? '<span style="position: absolute; top: 0; right: -4px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white;"></span>' : ''}
-            `;
-            if (window.lucide) lucide.createIcons({ root: trackNavLink });
-        }
+        // Tracking link update (Desktop & Mobile)
+        const trackNavLinks = [document.getElementById('track-nav-link'), document.getElementById('mobile-track-nav-link')];
+        const hasNewReplyCache = sessionStorage.getItem('has_new_reply_cache') === 'true';
+
+        trackNavLinks.forEach(link => {
+            if (link) {
+                link.href = user ? 'orders.html' : 'track-order.html';
+                
+                // Desktop specific innerHTML update
+                if (link.id === 'track-nav-link') {
+                    link.innerHTML = `
+                        <i data-lucide="package" style="width: 24px; height: 24px;"></i>
+                        ${hasNewReplyCache ? '<span style="position: absolute; top: 0; right: -4px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white;"></span>' : ''}
+                    `;
+                } else {
+                    // Mobile badge handling
+                    const mobileBadge = document.getElementById('mobile-notif-badge');
+                    if (mobileBadge) mobileBadge.style.display = hasNewReplyCache ? 'block' : 'none';
+                }
+                if (window.lucide) lucide.createIcons({ root: link });
+            }
+        });
 
         const cartIconHtml = `
             <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
