@@ -113,9 +113,11 @@ const AdminService = {
     // 6. Stats Dashboard
     getStats: async () => {
         try {
-            const orders = await AdminService.getOrders();
-            const products = await AdminService.getProducts();
-            const users = await AdminService.getUsers();
+            const [orders, products, users] = await Promise.all([
+                AdminService.getOrders(),
+                AdminService.getProducts(),
+                AdminService.getUsers()
+            ]);
 
             const totalVentes = orders.reduce((acc, o) => acc + (parseInt(o.total) || 0), 0);
             const nbClients = users.filter(u => u.role === 'client' || u.role === 'user').length;
@@ -145,6 +147,17 @@ const AdminService = {
                 .sort((a, b) => b.sales - a.sales)
                 .slice(0, 3);
             
+            // Monthly Sales breakdown
+            const monthlySales = Array(6).fill(0);
+            const now = new Date();
+            orders.forEach(o => {
+                const oDate = new Date(isNaN(o.date) ? o.date : parseInt(o.date));
+                const monthDiff = (now.getFullYear() - oDate.getFullYear()) * 12 + (now.getMonth() - oDate.getMonth());
+                if (monthDiff >= 0 && monthDiff < 6) {
+                    monthlySales[5 - monthDiff] += (parseInt(o.total) || 0);
+                }
+            });
+            
             return {
                 totalVentes,
                 nbCommandes: orders.length,
@@ -152,7 +165,8 @@ const AdminService = {
                 nbProduits: products.length,
                 nbRupture,
                 recentOrders: orders.slice(0, 5),
-                popularProducts 
+                popularProducts,
+                monthlySales
             };
         } catch (err) {
             console.error("Stats Error:", err);
@@ -162,9 +176,21 @@ const AdminService = {
     
     // 7. Automation & Sync
     startAutoRefresh: (callback, interval = 30000) => {
-        // Exécute le callback immédiatement puis toutes les N ms
         callback();
         return setInterval(callback, interval);
+    },
+
+    // 8. Utils
+    debounce: (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 };
 

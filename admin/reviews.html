@@ -12,18 +12,21 @@
 <body>
 
     <div class="admin-wrapper">
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 150px;">
+        <!-- Sidebar -->
+        <aside class="sidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column;">
+            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px;">
+                <a href="../index.html" style="display: block;">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+                </a>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
                 <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item active"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer">
+            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
                 <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>

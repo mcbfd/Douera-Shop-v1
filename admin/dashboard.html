@@ -16,25 +16,21 @@
 
     <div class="admin-wrapper">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-logo"
-                style="padding: 10px 0; display: flex; align-items: center; justify-content: center;">
-                <div
-                    style="width: 200px; height: 200px; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #FAF9F6; box-shadow: var(--shadow-sm);">
-                    <img src="../assets/logo douera shop.png" alt="Douéra Shop"
-                        style="width: 100%; height: auto; transform: translateY(-5%); object-fit: cover;">
-                </div>
+        <aside class="sidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column;">
+            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px;">
+                <a href="../index.html" style="display: block;">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+                </a>
             </div>
-            <nav class="sidebar-nav">
+            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
                 <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer">
-                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i>
-                    Déconnexion</a>
+            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
+                <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>
 
@@ -222,23 +218,42 @@
                 paymentChart.destroy();
             }
             
-            // Sales Chart (Simulated Data + Real Total)
+            // Sales Chart (Real Data)
             const salesCtx = document.getElementById('salesChart').getContext('2d');
+            const months = ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+            const currentMonth = new Date().getMonth();
+            const labels = [];
+            for (let i = 5; i >= 0; i--) {
+                let m = currentMonth - i;
+                if (m < 0) m += 12;
+                labels.push(months[m]);
+            }
+
             salesChart = new Chart(salesCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Féb', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    labels: labels,
                     datasets: [{
                         label: 'Revenus (XOF)',
-                        data: [120000, 190000, 150000, 250000, 220000, stats.totalVentes || 0],
+                        data: stats.monthlySales || [0,0,0,0,0,0],
                         borderColor: '#2B59A2',
                         backgroundColor: 'rgba(43, 89, 162, 0.1)',
                         fill: true,
                         tension: 0.4,
-                        borderWidth: 3
+                        borderWidth: 3,
+                        pointBackgroundColor: 'white',
+                        pointBorderColor: '#2B59A2',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
                     }]
                 },
-                options: { plugins: { legend: { display: false } } }
+                options: { 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
             });
 
             // Payment Distribution
