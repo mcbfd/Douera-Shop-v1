@@ -36,22 +36,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 1. INITIALIZATION ---
 
     async function init() {
-        // Load Data from Backend API
-        try {
-            const res = await fetch(`${API_BASE_URL}/products`);
-            if (res.ok) {
-                allProducts = await res.json();
-                console.log("Produits chargés:", allProducts);
-            } else {
-                const text = await res.text();
-                console.error("Erreur serveur:", text);
-                allProducts = [];
+        // Parallel load for speed
+        const loadProductsPromise = (async () => {
+            const cached = sessionStorage.getItem('douera_products_cache');
+            if (cached) {
+                allProducts = JSON.parse(cached);
+                renderAppProducts(); // Show cached version immediately
+                // Then update in background
             }
-        } catch(e) {
-            console.error("Erreur de connexion au backend", e);
-            window.alert("Erreur de connexion : " + e.message + " (URL: " + API_BASE_URL + ")");
-            allProducts = [];
-        }
+            try {
+                const res = await fetch(`${API_BASE_URL}/products`);
+                if (res.ok) {
+                    const data = await res.json();
+                    allProducts = data;
+                    sessionStorage.setItem('douera_products_cache', JSON.stringify(data));
+                    renderAppProducts();
+                }
+            } catch(e) { console.error("Update failed", e); }
+        })();
+
+        const initAuthPromise = updateAuthUI();
+        
+        await Promise.all([loadProductsPromise, initAuthPromise]);
         
         initHeroBackground();
         
@@ -72,8 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filterContainer) filterContainer.appendChild(btn);
         });
 
-        // Setup Events
-        if (storeSearch) storeSearch.oninput = (e) => { currentSearch = e.target.value.toLowerCase(); renderAppProducts(); };
+        // Setup Events with Debounce
+        let searchTimeout;
+        if (storeSearch) storeSearch.oninput = (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value.toLowerCase();
+                renderAppProducts();
+            }, 300);
+        };
         if (storeSort) storeSort.onchange = (e) => { currentSort = e.target.value; renderAppProducts(); };
         
         // Advanced Filters
@@ -151,37 +164,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = AuthService.getCurrentUser();
         const cartCount = Cart.getItems().reduce((t, i) => t + i.quantity, 0);
 
-        // Check for new admin replies (Seen logic)
+        // Optimized notification check
         let hasNewReply = false;
         if (user) {
-            try {
-                const API_URL = API_BASE_URL;
-                const res = await fetch(`${API_URL}/orders`);
-                if (res.ok) {
-                    const orders = await res.json();
-                    const userOrders = orders.filter(o => {
-                        const oUserId = o.userId || o.userid;
-                        return String(oUserId).toLowerCase() === String(user.userId).toLowerCase();
-                    });
-                    
-                    // Get seen reply IDs from localStorage
-                    const seenReplies = JSON.parse(localStorage.getItem('seen_replies') || '[]');
-                    
-                    // Check if any order has an admin_reply whose review_id isn't in seenReplies
-                    hasNewReply = userOrders.some(o => o.admin_reply && !seenReplies.includes(o.review_id));
-                    
-                    // Play sound if new reply found and not played yet in this page load
-                    if (hasNewReply && !window.notificationPlayed) {
-                        const popSound = new Audio('data:audio/wav;base64,UklGRmYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YWCWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
-                        // Note: Base64 above is a dummy, let's use a real short pop sound
-                        const realPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-                        realPop.volume = 0.4;
-                        realPop.play().catch(e => console.log("Autoplay prevented sound"));
-                        window.notificationPlayed = true;
+            const lastCheck = sessionStorage.getItem('last_notif_check');
+            const now = Date.now();
+            
+            if (!lastCheck || (now - lastCheck > 30000)) {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/orders?userId=${user.userId}`);
+                    if (res.ok) {
+                        const orders = await res.json();
+                        sessionStorage.setItem('last_notif_check', now);
+                        
+                        const userOrders = orders.filter(o => String(o.userId || o.userid) === String(user.userId));
+                        const seenReplies = JSON.parse(localStorage.getItem('seen_replies') || '[]');
+                        
+                        hasNewReply = userOrders.some(o => o.admin_reply && !seenReplies.includes(o.review_id));
+                        
+                        if (hasNewReply && !window.notificationPlayed) {
+                            const realPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+                            realPop.volume = 0.4;
+                            realPop.play().catch(() => {});
+                            window.notificationPlayed = true;
+                        }
+                        sessionStorage.setItem('has_new_reply_cache', hasNewReply);
                     }
-                }
-            } catch (e) {
-                console.error("Erreur notification", e);
+                } catch (e) { console.error("Notif error", e); }
+            } else {
+                hasNewReply = sessionStorage.getItem('has_new_reply_cache') === 'true';
             }
         }
 
@@ -286,9 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             productGrid.appendChild(card);
+            // Initialize icons for this card only
+            if (window.lucide) lucide.createIcons({
+                attrs: { "stroke-width": 2.5 },
+                nameAttr: 'data-lucide',
+                root: card
+            });
         });
-
-        if (window.lucide) lucide.createIcons();
     }
 
     function renderCartDrawer() {
@@ -673,41 +688,39 @@ const allBtn = document.querySelector('[data-category="all"]');
     };
 
     function initHeroBackground() {
-        const track1 = document.getElementById('hero-track-1');
-        const track2 = document.getElementById('hero-track-2');
-        const slider = document.getElementById('hero-bg-slider');
-        
-        if (!track1 || !track2 || !allProducts.length) return;
+        // Delay background initialization to prioritize main content
+        setTimeout(() => {
+            const track1 = document.getElementById('hero-track-1');
+            const track2 = document.getElementById('hero-track-2');
+            const slider = document.getElementById('hero-bg-slider');
+            
+            if (!track1 || !track2 || !allProducts.length) return;
 
-        // On nettoie
-        track1.innerHTML = '';
-        track2.innerHTML = '';
+            track1.innerHTML = '';
+            track2.innerHTML = '';
 
-        // On mélange et on prend une sélection
-        const pool = [...allProducts].sort(() => 0.5 - Math.random());
-        // S'il y a peu de produits, on les répète pour remplir la piste
-        const items = pool.length < 6 ? [...pool, ...pool, ...pool] : pool.slice(0, 8);
+            const pool = [...allProducts].sort(() => 0.5 - Math.random());
+            const items = pool.slice(0, 6); // Limit to 6 items for performance
 
-        const createImg = (p) => {
-            const img = document.createElement('img');
-            img.src = p.image;
-            img.className = 'hero-bg-img';
-            img.alt = p.name;
-            img.onerror = () => { img.src = 'assets/electronics_1.png'; }; // Fallback
-            return img;
-        };
+            const createImg = (p) => {
+                const img = document.createElement('img');
+                img.src = p.image;
+                img.className = 'hero-bg-img';
+                img.loading = 'lazy'; // Don't block critical path
+                img.alt = p.name;
+                img.onerror = () => { img.src = 'assets/electronics_1.png'; };
+                return img;
+            };
 
-        // Track 1
-        items.forEach(p => track1.appendChild(createImg(p)));
-        items.forEach(p => track1.appendChild(createImg(p))); // Duplication pour scroll infini
+            items.forEach(p => track1.appendChild(createImg(p)));
+            items.forEach(p => track1.appendChild(createImg(p)));
 
-        // Track 2 (ordre différent)
-        const items2 = [...items].reverse();
-        items2.forEach(p => track2.appendChild(createImg(p)));
-        items2.forEach(p => track2.appendChild(createImg(p)));
+            const items2 = [...items].reverse();
+            items2.forEach(p => track2.appendChild(createImg(p)));
+            items2.forEach(p => track2.appendChild(createImg(p)));
 
-        // Afficher le slider
-        if (slider) slider.style.display = 'flex';
+            if (slider) slider.style.display = 'flex';
+        }, 1500); // 1.5s delay
     }
 
     // --- 6. SCROLL REVEAL ANIMATIONS ---

@@ -1186,3 +1186,27 @@ nav {
     box-shadow: 0 8px 16px rgba(43, 89, 162, 0.2);
 }
 
+
+/* --- PERFORMANCE BOOSTERS --- */
+.product-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 300px 400px; /* Placeholder size for better scrollbar behavior */
+}
+
+.hero-bg-track {
+    will-change: transform;
+}
+
+/* Optimize image rendering */
+img {
+    font-display: swap;
+    aspect-ratio: auto;
+}
+
+/* Reduced motion for speed-inclined users */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
