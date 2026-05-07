@@ -164,30 +164,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = AuthService.getCurrentUser();
         const cartCount = Cart.getItems().reduce((t, i) => t + i.quantity, 0);
 
+        // Update Bottom Nav Link dynamically
+        const mobileAccountBtn = document.querySelector('.mobile-bottom-nav a:last-child');
+        if (mobileAccountBtn) {
+            mobileAccountBtn.href = user ? 'profile.html' : 'account/login.html';
+        }
+
         // Optimized notification check
         let hasNewReply = false;
         if (user) {
             const lastCheck = sessionStorage.getItem('last_notif_check');
             const now = Date.now();
-            
             if (!lastCheck || (now - lastCheck > 30000)) {
                 try {
                     const res = await fetch(`${API_BASE_URL}/orders?userId=${user.userId}`);
                     if (res.ok) {
                         const orders = await res.json();
                         sessionStorage.setItem('last_notif_check', now);
-                        
                         const userOrders = orders.filter(o => String(o.userId || o.userid) === String(user.userId));
                         const seenReplies = JSON.parse(localStorage.getItem('seen_replies') || '[]');
-                        
                         hasNewReply = userOrders.some(o => o.admin_reply && !seenReplies.includes(o.review_id));
-                        
-                        if (hasNewReply && !window.notificationPlayed) {
-                            const realPop = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-                            realPop.volume = 0.4;
-                            realPop.play().catch(() => {});
-                            window.notificationPlayed = true;
-                        }
                         sessionStorage.setItem('has_new_reply_cache', hasNewReply);
                     }
                 } catch (e) { console.error("Notif error", e); }
@@ -196,24 +192,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Tracking link update (Desktop & Mobile)
+        // Tracking link update
         const trackNavLinks = [document.getElementById('track-nav-link'), document.getElementById('mobile-track-nav-link')];
-        const hasNewReplyCache = sessionStorage.getItem('has_new_reply_cache') === 'true';
-
         trackNavLinks.forEach(link => {
             if (link) {
                 link.href = user ? 'orders.html' : 'track-order.html';
-                
-                // Desktop specific innerHTML update
                 if (link.id === 'track-nav-link') {
                     link.innerHTML = `
                         <i data-lucide="package" style="width: 24px; height: 24px;"></i>
-                        ${hasNewReplyCache ? '<span style="position: absolute; top: 0; right: -4px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white;"></span>' : ''}
+                        ${hasNewReply ? '<span style="position: absolute; top: 0; right: -4px; width: 10px; height: 10px; background: #EF4444; border-radius: 50%; border: 2px solid white;"></span>' : ''}
                     `;
                 } else {
-                    // Mobile badge handling
                     const mobileBadge = document.getElementById('mobile-notif-badge');
-                    if (mobileBadge) mobileBadge.style.display = hasNewReplyCache ? 'block' : 'none';
+                    if (mobileBadge) mobileBadge.style.display = hasNewReply ? 'block' : 'none';
                 }
                 if (window.lucide) lucide.createIcons({ root: link });
             }
@@ -228,15 +219,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (user) {
             authArea.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
                     ${cartIconHtml}
-                    <div style="display: flex; align-items: center; gap: 12px; background: var(--color-primary-light); padding: 6px 16px; border-radius: 14px; border: 1px solid var(--color-primary-light);">
+                    <div style="display: flex; align-items: center; gap: 8px; background: var(--color-primary-light); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--color-primary-light);">
                         <div style="text-align: right; line-height: 1;">
-                            <span style="font-size: 0.65rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Client Privilège</span>
-                            <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.95rem;">${user.name.split(' ')[0]}</p>
+                            <span style="font-size: 0.55rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;" class="desktop-only-badge">Client Privilège</span>
+                            <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.85rem;">${user.name.split(' ')[0]}</p>
                         </div>
-                        <button id="logoutBtn" style="background: white; border: none; color: var(--color-primary); cursor: pointer; padding: 8px; border-radius: 10px; box-shadow: var(--shadow-soft);" title="Déconnexion">
-                            <i data-lucide="log-out" style="width: 18px;"></i>
+                        <button id="logoutBtn" style="background: white; border: none; color: var(--color-primary); cursor: pointer; padding: 6px; border-radius: 8px; box-shadow: var(--shadow-soft);" title="Déconnexion">
+                            <i data-lucide="log-out" style="width: 16px;"></i>
                         </button>
                     </div>
                 </div>
@@ -244,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('logoutBtn').onclick = () => AuthService.logout();
         } else {
             authArea.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 24px;">
+                <div style="display: flex; align-items: center; gap: 16px;">
                     ${cartIconHtml}
-                    <a href="account/login.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Connexion</a>
+                    <a href="account/login.html" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 10px;">Connexion</a>
                 </div>
             `;
         }

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil | Douéra Shop</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
+</head>
+<body class="animate-fade-in" style="background: #F8FAFC;">
+
+    <header style="background: white; border-bottom: 1px solid var(--color-border); padding: 12px 0; position: sticky; top: 0; z-index: 1000;">
+        <div class="container" style="display: flex; align-items: center; justify-content: space-between;">
+            <a href="index.html" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--color-primary-dark); font-weight: 800;">
+                <i data-lucide="arrow-left" style="width: 20px;"></i>
+                <span>Boutique</span>
+            </a>
+            <div id="nav-auth-area"></div>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 40px 20px; max-width: 800px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="width: 100px; height: 100px; background: var(--color-primary); color: white; border-radius: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2.5rem; font-weight: 800; box-shadow: 0 20px 40px rgba(43, 89, 162, 0.2);" id="profile-initial">
+                U
+            </div>
+            <h1 id="display-name" style="font-family: 'Outfit', sans-serif; color: var(--color-primary-dark); margin-bottom: 8px;">Chargement...</h1>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(43, 89, 162, 0.1); color: var(--color-primary); padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em;">
+                <i data-lucide="crown" style="width: 14px;"></i> CLIENT PRIVILÉGIÉ
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 24px; padding: 40px; border: 1px solid var(--color-border); box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+            <form id="profileForm" style="display: flex; flex-direction: column; gap: 24px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nom complet</label>
+                        <input type="text" id="name" class="pay-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Email</label>
+                        <input type="email" id="email" class="pay-input" style="width: 100%; opacity: 0.7; background: #F1F5F9;" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Téléphone (WhatsApp)</label>
+                    <input type="tel" id="phone" class="pay-input" style="width: 100%;" required>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Adresse de livraison</label>
+                    <div style="position: relative;">
+                        <input type="text" id="address" class="pay-input" style="width: 100%; padding-right: 120px;" required>
+                        <button type="button" onclick="getLocation()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--color-primary-light); border: none; color: var(--color-primary); padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; cursor: pointer;">
+                            <i data-lucide="map-pin" style="width: 12px; vertical-align: middle;"></i> GPS
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Région</label>
+                        <input type="text" id="region" class="pay-input" style="width: 100%;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville</label>
+                        <input type="text" id="city" class="pay-input" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" id="saveBtn" class="btn btn-primary" style="width: 100%; padding: 18px; font-weight: 800; border-radius: 14px; justify-content: center;">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div style="margin-top: 32px; text-align: center;">
+            <button onclick="AuthService.logout()" style="background: none; border: none; color: var(--color-error); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; margin: 0 auto;">
+                <i data-lucide="log-out" style="width: 18px;"></i> Déconnexion sécurisée
+            </button>
+        </div>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/auth-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = AuthService.getCurrentUser();
+            if (!user) { window.location.href = 'account/login.html'; return; }
+
+            // Fill Form
+            document.getElementById('display-name').textContent = user.name;
+            document.getElementById('profile-initial').textContent = user.name.charAt(0).toUpperCase();
+            document.getElementById('name').value = user.name;
+            document.getElementById('email').value = user.email;
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('address').value = user.address || '';
+            document.getElementById('region').value = user.region || '';
+            document.getElementById('city').value = user.city || '';
+
+            // Update Header UI
+            const authArea = document.getElementById('nav-auth-area');
+            if (authArea) {
+                authArea.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; background: var(--color-primary-light); padding: 6px 12px; border-radius: 12px;">
+                        <div style="text-align: right; line-height: 1;">
+                            <span style="font-size: 0.6rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase;">Profil</span>
+                            <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.85rem;">${user.name.split(' ')[0]}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (window.lucide) lucide.createIcons();
+
+            // Handle Submit
+            document.getElementById('profileForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('saveBtn');
+                UI.setLoading(btn, true, "Mise à jour...");
+
+                const updatedData = {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    region: document.getElementById('region').value,
+                    city: document.getElementById('city').value
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/users/${user.userId}/profile`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    });
+
+                    if (res.ok) {
+                        // Update Local Session
+                        const newSession = { ...user, ...updatedData };
+                        localStorage.setItem(AuthService.KEYS.SESSION, JSON.stringify(newSession));
+                        UI.showToast("Profil mis à jour avec succès !", "success");
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        throw new Error("Erreur lors de la mise à jour.");
+                    }
+                } catch (err) {
+                    UI.showToast(err.message, "error");
+                } finally {
+                    UI.setLoading(btn, false, "Enregistrer les modifications");
+                }
+            };
+        });
+
+        async function getLocation() {
+            if (!navigator.geolocation) {
+                UI.showToast("Géolocalisation non supportée", "error");
+                return;
+            }
+            UI.showToast("Localisation en cours...", "info");
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                    const data = await res.json();
+                    if (data && data.display_name) {
+                        document.getElementById('address').value = data.display_name;
+                        UI.showToast("Position GPS capturée !", "success");
+                    }
+                } catch (e) {
+                    UI.showToast("Erreur GPS", "error");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
