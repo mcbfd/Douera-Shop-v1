@@ -662,8 +662,10 @@ nav {
     backdrop-filter: blur(12px);
     z-index: 3000;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Permet de voir le haut du formulaire */
     justify-content: center;
+    padding: 40px 16px; /* Espace de sécurité */
+    overflow-y: auto; /* L'overlay devient la zone de scroll */
     opacity: 0;
     visibility: hidden;
     transition: var(--transition-base);
@@ -676,17 +678,16 @@ nav {
 
 .modal-content {
     background: white;
-    width: 90%;
+    width: 100%;
     max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 32px;
-    border-radius: var(--radius-lg);
+    margin: auto; /* Centre horizontalement et gère le scroll vertical */
+    padding: 40px;
+    border-radius: 24px;
     box-shadow: 0 40px 100px rgba(0,0,0,0.3);
     position: relative;
     transform: translateY(40px);
     transition: var(--transition-base);
-    z-index: 2100;
+    z-index: 3100;
 }
 
 .modal-overlay.active .modal-content {
