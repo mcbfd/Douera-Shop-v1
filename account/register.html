@@ -51,18 +51,60 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-group">
-                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Sénégal (+221)</label>
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Sexe</label>
+                    <select id="gender" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none; appearance: none; -webkit-appearance: none;">
+                        <option value="" disabled selected>Choisir...</option>
+                        <option value="M">Homme</option>
+                        <option value="F">Femme</option>
+                        <option value="O">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Téléphone (+221)</label>
                     <div style="position: relative;">
                         <i data-lucide="phone" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
                         <input type="tel" id="phone" required class="pay-input" placeholder="77 000 00 00" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
                     </div>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Pays</label>
+                <select id="country" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                    <option value="Sénégal" selected>Sénégal</option>
+                    <option value="France">France</option>
+                    <option value="USA">USA</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-group">
-                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Quartier</label>
-                    <div style="position: relative;">
-                        <i data-lucide="map-pin" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                        <input type="text" id="address" required class="pay-input" placeholder="Ex: Quartier Escale" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
-                    </div>
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Région</label>
+                    <select id="region" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                        <option value="" disabled selected>Région...</option>
+                        <!-- Injected by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville / Département</label>
+                    <select id="city" required style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; outline: none;">
+                        <option value="" disabled selected>Ville...</option>
+                        <!-- Injected by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; justify-content: space-between; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">
+                    Adresse Précise (Quartier, Rue...)
+                    <button type="button" onclick="getLocation()" style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="map-pin" style="width: 14px;"></i> Ma position actuelle
+                    </button>
+                </label>
+                <div style="position: relative;">
+                    <i data-lucide="home" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
+                    <input type="text" id="address" required class="pay-input" placeholder="Ex: Mermoz, Rue 12" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
                 </div>
             </div>
             
@@ -108,6 +150,75 @@
 
             const form = document.getElementById('registerForm');
             const btn = document.getElementById('regBtn');
+            const regionSelect = document.getElementById('region');
+            const citySelect = document.getElementById('city');
+
+            // Données du Sénégal
+            const senegalData = {
+                "Dakar": ["Dakar", "Pikine", "Guédiawaye", "Rufisque"],
+                "Saint-Louis": ["Saint-Louis", "Dagana", "Podor"],
+                "Thiès": ["Thiès", "Mbour", "Tivaouane"],
+                "Kaolack": ["Kaolack", "Nioro du Rip", "Guinguinéo"],
+                "Ziguinchor": ["Ziguinchor", "Bignona", "Oussouye"],
+                "Louga": ["Louga", "Linguère", "Kébémer"],
+                "Diourbel": ["Diourbel", "Bambey", "Mbacké"],
+                "Tambacounda": ["Tambacounda", "Bakel", "Goudiry", "Koumpentoum"],
+                "Kolda": ["Kolda", "Vélingara", "Médina Yoro Foulah"],
+                "Matam": ["Matam", "Kanel", "Ranérou Ferlo"],
+                "Kaffrine": ["Kaffrine", "Birkelane", "Koungheul", "Malem Hodar"],
+                "Kédougou": ["Kédougou", "Salémata", "Saraya"],
+                "Sédhiou": ["Sédhiou", "Bounkiling", "Goudomp"],
+                "Fatick": ["Fatick", "Foundiougne", "Gossas"]
+            };
+
+            // Initialiser les régions
+            Object.keys(senegalData).sort().forEach(reg => {
+                const opt = new document.constructor().createElement('option');
+                opt.value = reg;
+                opt.textContent = reg;
+                regionSelect.appendChild(opt);
+            });
+
+            // Update cities when region changes
+            regionSelect.addEventListener('change', () => {
+                citySelect.innerHTML = '<option value="" disabled selected>Ville...</option>';
+                const cities = senegalData[regionSelect.value];
+                if (cities) {
+                    cities.sort().forEach(city => {
+                        const opt = new document.constructor().createElement('option');
+                        opt.value = city;
+                        opt.textContent = city;
+                        citySelect.appendChild(opt);
+                    });
+                }
+            });
+
+            // GPS Location
+            window.getLocation = () => {
+                if (navigator.geolocation) {
+                    UI.showToast("Localisation en cours...", "info");
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        document.getElementById('address').value = `📍 GPS: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (Chargement adresse...)`;
+                        
+                        // Tentative de reverse geocoding via Nominatim (Gratuit/OpenSource)
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                            const data = await res.json();
+                            if (data.display_name) {
+                                document.getElementById('address').value = data.display_name;
+                                UI.showToast("Position trouvée !", "success");
+                            }
+                        } catch(e) {
+                            UI.showToast("Position captée (GPS)", "success");
+                        }
+                    }, (err) => {
+                        UI.showToast("Accès GPS refusé ou indisponible.", "error");
+                    });
+                } else {
+                    UI.showToast("Géolocalisation non supportée.", "error");
+                }
+            };
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -117,6 +228,10 @@
                     name: document.getElementById('name').value,
                     email: document.getElementById('email').value,
                     phone: document.getElementById('phone').value,
+                    gender: document.getElementById('gender').value,
+                    country: document.getElementById('country').value,
+                    region: document.getElementById('region').value,
+                    city: document.getElementById('city').value,
                     address: document.getElementById('address').value,
                     password: document.getElementById('password').value
                 };

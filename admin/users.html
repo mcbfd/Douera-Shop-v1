@@ -106,15 +106,52 @@
                         </select>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px; margin-bottom: 32px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Adresse de livraison</label>
-                        <input type="text" id="u-address" class="pay-input" placeholder="Quartier, Ville">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Sexe</label>
+                        <select id="u-gender" class="pay-input" style="appearance: none;">
+                            <option value="M">Homme</option>
+                            <option value="F">Femme</option>
+                            <option value="O">Autre</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label style="display: block; margin-bottom: 8px; font-weight: 700;">Téléphone</label>
                         <input type="tel" id="u-phone" class="pay-input" placeholder="77 000 00 00">
                     </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Pays</label>
+                    <select id="u-country" class="pay-input">
+                        <option value="Sénégal" selected>Sénégal</option>
+                        <option value="France">France</option>
+                        <option value="USA">USA</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Région</label>
+                        <select id="u-region" class="pay-input">
+                            <option value="" disabled selected>Région...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Ville / Dept</label>
+                        <select id="u-city" class="pay-input">
+                            <option value="" disabled selected>Ville...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px; margin-bottom: 32px;">
+                    <label style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 700;">
+                        Adresse de livraison
+                        <button type="button" onclick="getLocationAdmin()" style="background: none; border: none; color: var(--color-primary); font-size: 0.75rem; cursor: pointer;">📍 GPS</button>
+                    </label>
+                    <input type="text" id="u-address" class="pay-input" placeholder="Quartier, Rue...">
                 </div>
 
                 <div style="display: flex; gap: 16px;">
@@ -158,8 +195,12 @@
                     role: document.getElementById('u-role').value,
                     status: document.getElementById('u-status').value,
                     password: document.getElementById('u-password').value,
-                    address: document.getElementById('u-address').value,
-                    phone: document.getElementById('u-phone').value
+                    gender: document.getElementById('u-gender').value,
+                    phone: document.getElementById('u-phone').value,
+                    country: document.getElementById('u-country').value,
+                    region: document.getElementById('u-region').value,
+                    city: document.getElementById('u-city').value,
+                    address: document.getElementById('u-address').value
                 };
                 try {
                     await AdminService.saveUser(user);
@@ -242,6 +283,12 @@
                 `;
             }
 
+            const uGender = document.getElementById('u-gender');
+            const uCountry = document.getElementById('u-country');
+            const uRegion = document.getElementById('u-region');
+            const uCity = document.getElementById('u-city');
+            const uAddress = document.getElementById('u-address');
+
             if (id) {
                 const u = allUsers.find(x => x.id === id);
                 document.getElementById('u-id').value = u.id;
@@ -249,19 +296,96 @@
                 document.getElementById('u-email').value = u.email;
                 document.getElementById('u-role').value = u.role;
                 document.getElementById('u-status').value = u.status;
-                document.getElementById('u-password').value = ''; // Laisser vide pour ne pas changer
+                document.getElementById('u-password').value = ''; 
                 document.getElementById('u-password').placeholder = 'Laisser vide pour ne pas changer';
-                document.getElementById('u-address').value = u.address || '';
+                uGender.value = u.gender || 'M';
                 document.getElementById('u-phone').value = u.phone || '';
+                uCountry.value = u.country || 'Sénégal';
+                
+                // Trigger region update
+                updateRegionsAdmin();
+                uRegion.value = u.region || '';
+                updateCitiesAdmin();
+                uCity.value = u.city || '';
+                
+                uAddress.value = u.address || '';
                 document.getElementById('modalTitle').textContent = "Modifier l'utilisateur";
                 document.getElementById('u-password').required = false;
             } else {
                 document.getElementById('u-role').value = defaultRole;
                 document.getElementById('u-password').placeholder = 'Entrez un mot de passe';
                 document.getElementById('modalTitle').textContent = defaultRole === 'admin' ? "Nouvel Administrateur" : "Nouveau Client";
+                uGender.value = 'M';
+                uCountry.value = 'Sénégal';
+                updateRegionsAdmin();
+                uRegion.value = '';
+                uCity.innerHTML = '<option value="" disabled selected>Ville...</option>';
+                uAddress.value = '';
             }
 
             overlay.classList.add('active');
+        }
+
+        // --- Localization Logic Admin ---
+        const senegalData = {
+            "Dakar": ["Dakar", "Pikine", "Guédiawaye", "Rufisque"],
+            "Saint-Louis": ["Saint-Louis", "Dagana", "Podor"],
+            "Thiès": ["Thiès", "Mbour", "Tivaouane"],
+            "Kaolack": ["Kaolack", "Nioro du Rip", "Guinguinéo"],
+            "Ziguinchor": ["Ziguinchor", "Bignona", "Oussouye"],
+            "Louga": ["Louga", "Linguère", "Kébémer"],
+            "Diourbel": ["Diourbel", "Bambey", "Mbacké"],
+            "Tambacounda": ["Tambacounda", "Bakel", "Goudiry", "Koumpentoum"],
+            "Kolda": ["Kolda", "Vélingara", "Médina Yoro Foulah"],
+            "Matam": ["Matam", "Kanel", "Ranérou Ferlo"],
+            "Kaffrine": ["Kaffrine", "Birkelane", "Koungheul", "Malem Hodar"],
+            "Kédougou": ["Kédougou", "Salémata", "Saraya"],
+            "Sédhiou": ["Sédhiou", "Bounkiling", "Goudomp"],
+            "Fatick": ["Fatick", "Foundiougne", "Gossas"]
+        };
+
+        function updateRegionsAdmin() {
+            const regSelect = document.getElementById('u-region');
+            regSelect.innerHTML = '<option value="" disabled selected>Région...</option>';
+            Object.keys(senegalData).sort().forEach(reg => {
+                const opt = document.createElement('option');
+                opt.value = reg;
+                opt.textContent = reg;
+                regSelect.appendChild(opt);
+            });
+        }
+
+        function updateCitiesAdmin() {
+            const reg = document.getElementById('u-region').value;
+            const citySelect = document.getElementById('u-city');
+            citySelect.innerHTML = '<option value="" disabled selected>Ville...</option>';
+            if (senegalData[reg]) {
+                senegalData[reg].sort().forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+            }
+        }
+
+        document.getElementById('u-region').onchange = updateCitiesAdmin;
+
+        async function getLocationAdmin() {
+            if (navigator.geolocation) {
+                UI.showToast("Localisation...", "info");
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                        const data = await res.json();
+                        if (data.display_name) {
+                            document.getElementById('u-address').value = data.display_name;
+                            UI.showToast("Localisé !", "success");
+                        }
+                    } catch(e) { UI.showToast("Coordonnées GPS captées", "success"); }
+                });
+            }
         }
 
         function closeModal() {

@@ -42,6 +42,10 @@ const AuthService = {
                 password: userData.password,
                 address: userData.address,
                 phone: userData.phone,
+                gender: userData.gender,
+                country: userData.country,
+                region: userData.region,
+                city: userData.city,
                 role: 'client',
                 status: 'active'
             })
