@@ -678,11 +678,15 @@ nav {
     background: white;
     width: 90%;
     max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
     border-radius: var(--radius-lg);
     box-shadow: 0 40px 100px rgba(0,0,0,0.3);
     position: relative;
     transform: translateY(40px);
     transition: var(--transition-base);
+    z-index: 2100;
 }
 
 .modal-overlay.active .modal-content {
