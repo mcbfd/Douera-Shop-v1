@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <i data-lucide="truck" style="width: 10px;"></i> 24h
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="addToCart('${p.id}'); event.stopPropagation();" style="padding: 8px; border-radius: 10px; min-width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(255, 102, 0, 0.2);">
+                        <button class="btn btn-primary" onclick="addToCart('${p.id}'); event.stopPropagation();" style="padding: 8px; border-radius: 10px; min-width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(43, 89, 162, 0.2);">
                             <i data-lucide="shopping-cart" style="width: 18px;"></i>
                         </button>
                     </div>
