@@ -14,39 +14,50 @@
 <body>
 
     <div class="admin-wrapper">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column;">
-            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px;">
-                <a href="../index.html" style="display: block;">
-                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                <a href="../index.html">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
+                <button id="closeSidebarBtn" class="close-sidebar-btn">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
-            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
+            <nav class="sidebar-nav">
                 <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item active"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="admin-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <div>
-                        <h1 style="font-size: 2rem;">Gestion des Commandes</h1>
-                        <p style="color: var(--color-muted);">Suivez et gérez les ventes et livraisons en temps réel. <span id="sync-status" style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 4px 10px; border-radius: 20px; font-weight: 800; margin-left: 10px; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #31C48D; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span> LIVE SYNC</span></p>
-                    </div>
-                    <div id="bulk-actions" style="display: none; gap: 16px; align-items: center;">
-                        <span id="selection-count" style="font-weight: 700; color: var(--color-primary);">0 sélectionné</span>
-                        <button class="btn" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer;" onclick="deleteSelectedOrders()">
-                            <i data-lucide="trash-2" style="width: 18px; vertical-align: middle; margin-right: 8px;"></i> Supprimer la sélection
-                        </button>
-                    </div>
+            <header class="admin-header">
+                <div>
+                    <h1>Gestion des Commandes</h1>
+                    <p style="color: var(--color-muted);">Suivez vos ventes en temps réel.</p>
                 </div>
+                <div id="bulk-actions" class="header-actions" style="display: none;">
+                    <span id="selection-count" style="font-weight: 700; color: var(--color-primary); font-size: 0.85rem;">0 sélec.</span>
+                    <button class="btn" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5;" onclick="deleteSelectedOrders()">
+                        <i data-lucide="trash-2"></i> Supprimer
+                    </button>
+                </div>
+            </header>
 
             <div class="data-card">
                 <table class="data-table">
@@ -81,18 +92,14 @@
                 <div id="order-status-badge"></div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+            <div class="modal-grid">
                 <div>
-                    <h4
-                        style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
-                        Articles</h4>
+                    <h4 style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">Articles</h4>
                     <div id="order-items-list" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- Items -->
                     </div>
 
-                    <h4
-                        style="margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
-                        Informations Client</h4>
+                    <h4 style="margin-top: 32px; margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">Informations Client</h4>
                     <div id="customer-info" style="background: var(--color-background); padding: 16px; border-radius: 12px; font-size: 0.9rem;">
                         <p id="customer-name" style="font-weight: 700; margin-bottom: 4px;"></p>
                         <p id="customer-phone" style="margin-bottom: 8px; color: var(--color-primary); font-weight: 600;"></p>
@@ -100,21 +107,13 @@
                     </div>
                 </div>
                 <div>
-                    <h4
-                        style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">
-                        Modifier le Statut</h4>
+                    <h4 style="margin-bottom: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--color-muted);">Modifier le Statut</h4>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
-                            onclick="updateStatus('Payé')">💎 Marquer comme Payé</button>
-                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
-                            onclick="updateStatus('En préparation')">📦 En préparation</button>
-                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;"
-                            onclick="updateStatus('Expédié')">🚚 Expédié</button>
-                        <button class="btn btn-primary" style="text-align: left; justify-content: flex-start;"
-                            onclick="updateStatus('Livré')">✅ Marquer comme Livré</button>
-                        <button class="btn btn-outline"
-                            style="text-align: left; justify-content: flex-start; color: var(--color-error); border-color: var(--color-error);"
-                            onclick="updateStatus('Annulé')">❌ Annuler la commande</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;" onclick="updateStatus('Payé')">💎 Marquer comme Payé</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;" onclick="updateStatus('En préparation')">📦 En préparation</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start;" onclick="updateStatus('Expédié')">🚚 Expédié</button>
+                        <button class="btn btn-primary" style="text-align: left; justify-content: flex-start;" onclick="updateStatus('Livré')">✅ Marquer comme Livré</button>
+                        <button class="btn btn-outline" style="text-align: left; justify-content: flex-start; color: #DC2626; border-color: rgba(220, 38, 38, 0.2);" onclick="updateStatus('Annulé')">❌ Annuler</button>
                     </div>
                 </div>
             </div>
@@ -133,7 +132,24 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             AdminService.checkAuth();
-            AdminService.startAutoRefresh(refreshData, 30000); // Poll every 30s
+            
+            // Mobile Menu Logic
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            const toggleMobileMenu = (show) => {
+                sidebar.classList.toggle('active', show);
+                overlay.style.display = show ? 'block' : 'none';
+                document.body.style.overflow = show ? 'hidden' : '';
+            };
+
+            if (mobileMenuBtn) mobileMenuBtn.onclick = () => toggleMobileMenu(true);
+            if (closeSidebarBtn) closeSidebarBtn.onclick = () => toggleMobileMenu(false);
+            if (overlay) overlay.onclick = () => toggleMobileMenu(false);
+
+            AdminService.startAutoRefresh(refreshData, 30000); 
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
         });
 
@@ -155,17 +171,17 @@
                 const tr = document.createElement('tr');
                 tr.className = 'animate-fade-in';
                 tr.innerHTML = `
-                    <td><input type="checkbox" class="order-checkbox" value="${o.id}" onclick="updateSelection()"></td>
-                <td style="font-family: monospace; font-weight: 800; color: var(--color-foreground);">#${(o.id || 'N/A').substring(0, 8)}</td>
-                    <td style="color: var(--color-muted); font-size: 0.95rem;">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
-                    <td>
+                    <td data-label="Sélection"><input type="checkbox" class="order-checkbox" value="${o.id}" onclick="updateSelection()"></td>
+                    <td data-label="ID" style="font-family: monospace; font-weight: 800; color: var(--color-foreground);">#${(o.id || 'N/A').substring(0, 8)}</td>
+                    <td data-label="Date" style="color: var(--color-muted); font-size: 0.95rem;">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
+                    <td data-label="Client">
                         <div style="font-weight: 800; color: var(--color-primary-dark);">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
                         <div style="font-size: 0.8rem; color: var(--color-muted);">${o.customer_phone || 'Pas de tel'}</div>
                     </td>
-                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-size: 0.8rem; text-transform: uppercase;">${o.method || 'CASH'}</span></td>
-                    <td style="font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(o.total || 0).toLocaleString()} XOF</td>
-                    <td><span class="badge ${getStatusClass(o.status)}">${o.status}</span></td>
-                    <td style="display: flex; gap: 8px;">
+                    <td data-label="Paiement"><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-size: 0.8rem; text-transform: uppercase;">${o.method || 'CASH'}</span></td>
+                    <td data-label="Total" style="font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(o.total || 0).toLocaleString()} XOF</td>
+                    <td data-label="Statut"><span class="badge ${getStatusClass(o.status)}">${o.status}</span></td>
+                    <td data-label="Actions" style="display: flex; gap: 8px;">
                         <button class="btn" style="padding: 10px 15px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; background: rgba(43, 89, 162, 0.05); color: var(--color-primary); border: none; cursor: pointer;" onclick="openOrderModal('${o.id}')">Détails</button>
                         <button class="btn" style="padding: 10px; border-radius: 10px; background: #FEE2E2; color: #DC2626; border: none; cursor: pointer;" onclick="confirmDeleteOrder('${o.id}')"><i data-lucide="trash-2" style="width: 16px;"></i></button>
                     </td>

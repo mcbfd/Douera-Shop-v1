@@ -16,45 +16,45 @@
 
     <div class="admin-wrapper">
         <!-- Mobile Menu Toggle -->
-        <button id="mobileMenuBtn" style="position: fixed; top: 20px; left: 20px; z-index: 2000; background: var(--color-primary); color: white; border: none; width: 44px; height: 44px; border-radius: 12px; display: none; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.3);">
+        <button id="mobileMenuBtn" class="mobile-menu-btn">
             <i data-lucide="menu"></i>
         </button>
 
         <!-- Sidebar Overlay -->
-        <div id="sidebarOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1500; display: none; backdrop-filter: blur(4px);"></div>
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
         <!-- Sidebar -->
-        <aside class="sidebar" id="adminSidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; z-index: 1600; transition: transform 0.3s ease;">
-            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
-                <a href="../index.html" style="display: block; flex: 1;">
-                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                <a href="../index.html">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
-                <button id="closeSidebarBtn" style="background: none; border: none; color: var(--color-muted); display: none;">
-                    <i data-lucide="x" style="width: 24px;"></i>
+                <button id="closeSidebarBtn" class="close-sidebar-btn">
+                    <i data-lucide="x"></i>
                 </button>
             </div>
-            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
+            <nav class="sidebar-nav">
                 <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="admin-content" style="flex: 1; padding: 40px; background: #F8FAFC;">
-            <header class="admin-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; gap: 20px;">
+        <main class="admin-content">
+            <header class="admin-header">
                 <div id="header-text">
-                    <h1 style="font-size: 2rem;">Bonjour, <span id="admin-name">Admin</span></h1>
-                    <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique. <span id="sync-status" style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 4px 10px; border-radius: 20px; font-weight: 800; margin-left: 10px; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #31C48D; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span> SYNCHRONISÉ</span></p>
+                    <h1>Bonjour, <span id="admin-name">Admin</span></h1>
+                    <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique.</p>
                 </div>
-                <div class="header-actions" style="display: flex; gap: 16px; flex-wrap: wrap;">
-                    <button class="btn btn-outline" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; color: var(--color-primary-dark); border: 2px solid rgba(43, 89, 162, 0.2);"><i data-lucide="download"></i> Exporter</button>
-                    <a href="../index.html" class="btn btn-primary" target="_blank" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="external-link"></i> Boutique</a>
+                <div class="header-actions">
+                    <button class="btn btn-outline"><i data-lucide="download"></i> Exporter</button>
+                    <a href="../index.html" class="btn btn-primary" target="_blank"><i data-lucide="external-link"></i> Boutique</a>
                 </div>
             </header>
 
@@ -95,7 +95,7 @@
             </div>
 
             <!-- Charts Section -->
-            <div class="charts-container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-bottom: 48px;">
+            <div class="charts-grid">
                 <div class="data-card" style="padding: 32px; min-width: 0;">
                     <h3 style="margin-bottom: 24px;">Évolution des Revenus</h3>
                     <div style="height: 300px; position: relative;">
@@ -143,28 +143,7 @@
     </div>
 
     <style>
-        @media (max-width: 1024px) {
-            .charts-container { grid-template-columns: 1fr !important; }
-        }
-
-        @media (max-width: 768px) {
-            .admin-wrapper { flex-direction: column; }
-            .sidebar {
-                position: fixed !important;
-                left: 0;
-                top: 0;
-                transform: translateX(-100%);
-                height: 100vh !important;
-                box-shadow: 20px 0 50px rgba(0,0,0,0.1);
-            }
-            .sidebar.active { transform: translateX(0); }
-            #mobileMenuBtn { display: flex !important; }
-            #closeSidebarBtn { display: block !important; }
-            .admin-content { padding: 80px 20px 40px !important; }
-            .admin-header h1 { font-size: 1.5rem !important; }
-            .stat-grid { grid-template-columns: 1fr !important; }
-            .data-card { padding: 20px !important; }
-        }
+        /* Placeholder for potential specific page styles */
     </style>
 
     <script src="../js/config.js"></script>
@@ -217,14 +196,14 @@
                     stats.recentOrders.forEach(o => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td style="font-family: monospace; font-weight: 700;">#${(o.id || 'N/A').substring(0, 8)}</td>
-                            <td style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
-                            <td>
+                            <td data-label="ID" style="font-family: monospace; font-weight: 700;">#${(o.id || 'N/A').substring(0, 8)}</td>
+                            <td data-label="Date" style="color: var(--color-muted);">${new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleDateString()}</td>
+                            <td data-label="Client">
                                 <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.9rem;">${o.customer_firstname || 'Invité'} ${o.customer_lastname || ''}</div>
                                 <div style="font-size: 0.75rem; color: var(--color-muted);">${o.customer_phone || 'N/A'}</div>
                             </td>
-                            <td><span class="badge badge-paid">${o.status}</span></td>
-                            <td style="font-weight: 800; color: var(--color-primary);">${(o.total || 0).toLocaleString()} XOF</td>
+                            <td data-label="Statut"><span class="badge badge-paid">${o.status}</span></td>
+                            <td data-label="Total" style="font-weight: 800; color: var(--color-primary);">${(o.total || 0).toLocaleString()} XOF</td>
                         `;
                         list.appendChild(tr);
                     });

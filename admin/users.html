@@ -14,21 +14,32 @@
 <body>
 
     <div class="admin-wrapper">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column;">
-            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px;">
-                <a href="../index.html" style="display: block;">
-                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                <a href="../index.html">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
+                <button id="closeSidebarBtn" class="close-sidebar-btn">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
-            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
+            <nav class="sidebar-nav">
                 <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item active"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>
@@ -37,12 +48,12 @@
         <main class="admin-content">
             <header class="admin-header">
                 <div>
-                    <h1 style="font-size: 2rem;">Utilisateurs & Accès</h1>
-                    <p style="color: var(--color-muted);">Gérez les rôles, les permissions et la sécurité des comptes. <span id="sync-status" style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 4px 10px; border-radius: 20px; font-weight: 800; margin-left: 10px; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #31C48D; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span> LIVE SYNC</span></p>
+                    <h1>Utilisateurs & Accès</h1>
+                    <p style="color: var(--color-muted);">Gérez les rôles, les permissions et la sécurité.</p>
                 </div>
-                <div style="display: flex; gap: 16px;">
-                    <button class="btn" id="openAddUserModal" style="display: none; padding: 14px 24px; border-radius: 14px; font-weight: 800; background: rgba(43, 89, 162, 0.1); color: var(--color-primary-dark); border: none; align-items: center; gap: 8px;"><i data-lucide="shield-plus"></i> Nouvel Admin</button>
-                    <button class="btn btn-primary" id="openAddClientModal" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="user-plus"></i> Nouveau Client</button>
+                <div class="header-actions">
+                    <button class="btn" id="openAddUserModal" style="display: none; background: rgba(43, 89, 162, 0.1); color: var(--color-primary-dark); border: none;"><i data-lucide="shield-plus"></i> Admin</button>
+                    <button class="btn btn-primary" id="openAddClientModal"><i data-lucide="user-plus"></i> Client</button>
                 </div>
             </header>
 
@@ -172,7 +183,24 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             currentSession = AdminService.checkAuth();
-            AdminService.startAutoRefresh(refreshData, 30000); // Poll every 30s
+            
+            // Mobile Menu Logic
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            const toggleMobileMenu = (show) => {
+                sidebar.classList.toggle('active', show);
+                overlay.style.display = show ? 'block' : 'none';
+                document.body.style.overflow = show ? 'hidden' : '';
+            };
+
+            if (mobileMenuBtn) mobileMenuBtn.onclick = () => toggleMobileMenu(true);
+            if (closeSidebarBtn) closeSidebarBtn.onclick = () => toggleMobileMenu(false);
+            if (overlay) overlay.onclick = () => toggleMobileMenu(false);
+
+            AdminService.startAutoRefresh(refreshData, 30000); 
             
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
 
@@ -233,16 +261,16 @@
 
                 tr.className = 'animate-fade-in';
                 tr.innerHTML = `
-                    <td>
+                    <td data-label="Nom">
                         <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${u.name} ${isSelf ? '<span style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 12px; font-weight: 800; margin-left: 8px;">VOUS</span>' : ''}</div>
                     </td>
-                    <td style="color: var(--color-muted); font-size: 0.95rem;">${u.email}</td>
-                    <td><span class="badge ${u.role === 'super_admin' ? 'badge-paid' : (u.role === 'admin' ? 'badge-shipping' : 'badge-pending')}" style="font-family: 'Outfit', sans-serif;">${u.role.replace('_', ' ')}</span></td>
-                    <td><span class="badge ${u.status === 'active' ? 'badge-delivered' : 'badge-pending'}" style="font-family: 'Outfit', sans-serif;">${u.status}</span></td>
-                    <td>
+                    <td data-label="Email" style="color: var(--color-muted); font-size: 0.95rem;">${u.email}</td>
+                    <td data-label="Rôle"><span class="badge ${u.role === 'super_admin' ? 'badge-paid' : (u.role === 'admin' ? 'badge-shipping' : 'badge-pending')}" style="font-family: 'Outfit', sans-serif;">${u.role.replace('_', ' ')}</span></td>
+                    <td data-label="Statut"><span class="badge ${u.status === 'active' ? 'badge-delivered' : 'badge-pending'}" style="font-family: 'Outfit', sans-serif;">${u.status}</span></td>
+                    <td data-label="Actions">
                         <div style="display: flex; gap: 12px;">
-                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal(null, '${u.id}')" ${!canManage ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : 'onmouseover="this.style.background=\'var(--color-primary)\'; this.style.color=\'white\';" onmouseout="this.style.background=\'rgba(59, 130, 246, 0.1)\'; this.style.color=\'var(--color-primary)\';"'}><i data-lucide="edit-2" style="width: 18px;"></i></button>
-                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="confirmDelete('${u.id}')" ${!canManage || isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : 'onmouseover="this.style.background=\'#DC2626\'; this.style.color=\'white\';" onmouseout="this.style.background=\'rgba(239, 68, 68, 0.1)\'; this.style.color=\'#DC2626\';"'}><i data-lucide="trash-2" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal(null, '${u.id}')" ${!canManage ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}><i data-lucide="edit-2" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="confirmDelete('${u.id}')" ${!canManage || isSelf ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}><i data-lucide="trash-2" style="width: 18px;"></i></button>
                         </div>
                     </td>
                 `;

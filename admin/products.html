@@ -79,21 +79,32 @@
 <body>
 
     <div class="admin-wrapper">
+        <!-- Mobile Menu Toggle -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar" style="width: 280px; background: white; border-right: 1px solid var(--color-border); height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column;">
-            <div class="sidebar-logo" style="padding: 24px; border-bottom: 1px solid var(--color-border); margin-bottom: 24px;">
-                <a href="../index.html" style="display: block;">
-                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; max-height: 40px; object-fit: contain;">
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                <a href="../index.html">
+                    <img src="../assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
+                <button id="closeSidebarBtn" class="close-sidebar-btn">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
-            <nav class="sidebar-nav" style="padding: 0 16px; flex: 1;">
+            <nav class="sidebar-nav">
                 <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
                 <a href="products.html" class="nav-item active"><i data-lucide="package"></i> Produits</a>
                 <a href="orders.html" class="nav-item"><i data-lucide="shopping-cart"></i> Commandes</a>
                 <a href="users.html" class="nav-item"><i data-lucide="users"></i> Utilisateurs</a>
                 <a href="reviews.html" class="nav-item"><i data-lucide="star"></i> Avis Clients</a>
             </nav>
-            <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid var(--color-border);">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn" style="color: #F87171;"><i data-lucide="log-out"></i> Déconnexion</a>
             </div>
         </aside>
@@ -102,23 +113,23 @@
         <main class="admin-content">
             <header class="admin-header">
                 <div>
-                    <h1 style="font-size: 2rem;">Gestion du Stock</h1>
-                    <p style="color: var(--color-muted);">Visualisez, ajoutez et gérez vos produits en temps réel. <span id="sync-status" style="font-size: 0.75rem; background: #DEF7EC; color: #03543F; padding: 4px 10px; border-radius: 20px; font-weight: 800; margin-left: 10px; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #31C48D; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span> LIVE SYNC</span></p>
+                    <h1>Gestion du Stock</h1>
+                    <p style="color: var(--color-muted);">Visualisez, ajoutez et gérez vos produits en temps réel.</p>
                 </div>
-                <div style="display: flex; gap: 16px;">
-                    <button class="btn btn-outline" id="resetCatalog" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; color: #DC2626; border: 2px solid rgba(220, 38, 38, 0.2);"><i data-lucide="rotate-ccw"></i> Reset</button>
-                    <button class="btn btn-primary" id="openAddModal" style="padding: 14px 24px; border-radius: 14px; font-weight: 800; box-shadow: 0 10px 20px rgba(43, 89, 162, 0.2); display: flex; align-items: center; gap: 8px;"><i data-lucide="plus"></i> Nouveau Produit</button>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="resetCatalog" style="color: #DC2626;"><i data-lucide="rotate-ccw"></i> Reset</button>
+                    <button class="btn btn-primary" id="openAddModal"><i data-lucide="plus"></i> Nouveau Produit</button>
                 </div>
             </header>
 
             <!-- Toolbar: Search & Filter -->
-            <div class="toolbar animate-fade-in" style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); margin-bottom: 32px; border: 1px solid rgba(43, 89, 162, 0.05); display: flex; gap: 24px;">
-                <div class="search-container" style="flex: 2;">
+            <div class="toolbar animate-fade-in" style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); margin-bottom: 32px; border: 1px solid rgba(43, 89, 162, 0.05); display: flex; gap: 16px; flex-wrap: wrap;">
+                <div class="search-container" style="flex: 2; min-width: 250px;">
                     <i data-lucide="search" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
                     <input type="text" id="searchInput" class="pay-input search-input"
-                        placeholder="Rechercher par nom..." style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                        placeholder="Rechercher par nom..." style="width: 100%; padding: 12px 12px 12px 48px; border-radius: 12px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 0.95rem; outline: none;">
                 </div>
-                <select id="filterCategory" class="pay-input" style="flex: 1; padding: 16px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none; margin-bottom: 0; cursor: pointer;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                <select id="filterCategory" class="pay-input" style="flex: 1; min-width: 200px; padding: 12px; border-radius: 12px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 0.95rem; margin-bottom: 0;">
                     <option value="all">Toutes catégories</option>
                     <option value="Téléphone">Téléphone</option>
                     <option value="Audio">Audio</option>
@@ -243,6 +254,23 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             AdminService.checkAuth();
+            
+            // Mobile Menu Logic
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            const toggleMobileMenu = (show) => {
+                sidebar.classList.toggle('active', show);
+                overlay.style.display = show ? 'block' : 'none';
+                document.body.style.overflow = show ? 'hidden' : '';
+            };
+
+            if (mobileMenuBtn) mobileMenuBtn.onclick = () => toggleMobileMenu(true);
+            if (closeSidebarBtn) closeSidebarBtn.onclick = () => toggleMobileMenu(false);
+            if (overlay) overlay.onclick = () => toggleMobileMenu(false);
+
             refreshData();
 
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
@@ -355,22 +383,22 @@
                 const imgSrc = (p.image && (p.image.startsWith('data:') || p.image.startsWith('http'))) ? p.image : `../${p.image || 'assets/electronics_1.png'}`;
 
                 tr.innerHTML = `
-                    <td>
+                    <td data-label="Aperçu">
                         <div style="background: rgba(43, 89, 162, 0.03); border-radius: 12px; padding: 6px; display: inline-block;">
                             <img src="${imgSrc}" class="product-img-preview" style="mix-blend-mode: multiply; border: none;">
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Désignation">
                         <div style="font-weight: 800; font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--color-foreground);">${p.name || 'Produit sans nom'}</div>
                         <div style="font-size: 0.8rem; color: var(--color-muted); font-family: monospace;">ID: ${p.id || 'N/A'}</div>
                     </td>
-                    <td><span class="badge" style="background: rgba(43, 89, 162, 0.05); color: var(--color-primary-dark); font-weight: 800;">${p.category || 'Général'}</span></td>
-                    <td><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(p.price || 0).toLocaleString()} XOF</span></td>
-                    <td><span class="stock-badge ${stockClass}" style="font-family: 'Outfit', sans-serif;">${p.stock || 0} Unité(s)</span></td>
-                    <td>
+                    <td data-label="Catégorie"><span class="badge" style="background: rgba(43, 89, 162, 0.05); color: var(--color-primary-dark); font-weight: 800;">${p.category || 'Général'}</span></td>
+                    <td data-label="Prix"><span style="background: rgba(43, 89, 162, 0.05); padding: 4px 10px; border-radius: 8px; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">${(p.price || 0).toLocaleString()} XOF</span></td>
+                    <td data-label="Stock"><span class="stock-badge ${stockClass}" style="font-family: 'Outfit', sans-serif;">${p.stock || 0} Unité(s)</span></td>
+                    <td data-label="Actions">
                         <div style="display: flex; gap: 12px;">
-                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal('${p.id}')" onmouseover="this.style.background='var(--color-primary)'; this.style.color='white';" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='var(--color-primary)';"><i data-lucide="edit-3" style="width: 18px;"></i></button>
-                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="handleDelete('${p.id}')" onmouseover="this.style.background='#DC2626'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='#DC2626';"><i data-lucide="trash-2" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: none; cursor: pointer; transition: var(--transition-base);" onclick="openModal('${p.id}')"><i data-lucide="edit-3" style="width: 18px;"></i></button>
+                            <button class="btn" style="padding: 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #DC2626; border: none; cursor: pointer; transition: var(--transition-base);" onclick="handleDelete('${p.id}')"><i data-lucide="trash-2" style="width: 18px;"></i></button>
                         </div>
                     </td>
                 `;
