@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
 import sqlite3
+import requests
 
 # Try to import psycopg2 (Postgres)
 try:
@@ -35,6 +36,174 @@ if DATABASE_URL and "?" in DATABASE_URL:
         DATABASE_URL = base_url + "?sslmode=require"
     else:
         DATABASE_URL = base_url
+
+# --- WAVE CONFIGURATION ---
+WAVE_API_KEY = "wave_priv_test_..." # À remplacer par votre clé réelle
+
+# --- ORANGE MONEY CONFIGURATION ---
+OM_CLIENT_ID = "6motYSPYXgCEZHNZjmTOUQcm2Koo2Hix"
+OM_CLIENT_SECRET = "gnenZ2WixE1mHHrCTky0pGw7fDjGIHbxmFHtacR3zNLr"
+OM_MERCHANT_KEY = "487087"
+OM_AUTH_URL = "https://api.orange.com/oauth/v2/token"
+OM_PAY_URL = "https://api.orange.com/orange-money-webpay/dev/v1/webpayment" # Gardez 'dev' pour les tests
+
+# --- NOTIFICATION CONFIGURATION ---
+# Renseignez ces variables pour recevoir des notifications en temps réel
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN") or "7624283697:AAHwXqRFTcgB8F_Hlp5poNJ6rxpr8ohZAg8"
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID") or "848554777"
+
+SMTP_SERVER = os.environ.get("SMTP_SERVER") or "smtp.gmail.com"
+SMTP_PORT = int(os.environ.get("SMTP_PORT") or 587)
+SMTP_USER = os.environ.get("SMTP_USER") or ""                  # Votre email expéditeur (ex: contact@douerashop.sn)
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD") or ""          # Mot de passe d'application SMTP
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL") or ""              # Votre adresse email de réception admin
+
+# WhatsApp Notification (CallMeBot - Gratuit et Personnel pour l'admin)
+WHATSAPP_PHONE = os.environ.get("WHATSAPP_PHONE") or ""        # Numéro au format international (ex: "+221781607468")
+WHATSAPP_API_KEY = os.environ.get("WHATSAPP_API_KEY") or ""    # Clé API obtenue via CallMeBot
+
+# WhatsApp Pro (UltraMsg - Optionnel)
+ULTRAMSG_INSTANCE_ID = os.environ.get("ULTRAMSG_INSTANCE_ID") or ""
+ULTRAMSG_TOKEN = os.environ.get("ULTRAMSG_TOKEN") or ""
+
+def send_admin_notification(order_id, customer_name, total, items_list, phone, address, payment_method, status="En attente"):
+    # Log console fallback
+    sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Commande {order_id} ({status}) - {customer_name} - {total} XOF\n")
+    
+    # Formatage des articles
+    items_desc = ""
+    try:
+        if isinstance(items_list, str):
+            items_list = json.loads(items_list)
+        
+        if isinstance(items_list, list):
+            for item in items_list:
+                items_desc += f"- {item.get('name', 'Produit')} x{item.get('quantity', 1)} ({int(item.get('price', 0)):,} XOF)\n"
+        else:
+            items_desc = "Format des articles non supporté"
+    except Exception as e:
+        items_desc = f"Erreur de lecture des articles : {str(e)}"
+
+    status_icon = "🟢" if status == "Payé" else "🔔"
+    title_text = "Commande PAYÉE !" if status == "Payé" else "Nouvelle Commande !"
+
+    # 1. Envoi par Telegram
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        try:
+            telegram_msg = (
+                f"{status_icon} <b>{title_text} - Douéra Shop</b>\n\n"
+                f"📦 <b>Numéro :</b> <code>{order_id}</code>\n"
+                f"👤 <b>Client :</b> {customer_name}\n"
+                f"📞 <b>Téléphone :</b> {phone}\n"
+                f"📍 <b>Adresse :</b> {address}\n"
+                f"💳 <b>Paiement :</b> {payment_method}\n"
+                f"💰 <b>Total :</b> <b>{int(total):,} XOF</b>\n\n"
+                f"🛍️ <b>Détails des articles :</b>\n{items_desc}"
+            )
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            payload = {
+                "chat_id": TELEGRAM_CHAT_ID,
+                "text": telegram_msg,
+                "parse_mode": "HTML"
+            }
+            res = requests.post(url, json=payload, timeout=5)
+            if res.status_code != 200:
+                sys.stderr.write(f"Telegram API response: {res.status_code} - {res.text}\n")
+        except Exception as e:
+            sys.stderr.write(f"Telegram Notification Error: {e}\n")
+
+    # 2. Envoi par E-mail
+    if SMTP_USER and SMTP_PASSWORD and ADMIN_EMAIL:
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+
+            msg = MIMEMultipart()
+            msg['From'] = SMTP_USER
+            msg['To'] = ADMIN_EMAIL
+            msg['Subject'] = f"{status_icon} Douéra Shop - {title_text} ({order_id})"
+
+            body = f"""Bonjour Administrateur,
+
+{title_text} sur Douéra Shop.
+
+Détails de la commande :
+------------------------------------------
+ID Commande : {order_id}
+Client : {customer_name}
+Téléphone : {phone}
+Adresse : {address}
+Mode de Paiement : {payment_method}
+Statut : {status}
+Total : {int(total):,} XOF
+------------------------------------------
+
+Articles commandés :
+{items_desc}
+
+Rendez-vous sur votre tableau de bord pour traiter cette commande.
+"""
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, ADMIN_EMAIL, msg.as_string())
+            server.quit()
+        except Exception as e:
+            sys.stderr.write(f"Email Notification Error: {e}\n")
+
+    # 3. Envoi par WhatsApp (CallMeBot - Gratuit/Personnel)
+    if WHATSAPP_PHONE and WHATSAPP_API_KEY:
+        try:
+            wa_text = (
+                f"🔔 *{title_text} - Douéra Shop*\n\n"
+                f"📦 *Numéro :* {order_id}\n"
+                f"👤 *Client :* {customer_name}\n"
+                f"📞 *Tél :* {phone}\n"
+                f"📍 *Adresse :* {address}\n"
+                f"💳 *Paiement :* {payment_method}\n"
+                f"💰 *Total :* {int(total):,} XOF\n\n"
+                f"🛍️ *Détails :*\n{items_desc.replace('- ', '• ')}"
+            )
+            url = "https://api.callmebot.com/whatsapp.php"
+            params = {
+                "phone": WHATSAPP_PHONE,
+                "text": wa_text,
+                "apikey": WHATSAPP_API_KEY
+            }
+            res = requests.get(url, params=params, timeout=10)
+            if res.status_code != 200:
+                sys.stderr.write(f"CallMeBot WhatsApp response: {res.status_code} - {res.text}\n")
+        except Exception as e:
+            sys.stderr.write(f"CallMeBot WhatsApp Error: {e}\n")
+
+    # 4. Envoi par WhatsApp (UltraMsg - Professionnel)
+    if ULTRAMSG_INSTANCE_ID and ULTRAMSG_TOKEN and WHATSAPP_PHONE:
+        try:
+            wa_text = (
+                f"🔔 *{title_text} - Douéra Shop*\n\n"
+                f"📦 *Numéro :* {order_id}\n"
+                f"👤 *Client :* {customer_name}\n"
+                f"📞 *Tél :* {phone}\n"
+                f"📍 *Adresse :* {address}\n"
+                f"💳 *Paiement :* {payment_method}\n"
+                f"💰 *Total :* {int(total):,} XOF\n\n"
+                f"🛍️ *Détails :*\n{items_desc.replace('- ', '• ')}"
+            )
+            url = f"https://api.ultramsg.com/{ULTRAMSG_INSTANCE_ID}/messages/chat"
+            payload = {
+                "token": ULTRAMSG_TOKEN,
+                "to": WHATSAPP_PHONE,
+                "body": wa_text,
+                "priority": 10
+            }
+            res = requests.post(url, data=payload, timeout=10)
+            if res.status_code != 200:
+                sys.stderr.write(f"UltraMsg WhatsApp response: {res.status_code} - {res.text}\n")
+        except Exception as e:
+            sys.stderr.write(f"UltraMsg WhatsApp Error: {e}\n")
 
 def get_db_connection():
     try:
@@ -91,10 +260,11 @@ def init_db():
         id_type = "TEXT PRIMARY KEY"
         
         cur.execute(f"CREATE TABLE IF NOT EXISTS users (id {id_type}, email TEXT UNIQUE, password TEXT, name TEXT, role TEXT, status TEXT, address TEXT, phone TEXT)")
-        cur.execute(f"CREATE TABLE IF NOT EXISTS products (id {id_type}, name TEXT, price INTEGER, category TEXT, image TEXT, stock INTEGER, description TEXT, specs TEXT)")
+        cur.execute(f"CREATE TABLE IF NOT EXISTS products (id {id_type}, name TEXT, price INTEGER, category TEXT, image TEXT, stock INTEGER, description TEXT, specs TEXT, media TEXT)")
         cur.execute(f"CREATE TABLE IF NOT EXISTS orders (id {id_type}, userId TEXT, date TEXT, method TEXT, status TEXT, total INTEGER, items TEXT, customer_firstname TEXT, customer_lastname TEXT, customer_address TEXT, customer_phone TEXT)")
         
         try:
+            cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS media TEXT" if is_postgres else "ALTER TABLE products ADD COLUMN media TEXT")
             cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_id TEXT" if is_postgres else "ALTER TABLE orders ADD COLUMN review_id TEXT")
         except:
             conn.rollback()
@@ -180,13 +350,14 @@ def save_product():
         image = data.get('image', 'assets/electronics_1.png')
         stock = data.get('stock', 0)
         description = data.get('description', "Un produit d'exception.")
+        media = json.dumps(data.get('media', []))
         
         db = DB(get_db_connection())
         if p_id:
-            db.execute('UPDATE products SET name=?, price=?, category=?, image=?, stock=?, description=? WHERE id=?', (name, price, category, image, stock, description, p_id))
+            db.execute('UPDATE products SET name=?, price=?, category=?, image=?, stock=?, description=?, media=? WHERE id=?', (name, price, category, image, stock, description, media, p_id))
         else:
             p_id = 'p' + str(int(time.time() * 1000))
-            db.execute('INSERT INTO products (id, name, price, category, image, stock, description) VALUES (?, ?, ?, ?, ?, ?, ?)', (p_id, name, price, category, image, stock, description))
+            db.execute('INSERT INTO products (id, name, price, category, image, stock, description, media) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (p_id, name, price, category, image, stock, description, media))
         db.commit()
         db.close()
         return jsonify({"success": True, "id": p_id})
@@ -267,6 +438,19 @@ def save_order():
         
         # NOTIFICATION ADMIN : Nouvelle commande
         sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {c_fn} {c_ln}\n")
+        try:
+            send_admin_notification(
+                order_id=o_id,
+                customer_name=f"{c_fn} {c_ln}".strip(),
+                total=data.get('total', 0),
+                items_list=data.get('items', []),
+                phone=c_phone,
+                address=c_addr,
+                payment_method=data.get('method', 'Livraison'),
+                status="En attente"
+            )
+        except Exception as e_notif:
+            sys.stderr.write(f"⚠️ Notification creation failed: {e_notif}\n")
         
         return jsonify({"success": True, "id": o_id})
     except Exception as e:
@@ -390,4 +574,162 @@ def add_review():
         db.close()
         return jsonify({"success": True})
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- WAVE PAYMENT INTEGRATION ---
+
+@app.route('/api/payments/wave/session', methods=['POST'])
+def create_wave_session():
+    try:
+        data = request.json
+        amount = data.get('amount')
+        order_id = data.get('order_id')
+        
+        # URL de base pour les redirections (à adapter selon le domaine)
+        base_url = request.host_url.rstrip('/')
+        
+        headers = {
+            "Authorization": f"Bearer {WAVE_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "amount": amount,
+            "currency": "XOF",
+            "error_url": f"{base_url}/checkout.html?status=error&orderId={order_id}",
+            "success_url": f"{base_url}/success.html?ref={order_id}",
+            "client_reference": order_id
+        }
+        
+        response = requests.post("https://api.wave.com/v1/checkout/sessions", headers=headers, json=payload)
+        
+        if response.status_code != 200:
+            return jsonify({"error": f"Wave API Error: {response.text}"}), response.status_code
+            
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/payments/wave/webhook', methods=['POST'])
+def wave_webhook():
+    try:
+        data = request.json
+        # Wave envoie un événement 'checkout.session.completed'
+        if data.get('type') == 'checkout.session.completed':
+            session = data.get('data')
+            order_id = session.get('client_reference')
+            payment_status = session.get('payment_status')
+            
+            if payment_status == 'succeeded':
+                db = DB(get_db_connection())
+                # On met à jour la commande en 'Payé'
+                db.execute("UPDATE orders SET status = 'Payé' WHERE id = ?", (order_id,))
+                db.commit()
+                db.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+                order = db.fetchone()
+                db.close()
+                sys.stderr.write(f"✅ WAVE WEBHOOK: Commande {order_id} marquée comme PAYÉE.\n")
+                if order:
+                    try:
+                        send_admin_notification(
+                            order_id=order_id,
+                            customer_name=f"{order.get('customer_firstname', '')} {order.get('customer_lastname', '')}".strip(),
+                            total=order.get('total', 0),
+                            items_list=order.get('items', []),
+                            phone=order.get('customer_phone', ''),
+                            address=order.get('customer_address', ''),
+                            payment_method=order.get('method', 'Wave'),
+                            status="Payé"
+                        )
+                    except Exception as e_notif:
+                        sys.stderr.write(f"⚠️ Wave Paid Notification Failed: {e_notif}\n")
+                
+        return "", 200
+    except Exception as e:
+        sys.stderr.write(f"❌ WAVE WEBHOOK ERROR: {str(e)}\n")
+        return jsonify({"error": str(e)}), 500
+
+# --- ORANGE MONEY PAYMENT INTEGRATION ---
+
+@app.route('/api/payments/orange/session', methods=['POST'])
+def create_orange_session():
+    try:
+        data = request.json
+        amount = data.get('amount')
+        order_id = data.get('order_id')
+        
+        # 1. Obtenir le token d'accès Orange
+        import base64
+        auth_header = base64.b64encode(f"{OM_CLIENT_ID}:{OM_CLIENT_SECRET}".encode()).decode()
+        
+        token_res = requests.post(OM_AUTH_URL, 
+            headers={"Authorization": f"Basic {auth_header}", "Content-Type": "application/x-www-form-urlencoded"},
+            data={"grant_type": "client_credentials"}
+        )
+        
+        if token_res.status_code != 200:
+            return jsonify({"error": f"Orange Auth Error: {token_res.text}"}), token_res.status_code
+            
+        access_token = token_res.json().get('access_token')
+        
+        # 2. Créer la session de paiement
+        base_url = request.host_url.rstrip('/')
+        payload = {
+            "merchant_key": OM_MERCHANT_KEY,
+            "currency": "OUV", # OUV est requis pour le mode test (Sandbox)
+            "order_id": order_id,
+            "amount": amount,
+            "return_url": f"{base_url}/success.html?ref={order_id}",
+            "cancel_url": f"{base_url}/checkout.html?status=cancel&orderId={order_id}",
+            "notif_url": f"{base_url}/api/payments/orange/webhook",
+            "lang": "fr"
+        }
+        
+        pay_res = requests.post(OM_PAY_URL,
+            headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
+            json=payload
+        )
+        
+        if pay_res.status_code != 201:
+            sys.stderr.write(f"❌ ORANGE PAY ERROR: Status {pay_res.status_code} - Response: {pay_res.text}\n")
+            return jsonify({"error": f"Orange Pay Error: {pay_res.text}"}), pay_res.status_code
+            
+        return jsonify(pay_res.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/payments/orange/webhook', methods=['POST'])
+def orange_webhook():
+    try:
+        data = request.json
+        # Orange envoie une notification avec l'status
+        status = data.get('status')
+        order_id = data.get('notif_token') # Souvent le token ou order_id selon config
+        
+        if status == 'SUCCESS':
+            db = DB(get_db_connection())
+            db.execute("UPDATE orders SET status = 'Payé' WHERE id = ?", (order_id,))
+            db.commit()
+            db.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+            order = db.fetchone()
+            db.close()
+            sys.stderr.write(f"✅ ORANGE WEBHOOK: Commande {order_id} marquée comme PAYÉE.\n")
+            if order:
+                try:
+                    send_admin_notification(
+                        order_id=order_id,
+                        customer_name=f"{order.get('customer_firstname', '')} {order.get('customer_lastname', '')}".strip(),
+                        total=order.get('total', 0),
+                        items_list=order.get('items', []),
+                        phone=order.get('customer_phone', ''),
+                        address=order.get('customer_address', ''),
+                        payment_method=order.get('method', 'Orange Money'),
+                        status="Payé"
+                    )
+                except Exception as e_notif:
+                    sys.stderr.write(f"⚠️ Orange Paid Notification Failed: {e_notif}\n")
+            
+        return "", 200
+    except Exception as e:
+        sys.stderr.write(f"❌ ORANGE WEBHOOK ERROR: {str(e)}\n")
         return jsonify({"error": str(e)}), 500

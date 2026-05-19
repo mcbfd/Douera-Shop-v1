@@ -420,14 +420,50 @@ const allBtn = document.querySelector('[data-category="all"]');
         const p = allProducts.find(x => x.id === id);
         if (!p) return;
 
-        document.getElementById('qv-image-container').innerHTML = `
-            <img src="${p.image}" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);" id="qv-main-img">
-            <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
-                <span style="background: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; color: var(--color-primary); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 4px;">
-                    <i data-lucide="shield-check" style="width: 12px;"></i> VERIFIED
-                </span>
-            </div>
-        `;
+        // --- MEDIA GALLERY LOGIC ---
+        const mediaData = typeof p.media === 'string' ? JSON.parse(p.media || '[]') : (p.media || []);
+        const mediaContainer = document.getElementById('qv-image-container');
+        
+        if (mediaData.length > 0) {
+            // Support multi-media gallery
+            mediaContainer.innerHTML = `
+                <div class="qv-gallery-wrapper" style="width: 100%; height: 100%; position: relative;">
+                    <div id="qv-media-stage" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #F8FAFC;">
+                        <!-- Current active media will be here -->
+                    </div>
+                    
+                    <div class="qv-thumbnails" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 20; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3); max-width: 90%; overflow-x: auto;">
+                        <div class="thumb active" onclick="setQVMedia('image', '${p.image}', this)" style="width: 40px; height: 40px; border-radius: 6px; overflow: hidden; cursor: pointer; border: 2px solid var(--color-primary); flex-shrink: 0;">
+                            <img src="${p.image}" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
+                        ${mediaData.map(m => `
+                            <div class="thumb" onclick="setQVMedia('${m.type}', '${m.url}', this)" style="width: 40px; height: 40px; border-radius: 6px; overflow: hidden; cursor: pointer; border: 2px solid transparent; flex-shrink: 0; position: relative;">
+                                ${m.type === 'video' ? '<div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.2); color:white;"><i data-lucide="play" style="width:16px;"></i></div>' : ''}
+                                <img src="${m.type === 'video' ? 'assets/logo.png' : m.url}" style="width:100%; height:100%; object-fit:cover;">
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
+                        <span style="background: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; color: var(--color-primary); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="shield-check" style="width: 12px;"></i> EXCLUSIVITÉ
+                        </span>
+                    </div>
+                </div>
+            `;
+            // Set initial media
+            setQVMedia('image', p.image);
+        } else {
+            // Legacy single image view
+            mediaContainer.innerHTML = `
+                <img src="${p.image}" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);" id="qv-main-img">
+                <div style="position: absolute; top: 20px; left: 20px; z-index: 10;">
+                    <span style="background: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.7rem; color: var(--color-primary); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="shield-check" style="width: 12px;"></i> VERIFIED
+                    </span>
+                </div>
+            `;
+        }
         document.getElementById('qv-category').textContent = p.category;
         document.getElementById('qv-title').textContent = p.name;
         document.getElementById('qv-price').textContent = p.price.toLocaleString() + ' XOF';
@@ -735,6 +771,31 @@ const allBtn = document.querySelector('[data-category="all"]');
             if (slider) slider.style.display = 'flex';
         }, 1500); // 1.5s delay
     }
+
+    window.setQVMedia = function(type, url, thumb = null) {
+        const stage = document.getElementById('qv-media-stage');
+        if (!stage) return;
+
+        if (thumb) {
+            document.querySelectorAll('.qv-thumbnails .thumb').forEach(t => t.style.borderColor = 'transparent');
+            thumb.style.borderColor = 'var(--color-primary)';
+        }
+
+        if (type === 'video') {
+            // Extract ID if YouTube, else use raw URL
+            let videoHtml = '';
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
+                videoHtml = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border-radius:0;"></iframe>`;
+            } else {
+                videoHtml = `<video src="${url}" controls autoplay muted style="width:100%; height:100%; object-fit:contain; background:black;"></video>`;
+            }
+            stage.innerHTML = videoHtml;
+        } else {
+            stage.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: contain; animation: fadeScale 0.5s ease-out;">`;
+        }
+        if (window.lucide) lucide.createIcons();
+    };
 
     // --- 6. SCROLL REVEAL ANIMATIONS ---
     function initScrollReveal() {

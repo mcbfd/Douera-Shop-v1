@@ -199,11 +199,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 let trxRef = null;
+                const orderId = Payment.generateTransactionRef();
+                const total = Cart.getTotal();
 
-                if (selectedMethod === 'orange' || selectedMethod === 'wave') {
+                if (selectedMethod === 'wave') {
+                    // Pour Wave, on enregistre d'abord la commande puis on redirige
+                    await saveOrderToBackend(orderId, cart, total);
+                    
                     const phone = document.getElementById('mm-phone').value;
-                    if (!phone) throw new Error("Veuillez entrer votre numéro de téléphone pour le paiement.");
-                    trxRef = await Payment.processMobileMoney(selectedMethod, phone);
+                    const paymentResult = await Payment.processMobileMoney('wave', phone, { id: orderId, total: total });
+                    
+                    if (paymentResult.type === 'redirect') {
+                        UI.showToast("Redirection vers Wave...", "success");
+                        Cart.clear();
+                        setTimeout(() => {
+                            window.location.href = paymentResult.url;
+                        }, 1000);
+                        return; // Stop ici car on redirige
+                    }
+                } else if (selectedMethod === 'orange') {
+                    // Pour Orange, on enregistre d'abord la commande puis on redirige
+                    await saveOrderToBackend(orderId, cart, total);
+                    
+                    const phone = document.getElementById('mm-phone').value;
+                    const paymentResult = await Payment.processMobileMoney('orange', phone, { id: orderId, total: total });
+                    
+                    if (paymentResult.type === 'redirect') {
+                        UI.showToast("Redirection vers Orange Money...", "success");
+                        Cart.clear();
+                        setTimeout(() => {
+                            window.location.href = paymentResult.url;
+                        }, 1000);
+                        return; // Stop ici car on redirige
+                    }
                 } else if (selectedMethod === 'card') {
                     const details = {
                         number: document.getElementById('card-number').value,
@@ -215,12 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     trxRef = await Payment.processCard(details);
                 } else {
                     // Cash
-                    trxRef = Payment.generateTransactionRef();
+                    trxRef = orderId;
                     await Payment.delay(1500);
                 }
 
-                // Success! Save Order
-                const total = Cart.getTotal();
+                // Success for non-wave methods
                 await saveOrderToBackend(trxRef, cart, total);
 
                 // Save as Default if checked

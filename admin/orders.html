@@ -129,6 +129,85 @@
     <script src="../js/ui.js"></script>
     <script>
         let allOrders = [];
+        let lastRecentOrderId = null;
+
+        const playNotificationSound = () => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const playTone = (freq, time, duration) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    
+                    gain.gain.setValueAtTime(0.3, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(time);
+                    osc.stop(time + duration);
+                };
+                playTone(523.25, ctx.currentTime, 0.15); // C5 (Ding)
+                playTone(659.25, ctx.currentTime + 0.1, 0.3); // E5 (Dong)
+            } catch (e) {
+                console.error("Audio Notification Error:", e);
+            }
+        };
+
+        const showToastNotification = (order) => {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: var(--color-primary-dark);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 16px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                border: 1px solid rgba(255,255,255,0.1);
+            `;
+            
+            toast.innerHTML = `
+                <div style="background: rgba(255,255,255,0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="bell" style="width: 20px; height: 20px; color: #FBBF24;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 2px;">Nouvelle Commande !</div>
+                    <div style="font-size: 0.8rem; opacity: 0.8;">#${(order.id || '').substring(0, 8)} par ${order.customer_firstname || 'Client'} (${(order.total || 0).toLocaleString()} XOF)</div>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            if (window.lucide) lucide.createIcons({ root: toast });
+            
+            if (!document.getElementById('toast-anim-styles')) {
+                const style = document.createElement('style');
+                style.id = 'toast-anim-styles';
+                style.textContent = `
+                    @keyframes slideUp {
+                        from { transform: translateY(100px) scale(0.9); opacity: 0; }
+                        to { transform: translateY(0) scale(1); opacity: 1; }
+                    }
+                    @keyframes fadeOut {
+                        to { opacity: 0; transform: translateY(-20px); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.4s forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             AdminService.checkAuth();
@@ -155,6 +234,17 @@
 
         async function refreshData() {
             allOrders = await AdminService.getOrders();
+            
+            // Détection et notification d'une nouvelle commande
+            if (allOrders && allOrders.length > 0) {
+                const newestOrder = allOrders[0];
+                if (lastRecentOrderId !== null && lastRecentOrderId !== newestOrder.id) {
+                    playNotificationSound();
+                    showToastNotification(newestOrder);
+                }
+                lastRecentOrderId = newestOrder.id;
+            }
+            
             renderOrders();
         }
 

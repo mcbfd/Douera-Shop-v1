@@ -207,32 +207,33 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 16px; margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Image du
-                        produit</label>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Image principale (Couverture)</label>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <input type="file" id="fileInput" accept="image/*" style="display: none;">
                             <button type="button" class="btn btn-outline"
                                 onclick="document.getElementById('fileInput').click()"
                                 style="padding: 10px 16px; font-size: 0.85rem;">
-                                <i data-lucide="upload-cloud" style="width: 16px; margin-right: 8px;"></i> Choisir une
-                                image locale
+                                <i data-lucide="upload-cloud" style="width: 16px; margin-right: 8px;"></i> Upload
                             </button>
-                            <span id="fileName"
-                                style="font-size: 0.8rem; color: var(--color-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">Aucun
-                                fichier</span>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <input type="text" id="p-image" class="pay-input"
-                                placeholder="Ou coller une URL: assets/images/..." style="flex: 1; margin-bottom: 0;">
-                            <div id="imagePreviewContainer"
-                                style="width: 50px; height: 50px; border-radius: 8px; background: #f3f4f6; overflow: hidden; border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                <i data-lucide="image" style="width: 20px; color: #9ca3af;"></i>
+                            <input type="text" id="p-image" class="pay-input" placeholder="Ou URL..." style="flex: 1; margin-bottom: 0; padding: 8px;">
+                            <div id="imagePreviewContainer" style="width: 44px; height: 44px; border-radius: 8px; background: #f3f4f6; overflow: hidden; border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i data-lucide="image" style="width: 18px; color: #9ca3af;"></i>
                             </div>
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--color-muted); font-style: italic;">* Max 2 Mo
-                            recommandé pour les images locales.</p>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 24px; margin-bottom: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <label style="font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--color-primary-dark);">Médiathèque (Galerie & Vidéos)</label>
+                        <button type="button" class="btn btn-outline" id="addMediaBtn" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
+                            <i data-lucide="plus" style="width: 14px; margin-right: 4px;"></i> Ajouter
+                        </button>
+                    </div>
+                    <div id="mediaListContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Media items injected here -->
                     </div>
                 </div>
 
@@ -271,6 +272,12 @@
             if (closeSidebarBtn) closeSidebarBtn.onclick = () => toggleMobileMenu(false);
             if (overlay) overlay.onclick = () => toggleMobileMenu(false);
 
+            // Media management setup
+            const addMediaBtn = document.getElementById('addMediaBtn');
+            if (addMediaBtn) {
+                addMediaBtn.onclick = () => addMediaItem();
+            }
+
             refreshData();
 
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
@@ -301,7 +308,8 @@
                     stock: parseInt(document.getElementById('p-stock').value),
                     image: document.getElementById('p-image').value || 'assets/electronics_1.png',
                     description: document.getElementById('p-description').value,
-                    specs: document.getElementById('p-specs').value
+                    specs: document.getElementById('p-specs').value,
+                    media: getMediaData()
                 };
                 try {
                     await AdminService.saveProduct(product);
@@ -338,19 +346,56 @@
                 }
             };
 
-            // Image URL/Manual preview listener
-            document.getElementById('p-image').oninput = (e) => {
-                const preview = document.getElementById('imagePreviewContainer');
-                if (e.target.value) {
-                    // Vérifier si c'est un chemin relatif local ou une URL complète ou le base64
-                    const src = e.target.value.startsWith('data:') || e.target.value.startsWith('http') ? e.target.value : `../${e.target.value}`;
-                    preview.innerHTML = `<img src="${src}" style="width:100%; height:100%; object-fit:cover;">`;
-                } else {
-                    preview.innerHTML = `<i data-lucide="image" style="width: 20px; color: #9ca3af;"></i>`;
-                    lucide.createIcons();
-                }
-            };
         });
+
+        // --- MEDIA MANAGEMENT FUNCTIONS (GLOBAL SCOPE) ---
+        function addMediaItem(type = 'image', url = '') {
+            const container = document.getElementById('mediaListContainer');
+            if (!container) return;
+            
+            const item = document.createElement('div');
+            item.className = 'media-item animate-fade-in';
+            item.style.cssText = 'display: flex; gap: 12px; align-items: center; background: #f8fafc; padding: 12px; border-radius: 12px; border: 1px solid var(--color-border);';
+            
+            item.innerHTML = `
+                <select class="pay-input media-type" style="width: 100px; padding: 8px; margin-bottom: 0;">
+                    <option value="image" ${type === 'image' ? 'selected' : ''}>Image</option>
+                    <option value="video" ${type === 'video' ? 'selected' : ''}>Vidéo</option>
+                </select>
+                <input type="text" class="pay-input media-url" placeholder="URL du média (YouTube ou direct)..." value="${url}" style="flex: 1; padding: 8px; margin-bottom: 0;">
+                <button type="button" class="btn" style="color: #EF4444; padding: 4px;" onclick="this.parentElement.remove()">
+                    <i data-lucide="trash-2" style="width: 18px;"></i>
+                </button>
+            `;
+            container.appendChild(item);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function getMediaData() {
+            const items = [];
+            document.querySelectorAll('.media-item').forEach(item => {
+                const type = item.querySelector('.media-type').value;
+                const url = item.querySelector('.media-url').value;
+                if (url) items.push({ type, url });
+            });
+            return items;
+        }
+
+        function renderMediaItems(media) {
+            const container = document.getElementById('mediaListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            if (Array.isArray(media)) {
+                media.forEach(m => addMediaItem(m.type, m.url));
+            } else if (typeof media === 'string' && media) {
+                try {
+                    const parsed = JSON.parse(media);
+                    parsed.forEach(m => addMediaItem(m.type, m.url));
+                } catch(e) {
+                    console.error("Parse error media:", e);
+                }
+            }
+        }
 
         async function refreshData() {
             allProducts = await AdminService.getProducts();
@@ -425,10 +470,12 @@
                 document.getElementById('p-image').value = p.image;
                 document.getElementById('p-description').value = p.description || '';
                 document.getElementById('p-specs').value = p.specs || '';
+                renderMediaItems(p.media);
                 const imgSrc = (p.image && (p.image.startsWith('data:') || p.image.startsWith('http'))) ? p.image : `../${p.image || 'assets/electronics_1.png'}`;
                 document.getElementById('imagePreviewContainer').innerHTML = `<img src="${imgSrc}" style="width:100%; height:100%; object-fit:cover;">`;
             } else {
                 document.getElementById('modalTitle').textContent = "Nouveau Produit";
+                renderMediaItems([]);
             }
 
             overlay.classList.add('active');
