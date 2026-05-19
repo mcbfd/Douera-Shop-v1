@@ -44,7 +44,7 @@ WAVE_API_KEY = "wave_priv_test_..." # À remplacer par votre clé réelle
 OM_CLIENT_ID = "6motYSPYXgCEZHNZjmTOUQcm2Koo2Hix"
 OM_CLIENT_SECRET = "gnenZ2WixE1mHHrCTky0pGw7fDjGIHbxmFHtacR3zNLr"
 OM_MERCHANT_KEY = "487087"
-OM_AUTH_URL = "https://api.orange.com/oauth/v2/token"
+OM_AUTH_URL = "https://api.orange.com/oauth/v3/token"
 OM_PAY_URL = "https://api.orange.com/orange-money-webpay/dev/v1/webpayment" # Gardez 'dev' pour les tests
 
 # --- NOTIFICATION CONFIGURATION ---
@@ -436,21 +436,27 @@ def save_order():
         db.commit()
         db.close()
         
-        # NOTIFICATION ADMIN : Nouvelle commande
-        sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {c_fn} {c_ln}\n")
-        try:
-            send_admin_notification(
-                order_id=o_id,
-                customer_name=f"{c_fn} {c_ln}".strip(),
-                total=data.get('total', 0),
-                items_list=data.get('items', []),
-                phone=c_phone,
-                address=c_addr,
-                payment_method=data.get('method', 'Livraison'),
-                status="En attente"
-            )
-        except Exception as e_notif:
-            sys.stderr.write(f"⚠️ Notification creation failed: {e_notif}\n")
+        # NOTIFICATION ADMIN : Nouvelle commande (Uniquement si paiement à la livraison)
+        payment_method = data.get('method', 'Livraison')
+        is_online_payment = payment_method.lower().strip() in ['wave', 'orange money', 'orangemoney', 'orange']
+        
+        if not is_online_payment:
+            sys.stderr.write(f"🔔 NOTIFICATION ADMIN : Nouvelle commande {o_id} de {c_fn} {c_ln} (Paiement hors-ligne)\n")
+            try:
+                send_admin_notification(
+                    order_id=o_id,
+                    customer_name=f"{c_fn} {c_ln}".strip(),
+                    total=data.get('total', 0),
+                    items_list=data.get('items', []),
+                    phone=c_phone,
+                    address=c_addr,
+                    payment_method=payment_method,
+                    status="En attente"
+                )
+            except Exception as e_notif:
+                sys.stderr.write(f"⚠️ Notification creation failed: {e_notif}\n")
+        else:
+            sys.stderr.write(f"⏳ NOTIFICATION ADMIN : Commande {o_id} en attente de paiement en ligne ({payment_method}).\n")
         
         return jsonify({"success": True, "id": o_id})
     except Exception as e:
