@@ -78,6 +78,37 @@
     <script src="js/config.js"></script>
     <script src="js/ui.js"></script>
     <script>
+        window.confirmReceiptPublic = async (id) => {
+            if (!confirm("Confirmez-vous avoir reçu votre colis ?")) return;
+            const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : API_BASE_URL;
+            try {
+                const res = await fetch(`${API_URL}/orders/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Livrée' })
+                });
+                if (res.ok) {
+                    if (window.UI) {
+                        UI.showToast("Réception confirmée avec succès !", "success");
+                    }
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    if (window.UI) {
+                        UI.showToast("Erreur lors de la confirmation", "error");
+                    } else {
+                        alert("Erreur lors de la confirmation");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.UI) {
+                    UI.showToast("Erreur de connexion au serveur", "error");
+                } else {
+                    alert("Erreur de connexion au serveur");
+                }
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
 
@@ -146,26 +177,13 @@
                                     <div style="text-align: right;">
                                         <p style="color: var(--color-muted); font-size: 0.85rem; margin-bottom: 4px;">Commande #${order.id}</p>
                                         <p style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">${order.total.toLocaleString()} XOF</p>
-                                        
-                                        ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
+                                                     ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
                                             <button onclick="confirmReceiptPublic('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
                                                 Confirmer la réception
                                             </button>
                                         ` : ''}
                                     </div>
                                 </div>
-                                <script>
-                                    window.confirmReceiptPublic = async (id) => {
-                                        if(!confirm("Confirmez-vous avoir reçu votre colis ?")) return;
-                                        const API_URL = (window.API_CONFIG && window.API_CONFIG.BASE_URL) ? window.API_CONFIG.BASE_URL : API_BASE_URL;
-                                        const res = await fetch(\`\${API_URL}/orders/\${id}\`, {
-                                            method: 'PUT',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ status: 'Livrée' })
-                                        });
-                                        if(res.ok) window.location.reload();
-                                    };
-                                <\/script>
                                 
                                 <!-- Stepper Multi-Couleurs Alibaba -->
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 48px; position: relative; padding: 0 5px;">
