@@ -53,7 +53,7 @@
                     <p style="color: var(--color-muted);">Voici l'état actuel de votre boutique.</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-outline" onclick="exportOrdersToCSV()"><i data-lucide="download"></i> Exporter</button>
+                    <button id="exportBtn" class="btn btn-outline"><i data-lucide="download"></i> Exporter</button>
                     <a href="../index.html" class="btn btn-primary" target="_blank"><i data-lucide="external-link"></i> Boutique</a>
                 </div>
             </header>
@@ -148,82 +148,7 @@
 
     <script src="../js/config.js"></script>
     <script src="../js/admin-service.js"></script>
-    <script src="../js/ui.js"></script>
     <script>
-        window.exportOrdersToCSV = async () => {
-            try {
-                if (window.UI) {
-                    UI.showToast("Préparation de l'exportation...", "info");
-                }
-                const orders = await AdminService.getOrders();
-                if (!orders || orders.length === 0) {
-                    if (window.UI) UI.showToast("Aucune commande à exporter.", "error");
-                    else alert("Aucune commande à exporter.");
-                    return;
-                }
-
-                // CSV Header
-                const headers = ["ID Commande", "Date", "Client", "Téléphone", "Adresse", "Méthode", "Statut", "Total (XOF)", "Articles"];
-                
-                const rows = orders.map(o => {
-                    let itemsStr = "";
-                    let items = o.items;
-                    if (typeof items === 'string') {
-                        try { items = JSON.parse(items); } catch(e) { items = []; }
-                    }
-                    if (Array.isArray(items)) {
-                        itemsStr = items.map(i => `${i.name || 'Produit'} x${i.quantity || 1}`).join(' ; ');
-                    }
-
-                    const clientName = `${o.customer_firstname || o.customerfirstname || ''} ${o.customer_lastname || o.customerlastname || ''}`.trim() || 'Invité';
-                    const orderDate = new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleString();
-
-                    return [
-                        o.id,
-                        orderDate,
-                        clientName,
-                        o.customer_phone || o.customerphone || '',
-                        o.customer_address || o.customeraddress || '',
-                        o.method || '',
-                        o.status || '',
-                        o.total || 0,
-                        itemsStr
-                    ];
-                });
-
-                const csvContent = "\uFEFF" + [headers, ...rows]
-                    .map(e => e.map(val => {
-                        let cleanVal = String(val).replace(/"/g, '""');
-                        if (cleanVal.includes(',') || cleanVal.includes(';') || cleanVal.includes('\n') || cleanVal.includes('"')) {
-                            cleanVal = `"${cleanVal}"`;
-                        }
-                        return cleanVal;
-                    }).join(","))
-                    .join("\n");
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", `douera_shop_commandes_${new Date().toISOString().slice(0, 10)}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                if (window.UI) {
-                    UI.showToast("Exportation réussie !", "success");
-                }
-            } catch (error) {
-                console.error("Export Error:", error);
-                if (window.UI) {
-                    UI.showToast("Erreur lors de l'exportation", "error");
-                } else {
-                    alert("Erreur lors de l'exportation : " + error.message);
-                }
-            }
-        };
-
         document.addEventListener('DOMContentLoaded', async () => {
             const session = AdminService.checkAuth();
             if (!session) return;
@@ -249,6 +174,93 @@
 
             document.getElementById('admin-name').textContent = session.name;
             document.getElementById('logoutBtn').onclick = () => AdminService.logout();
+
+            // === EXPORT CSV ===
+            document.getElementById('exportBtn').onclick = async () => {
+                const btn = document.getElementById('exportBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2"></i> Export...';
+                if (window.lucide) lucide.createIcons();
+                try {
+                    const [orders, products] = await Promise.all([
+                        AdminService.getOrders(),
+                        AdminService.getProducts()
+                    ]);
+
+                    if (!orders || orders.length === 0) {
+                        alert('Aucune commande à exporter.');
+                        return;
+                    }
+
+                    // Build CSV rows
+                    const headers = [
+                        'ID Commande',
+                        'Date',
+                        'Prénom Client',
+                        'Nom Client',
+                        'Téléphone',
+                        'Adresse',
+                        'Méthode Paiement',
+                        'Statut',
+                        'Produits commandés',
+                        'Total (XOF)'
+                    ];
+
+                    const escapeCSV = (val) => {
+                        const str = String(val === null || val === undefined ? '' : val);
+                        return str.includes(',') || str.includes('"') || str.includes('\n')
+                            ? '"' + str.replace(/"/g, '""') + '"'
+                            : str;
+                    };
+
+                    const rows = orders.map(o => {
+                        let items = o.items;
+                        if (typeof items === 'string') {
+                            try { items = JSON.parse(items); } catch(e) { items = []; }
+                        }
+                        const itemsStr = Array.isArray(items)
+                            ? items.map(i => `${i.name || i.id} x${i.quantity || 1}`).join(' | ')
+                            : '';
+
+                        const dateStr = o.date
+                            ? new Date(isNaN(o.date) ? o.date : parseInt(o.date)).toLocaleString('fr-FR')
+                            : '';
+
+                        return [
+                            escapeCSV(o.id),
+                            escapeCSV(dateStr),
+                            escapeCSV(o.customer_firstname || ''),
+                            escapeCSV(o.customer_lastname || ''),
+                            escapeCSV(o.customer_phone || ''),
+                            escapeCSV(o.customer_address || ''),
+                            escapeCSV(o.method || ''),
+                            escapeCSV(o.status || ''),
+                            escapeCSV(itemsStr),
+                            escapeCSV(o.total || 0)
+                        ].join(',');
+                    });
+
+                    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const today = new Date().toISOString().slice(0, 10);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `douera-shop-commandes-${today}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch(err) {
+                    console.error('Export error:', err);
+                    alert('Erreur lors de l\'export. Veuillez réessayer.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="download"></i> Exporter';
+                    if (window.lucide) lucide.createIcons();
+                }
+            };
+            // ==================
 
             // Track newest order to trigger alert notifications
             let lastRecentOrderId = null;
@@ -478,6 +490,6 @@
             chartsInitialized = true;
         }
     </script>
-    <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 10000; pointer-events: none; display: flex; flex-direction: column;"></div>
 </body>
+
 </html>
