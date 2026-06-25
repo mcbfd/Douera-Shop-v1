@@ -335,7 +335,9 @@
                         return;
                     }
 
-                    fileNameSpan.textContent = file.name;
+                    if (fileNameSpan) {
+                        fileNameSpan.textContent = file.name;
+                    }
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const base64 = event.target.result;
