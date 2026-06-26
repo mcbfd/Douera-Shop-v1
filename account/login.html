@@ -45,11 +45,14 @@
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                     <label style="color: var(--color-foreground); font-weight: 700; font-size: 0.9rem;">Mot de Passe</label>
-                    <a href="#" style="color: var(--color-primary); font-size: 0.8rem; font-weight: 600; text-decoration: none;">Oublié ?</a>
+                    <a href="#" id="forgotPasswordLink" style="color: var(--color-primary); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">Mot de passe oublié ?</a>
                 </div>
                 <div style="position: relative;">
                     <i data-lucide="lock" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
-                    <input type="password" id="password" required class="pay-input" placeholder="••••••••" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <input type="password" id="password" required class="pay-input" placeholder="••••••••" style="width: 100%; padding: 16px 48px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    <button type="button" id="togglePassword" onclick="togglePasswordVisibility('password', 'togglePasswordIcon')" style="position: absolute; right: 16px; top: 14px; background: none; border: none; cursor: pointer; padding: 0; color: var(--color-muted);">
+                        <i id="togglePasswordIcon" data-lucide="eye" style="width: 20px;"></i>
+                    </button>
                 </div>
             </div>
 
@@ -70,12 +73,90 @@
         </div>
     </div>
 
-    <!-- Floating Chat Excellence -->
+    <!-- ============================
+         MODAL MOT DE PASSE OUBLIÉ
+         ============================ -->
+    <div id="forgotPasswordOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(10px); z-index: 9000; align-items: center; justify-content: center;">
+        <div id="forgotPasswordModal" style="background: white; border-radius: 28px; padding: 48px 40px; max-width: 460px; width: 90%; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.25); animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;">
+            
+            <!-- Close button -->
+            <button onclick="closeForgotModal()" style="position: absolute; top: 20px; right: 20px; background: var(--color-background); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-muted); transition: all 0.2s;" onmouseover="this.style.background='var(--color-border)'" onmouseout="this.style.background='var(--color-background)'">
+                <i data-lucide="x" style="width: 18px;"></i>
+            </button>
+
+            <!-- Étape 1 : Saisie email -->
+            <div id="step1">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <i data-lucide="key-round" style="width: 30px; height: 30px; color: var(--color-primary);"></i>
+                </div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif; margin-bottom: 8px;">Mot de passe oublié ?</h3>
+                <p style="color: var(--color-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 32px;">Entrez l'adresse email de votre compte. Nous vérifierons qu'elle est bien enregistrée, puis vous pourrez définir un nouveau mot de passe.</p>
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Votre email</label>
+                    <div style="position: relative;">
+                        <i data-lucide="mail" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
+                        <input type="email" id="resetEmail" placeholder="exemple@mail.com" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    </div>
+                </div>
+
+                <button id="verifyEmailBtn" onclick="verifyEmail()" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 1rem; font-weight: 800; border-radius: 14px; justify-content: center;">
+                    Vérifier mon email <i data-lucide="arrow-right" style="margin-left: 8px; width: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Étape 2 : Nouveau mot de passe -->
+            <div id="step2" style="display: none;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <i data-lucide="shield-check" style="width: 30px; height: 30px; color: #16A34A;"></i>
+                </div>
+                <h3 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif; margin-bottom: 8px;">Nouveau mot de passe</h3>
+                <p style="color: var(--color-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 8px;">Compte trouvé pour <strong id="confirmedEmail" style="color: var(--color-primary);"></strong>.</p>
+                <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 28px;">Choisissez un nouveau mot de passe sécurisé (6 caractères minimum).</p>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nouveau mot de passe</label>
+                    <div style="position: relative;">
+                        <i data-lucide="lock" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
+                        <input type="password" id="newPassword" placeholder="••••••••" style="width: 100%; padding: 16px 48px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';" oninput="checkPasswordStrength(this.value)">
+                        <button type="button" onclick="togglePasswordVisibility('newPassword', 'toggleNewPassIcon')" style="position: absolute; right: 16px; top: 14px; background: none; border: none; cursor: pointer; padding: 0; color: var(--color-muted);">
+                            <i id="toggleNewPassIcon" data-lucide="eye" style="width: 20px;"></i>
+                        </button>
+                    </div>
+                    <!-- Password strength indicator -->
+                    <div id="strengthBar" style="margin-top: 8px; height: 4px; border-radius: 2px; background: var(--color-border); overflow: hidden;">
+                        <div id="strengthFill" style="height: 100%; width: 0%; border-radius: 2px; transition: all 0.3s; background: #EF4444;"></div>
+                    </div>
+                    <p id="strengthText" style="font-size: 0.75rem; color: var(--color-muted); margin-top: 4px; min-height: 16px;"></p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 28px;">
+                    <label style="display: block; color: var(--color-foreground); margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Confirmer le mot de passe</label>
+                    <div style="position: relative;">
+                        <i data-lucide="lock-keyhole" style="position: absolute; left: 16px; top: 16px; width: 20px; color: var(--color-muted);"></i>
+                        <input type="password" id="confirmPassword" placeholder="••••••••" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 14px; border: 2px solid var(--color-border); background: var(--color-background); font-size: 1rem; transition: var(--transition-base); outline: none; box-sizing: border-box;" onfocus="this.style.borderColor='var(--color-primary)'; this.style.background='white';" onblur="this.style.borderColor='var(--color-border)'; this.style.background='var(--color-background)';">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="goBackToStep1()" class="btn btn-outline" style="flex: 0 0 auto; padding: 16px 20px; border-radius: 14px;">
+                        <i data-lucide="arrow-left" style="width: 18px;"></i>
+                    </button>
+                    <button id="resetPasswordBtn" onclick="resetPassword()" class="btn btn-primary" style="flex: 1; padding: 16px; font-size: 1rem; font-weight: 800; border-radius: 14px; justify-content: center;">
+                        Enregistrer le mot de passe
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Floating Chat -->
     <a href="https://wa.me/221781607468" style="position: fixed; bottom: 40px; right: 40px; width: 72px; height: 72px; background: #25D366; color: white; border-radius: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(37, 211, 102, 0.4); z-index: 1500; transition: var(--transition-base); text-decoration: none;">
         <i data-lucide="message-circle" style="width: 32px; height: 32px;"></i>
     </a>
 
-    <!-- Alibaba Style Bottom Nav Bar (Mobile Only) -->
+    <!-- Mobile Bottom Nav -->
     <nav class="mobile-bottom-nav">
         <a href="../index.html" class="nav-item">
             <i data-lucide="home"></i>
@@ -126,7 +207,6 @@
                         localStorage.removeItem('auth_redirect');
 
                         if (!redirect) {
-                            // Redirection par défaut selon le rôle
                             if (session.role === 'admin' || session.role === 'super_admin') {
                                 redirect = '../admin/dashboard.html';
                             } else {
@@ -141,7 +221,175 @@
                     UI.setLoading(btn, false, "Se connecter");
                 }
             });
+
+            // Forgot password link
+            document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                openForgotModal();
+            });
         });
+
+        // ---- Forgot Password Modal Logic ----
+
+        function openForgotModal() {
+            const overlay = document.getElementById('forgotPasswordOverlay');
+            overlay.style.display = 'flex';
+            // Pre-fill email if already typed in login form
+            const loginEmail = document.getElementById('email').value;
+            if (loginEmail) document.getElementById('resetEmail').value = loginEmail;
+            goBackToStep1();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgotPasswordOverlay').style.display = 'none';
+        }
+
+        // Close modal when clicking overlay background
+        document.getElementById('forgotPasswordOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('forgotPasswordOverlay')) closeForgotModal();
+        });
+
+        function goBackToStep1() {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('strengthFill').style.width = '0%';
+            document.getElementById('strengthText').textContent = '';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function verifyEmail() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const btn = document.getElementById('verifyEmailBtn');
+
+            if (!email) {
+                UI.showToast("Veuillez entrer votre adresse email.", "error");
+                return;
+            }
+
+            UI.setLoading(btn, true, "Vérification...");
+
+            try {
+                const baseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+                const res = await fetch(`${baseUrl}/auth/check-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.exists) {
+                    document.getElementById('confirmedEmail').textContent = email;
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'block';
+                    if (window.lucide) lucide.createIcons();
+                } else {
+                    UI.showToast(data.error || "Aucun compte trouvé avec cet email.", "error");
+                }
+            } catch (err) {
+                UI.showToast("Impossible de contacter le serveur. Réessayez.", "error");
+            }
+
+            UI.setLoading(btn, false, 'Vérifier mon email <i data-lucide="arrow-right" style="margin-left: 8px; width: 18px;"></i>');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('resetPasswordBtn');
+
+            if (!newPass || newPass.length < 6) {
+                UI.showToast("Le mot de passe doit contenir au moins 6 caractères.", "error");
+                return;
+            }
+            if (newPass !== confirmPass) {
+                UI.showToast("Les mots de passe ne correspondent pas.", "error");
+                document.getElementById('confirmPassword').style.borderColor = '#EF4444';
+                setTimeout(() => { document.getElementById('confirmPassword').style.borderColor = 'var(--color-border)'; }, 2000);
+                return;
+            }
+
+            UI.setLoading(btn, true, "Enregistrement...");
+
+            try {
+                const baseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+                const res = await fetch(`${baseUrl}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, new_password: newPass })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    closeForgotModal();
+                    UI.showToast("✅ Mot de passe mis à jour ! Vous pouvez vous connecter.", "success");
+                    // Pre-fill login email
+                    document.getElementById('email').value = email;
+                    document.getElementById('password').focus();
+                } else {
+                    UI.showToast(data.error || "Erreur lors de la mise à jour.", "error");
+                    UI.setLoading(btn, false, "Enregistrer le mot de passe");
+                }
+            } catch (err) {
+                UI.showToast("Erreur réseau. Réessayez.", "error");
+                UI.setLoading(btn, false, "Enregistrer le mot de passe");
+            }
+        }
+
+        function checkPasswordStrength(value) {
+            const fill = document.getElementById('strengthFill');
+            const text = document.getElementById('strengthText');
+            if (!value) {
+                fill.style.width = '0%';
+                text.textContent = '';
+                return;
+            }
+            let score = 0;
+            if (value.length >= 6) score++;
+            if (value.length >= 10) score++;
+            if (/[A-Z]/.test(value)) score++;
+            if (/[0-9]/.test(value)) score++;
+            if (/[^A-Za-z0-9]/.test(value)) score++;
+
+            const levels = [
+                { label: '', color: '#EF4444', width: '0%' },
+                { label: 'Trop court', color: '#EF4444', width: '20%' },
+                { label: 'Faible', color: '#F97316', width: '40%' },
+                { label: 'Moyen', color: '#EAB308', width: '60%' },
+                { label: 'Bon', color: '#22C55E', width: '80%' },
+                { label: 'Excellent 🔐', color: '#16A34A', width: '100%' },
+            ];
+            const level = levels[Math.min(score, 5)];
+            fill.style.background = level.color;
+            fill.style.width = level.width;
+            text.textContent = level.label;
+            text.style.color = level.color;
+        }
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            if (window.lucide) lucide.createIcons();
+        }
     </script>
+
+    <style>
+        @keyframes scaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </body>
 </html>
+

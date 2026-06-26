@@ -210,7 +210,8 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            AdminService.checkAuth();
+            const session = AdminService.checkAuth();
+            if (!session) return;
             
             // Mobile Menu Logic
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');

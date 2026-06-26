@@ -25,6 +25,12 @@ const AdminService = {
         }
 
         const session = await response.json();
+        
+        // Security check: Only allow admin and super_admin roles to connect to the admin panel
+        if (session.role !== 'admin' && session.role !== 'super_admin') {
+            throw new Error("Accès refusé. Seuls les comptes administrateurs sont autorisés sur ce portail.");
+        }
+
         localStorage.setItem(AdminService.KEYS.SESSION, JSON.stringify(session));
         return session;
     },
@@ -36,7 +42,8 @@ const AdminService = {
 
     checkAuth: () => {
         const session = JSON.parse(localStorage.getItem(AdminService.KEYS.SESSION));
-        if (!session || Date.now() > session.expires) {
+        if (!session || Date.now() > session.expires || (session.role !== 'admin' && session.role !== 'super_admin')) {
+            localStorage.removeItem(AdminService.KEYS.SESSION);
             window.location.href = 'login.html';
             return null;
         }

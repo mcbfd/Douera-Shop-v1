@@ -408,6 +408,52 @@ def login():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/auth/reset-password', methods=['POST'])
+def reset_password():
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+        new_password = data.get('new_password', '').strip()
+
+        if not email or not new_password:
+            return jsonify({"error": "Email et nouveau mot de passe requis."}), 400
+
+        if len(new_password) < 6:
+            return jsonify({"error": "Le mot de passe doit comporter au moins 6 caractères."}), 400
+
+        db = DB(get_db_connection())
+        db.execute('SELECT id FROM users WHERE email = ?', (email,))
+        user = db.fetchone()
+
+        if not user:
+            return jsonify({"error": "Aucun compte trouvé avec cet email."}), 404
+
+        db.execute('UPDATE users SET password = ? WHERE email = ?', (new_password, email))
+        db.commit()
+        db.close()
+        return jsonify({"success": True, "message": "Mot de passe mis à jour avec succès."})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/auth/check-email', methods=['POST'])
+def check_email():
+    try:
+        data = request.json
+        email = data.get('email', '').strip()
+        if not email:
+            return jsonify({"error": "Email requis."}), 400
+        db = DB(get_db_connection())
+        db.execute('SELECT id FROM users WHERE email = ?', (email,))
+        user = db.fetchone()
+        db.close()
+        if user:
+            return jsonify({"exists": True})
+        return jsonify({"exists": False, "error": "Aucun compte trouvé avec cet email."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/orders', methods=['POST'])
 def save_order():
     try:

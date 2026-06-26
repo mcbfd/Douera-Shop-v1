@@ -183,6 +183,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             currentSession = AdminService.checkAuth();
+            if (!currentSession) return;
             
             // Mobile Menu Logic
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
