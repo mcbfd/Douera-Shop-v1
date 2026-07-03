@@ -26,16 +26,18 @@ CORS(app)
 CORS(app)
 
 # --- DATABASE CONFIGURATION ---
-DATABASE_URL = os.environ.get('DATABASE_URL') or "postgresql://postgres:B%40c%40lori%402015@db.wfdoqlomlpsowxzwfxfu.supabase.co:5432/postgres?sslmode=require"
+# Sur Vercel: configurez DATABASE_URL dans les variables d'environnement Vercel
+# En local: utilise SQLite automatiquement si pas de DATABASE_URL
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Nettoyage de l'URL pour éviter les erreurs de paramètres (ex: pgbouncer)
 if DATABASE_URL and "?" in DATABASE_URL:
     base_url = DATABASE_URL.split("?")[0]
-    # On garde seulement sslmode si présent car c'est souvent requis
     if "sslmode=require" in DATABASE_URL:
         DATABASE_URL = base_url + "?sslmode=require"
     else:
         DATABASE_URL = base_url
+
 
 # --- WAVE CONFIGURATION ---
 WAVE_API_KEY = "wave_priv_test_..." # À remplacer par votre clé réelle
@@ -364,6 +366,17 @@ def save_product():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/products/<p_id>', methods=['DELETE'])
+def delete_product(p_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('DELETE FROM products WHERE id = ?', (p_id,))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/users', methods=['GET'])
 def get_users():
     try:
@@ -390,6 +403,17 @@ def save_user():
         db.commit()
         db.close()
         return jsonify({"success": True, "id": u_id})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/users/<u_id>', methods=['DELETE'])
+def delete_user(u_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('DELETE FROM users WHERE id = ?', (u_id,))
+        db.commit()
+        db.close()
+        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -560,6 +584,17 @@ def update_order(o_id):
         elif 'confirm' in status_clean or 'reçu' in status_clean:
             sys.stderr.write(f"🏆 NOTIFICATION ADMIN : Le client a confirmé la réception de la commande {o_id} ! 💰\n")
             
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/orders/<o_id>', methods=['DELETE'])
+def delete_order(o_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('DELETE FROM orders WHERE id = ?', (o_id,))
+        db.commit()
+        db.close()
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
