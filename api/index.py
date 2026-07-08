@@ -8,7 +8,6 @@ from flask_cors import CORS
 import traceback
 import sqlite3
 import requests
-from werkzeug.security import generate_password_hash, check_password_hash
 
 # Try to import psycopg2 (Postgres)
 try:
@@ -22,6 +21,8 @@ except ImportError:
 sys.stdout = sys.stderr
 
 app = Flask(__name__)
+CORS(app)
+
 CORS(app)
 
 # --- DATABASE CONFIGURATION ---
@@ -39,20 +40,19 @@ if DATABASE_URL and "?" in DATABASE_URL:
 
 
 # --- WAVE CONFIGURATION ---
-WAVE_API_KEY = os.environ.get('WAVE_API_KEY') or "wave_priv_test_d3y2YjU5U3NxOGZ4Zzl2aDZzdzc1cTR3OXdpcjY0Yms" # À remplacer par votre clé réelle en production
+WAVE_API_KEY = "wave_priv_test_..." # À remplacer par votre clé réelle
 
 # --- ORANGE MONEY CONFIGURATION ---
-OM_CLIENT_ID = os.environ.get('OM_CLIENT_ID') or "6motYSPYXgCEZHNZjmTOUQcm2Koo2Hix"
-OM_CLIENT_SECRET = os.environ.get('OM_CLIENT_SECRET') or "gnenZ2WixE1mHHrCTky0pGw7fDjGIHbxmFHtacR3zNLr"
-OM_MERCHANT_KEY = os.environ.get('OM_MERCHANT_KEY') or "487087"
-OM_AUTH_URL = os.environ.get('OM_AUTH_URL') or "https://api.orange.com/oauth/v3/token"
-OM_PAY_URL = os.environ.get('OM_PAY_URL') or "https://api.orange.com/orange-money-webpay/dev/v1/webpayment" # Gardez 'dev' pour les tests
+OM_CLIENT_ID = "6motYSPYXgCEZHNZjmTOUQcm2Koo2Hix"
+OM_CLIENT_SECRET = "gnenZ2WixE1mHHrCTky0pGw7fDjGIHbxmFHtacR3zNLr"
+OM_MERCHANT_KEY = "487087"
+OM_AUTH_URL = "https://api.orange.com/oauth/v3/token"
+OM_PAY_URL = "https://api.orange.com/orange-money-webpay/dev/v1/webpayment" # Gardez 'dev' pour les tests
 
 # --- NOTIFICATION CONFIGURATION ---
 # Renseignez ces variables pour recevoir des notifications en temps réel
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN") or "7624283697:AAHwXqRFTcgB8F_Hlp5poNJ6rxpr8ohZAg8"
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID") or "848554777"
-
 
 SMTP_SERVER = os.environ.get("SMTP_SERVER") or "smtp.gmail.com"
 SMTP_PORT = int(os.environ.get("SMTP_PORT") or 587)
@@ -263,7 +263,7 @@ def init_db():
         
         cur.execute(f"CREATE TABLE IF NOT EXISTS users (id {id_type}, email TEXT UNIQUE, password TEXT, name TEXT, role TEXT, status TEXT, address TEXT, phone TEXT)")
         cur.execute(f"CREATE TABLE IF NOT EXISTS products (id {id_type}, name TEXT, price INTEGER, category TEXT, image TEXT, stock INTEGER, description TEXT, specs TEXT, media TEXT)")
-        cur.execute(f"CREATE TABLE IF NOT EXISTS orders (id {id_type}, userId TEXT, date TEXT, method TEXT, status TEXT, total INTEGER, items TEXT, customer_firstname TEXT, customer_lastname TEXT, customer_address TEXT, customer_phone TEXT)")
+        cur.execute(f"CREATE TABLE IF NOT EXISTS orders (id {id_type}, \"userId\" TEXT, date TEXT, method TEXT, status TEXT, total INTEGER, items TEXT, customer_firstname TEXT, customer_lastname TEXT, customer_address TEXT, customer_phone TEXT)")
         
         try:
             cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS media TEXT" if is_postgres else "ALTER TABLE products ADD COLUMN media TEXT")
@@ -272,7 +272,7 @@ def init_db():
             conn.rollback()
             pass
             
-        cur.execute(f"CREATE TABLE IF NOT EXISTS reviews (id {id_type}, orderId TEXT, productId TEXT, userId TEXT, userName TEXT, rating_product INTEGER, rating_service INTEGER, comment TEXT, admin_reply TEXT, date TEXT)")
+        cur.execute(f"CREATE TABLE IF NOT EXISTS reviews (id {id_type}, \"orderId\" TEXT, \"productId\" TEXT, \"userId\" TEXT, \"userName\" TEXT, rating_product INTEGER, rating_service INTEGER, comment TEXT, admin_reply TEXT, date TEXT)")
 
         cur.execute('SELECT count(*) FROM users')
         if cur.fetchone()[0] == 0:
@@ -399,31 +399,10 @@ def save_user():
             db.execute('UPDATE users SET name=?, email=?, role=?, status=?, address=?, phone=? WHERE id=?', (data.get('name'), data.get('email'), data.get('role'), data.get('status'), data.get('address'), data.get('phone'), u_id))
         else:
             u_id = 'u' + str(int(time.time() * 1000))
-            plain_pass = data.get('password', 'default123')
-            hashed_pass = generate_password_hash(plain_pass)
-            db.execute('INSERT INTO users (id, name, email, password, role, status, address, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (u_id, data.get('name'), data.get('email'), hashed_pass, data.get('role', 'client'), data.get('status', 'active'), data.get('address'), data.get('phone')))
+            db.execute('INSERT INTO users (id, name, email, password, role, status, address, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', (u_id, data.get('name'), data.get('email'), data.get('password', 'default123'), data.get('role', 'client'), data.get('status', 'active'), data.get('address'), data.get('phone')))
         db.commit()
         db.close()
         return jsonify({"success": True, "id": u_id})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/users/<u_id>/profile', methods=['PATCH'])
-def update_profile(u_id):
-    try:
-        data = request.json
-        name = data.get('name', '').strip()
-        phone = data.get('phone', '').strip()
-        address = data.get('address', '').strip()
-
-        if not name:
-            return jsonify({"error": "Le nom complet est requis."}), 400
-
-        db = DB(get_db_connection())
-        db.execute('UPDATE users SET name = ?, phone = ?, address = ? WHERE id = ?', (name, phone, address, u_id))
-        db.commit()
-        db.close()
-        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -443,36 +422,12 @@ def delete_user(u_id):
 def login():
     try:
         data = request.json
-        email = data.get('email', '').strip()
-        password = data.get('password', '').strip()
-
         db = DB(get_db_connection())
-        db.execute('SELECT * FROM users WHERE email = ?', (email,))
+        db.execute('SELECT * FROM users WHERE email = ? AND password = ?', (data.get('email'), data.get('password')))
         user = db.fetchone()
-
+        db.close()
         if user:
-            db_password = user.get('password', '')
-            is_valid = False
-            # Check if password is hashed (Werkzeug hashes typically start withpbkdf2:, scrypt:, bcrypt:)
-            if db_password.startswith(('pbkdf2:', 'scrypt:', 'bcrypt:', 'sha256:', 'sha512:')):
-                is_valid = check_password_hash(db_password, password)
-            else:
-                # Fallback for plain-text passwords
-                is_valid = (db_password == password)
-                if is_valid:
-                    # Migrate plain-text password to hashed format transparently
-                    hashed_pass = generate_password_hash(password)
-                    db.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_pass, user['id']))
-                    db.commit()
-                    sys.stderr.write(f"🔄 Migrated password for user {email} to hashed format.\n")
-
-            db.close()
-            if is_valid:
-                return jsonify({"userId": user['id'], "name": user['name'], "role": user['role'], "expires": int(time.time() * 1000) + 3600*1000*8})
-
-        else:
-            db.close()
-
+            return jsonify({"userId": user['id'], "name": user['name'], "role": user['role'], "expires": int(time.time() * 1000) + 3600*1000*8})
         return jsonify({"error": "Identifiants incorrects"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -495,17 +450,14 @@ def reset_password():
         user = db.fetchone()
 
         if not user:
-            db.close()
             return jsonify({"error": "Aucun compte trouvé avec cet email."}), 404
 
-        hashed_pass = generate_password_hash(new_password)
-        db.execute('UPDATE users SET password = ? WHERE email = ?', (hashed_pass, email))
+        db.execute('UPDATE users SET password = ? WHERE email = ?', (new_password, email))
         db.commit()
         db.close()
         return jsonify({"success": True, "message": "Mot de passe mis à jour avec succès."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 @app.route('/api/auth/check-email', methods=['POST'])
@@ -543,7 +495,7 @@ def save_order():
         c_phone = data.get('customer_phone') or data.get('phone') or 'Non précisé'
         
         db.execute('''
-            INSERT INTO orders (id, userId, date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
+            INSERT INTO orders (id, "userId", date, method, status, total, items, customer_firstname, customer_lastname, customer_address, customer_phone)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             o_id, data.get('userId'), datetime.now().isoformat(),
@@ -588,7 +540,7 @@ def get_orders():
         # Filter by userId if provided
         u_id = request.args.get('userId')
         if u_id:
-            db.execute('SELECT * FROM orders WHERE userId = ? ORDER BY date DESC', (u_id,))
+            db.execute('SELECT * FROM orders WHERE "userId" = ? ORDER BY date DESC', (u_id,))
         else:
             db.execute('SELECT * FROM orders ORDER BY date DESC')
         orders = db.fetchall()
@@ -692,7 +644,7 @@ def add_review():
         r_id = 'REV' + str(int(time.time()))
         db = DB(get_db_connection())
         db.execute('''
-            INSERT INTO reviews (id, orderId, userId, userName, rating_product, rating_service, comment, date)
+            INSERT INTO reviews (id, "orderId", "userId", "userName", rating_product, rating_service, comment, date)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             r_id, 
