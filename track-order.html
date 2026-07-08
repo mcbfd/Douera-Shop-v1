@@ -125,7 +125,8 @@
             }
 
             trackBtn.addEventListener('click', async () => {
-                const orderId = orderIdInput.value.trim();
+                let orderIdRaw = orderIdInput.value.trim();
+                const orderId = orderIdRaw.replace(/^#\s*/, '');
                 if (!orderId) {
                     UI.showToast("Veuillez entrer un numéro de commande", "error");
                     return;

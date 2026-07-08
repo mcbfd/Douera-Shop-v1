@@ -5,3 +5,5 @@ __pycache__/
 .vscode/
 .gemini/
 backend/douera.db
+.vercel
+.env*
