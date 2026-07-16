@@ -82,35 +82,86 @@ document.addEventListener('DOMContentLoaded', () => {
         promoMsg.style.display = 'block';
     }
 
+    // Récupère le nombre de commandes du client connecté via l'API
+    async function getOrderCount() {
+        const user = (typeof AuthService !== 'undefined') ? AuthService.getCurrentUser() : null;
+        if (!user) return null;
+        const baseUrl = window.API_CONFIG ? window.API_CONFIG.BASE_URL : '/api';
+        try {
+            const res = await fetch(`${baseUrl}/user/orders?userId=${user.userId || user.id}`);
+            if (!res.ok) return 0;
+            const orders = await res.json();
+            return Array.isArray(orders) ? orders.length : 0;
+        } catch (e) {
+            return 0;
+        }
+    }
+
     if (promoApply) {
-        promoApply.onclick = () => {
+        promoApply.onclick = async () => {
             const code = promoInput.value.trim().toUpperCase();
-            if (code === 'WELCOME10') {
-                discountPct = 10;
-                discountCode = 'WELCOME10';
-                showPromoMsg("Code WELCOME10 appliqué ! -10%", "success");
-            } else if (code === 'DOUERA20') {
-                discountPct = 20;
-                discountCode = 'DOUERA20';
-                showPromoMsg("Code DOUERA20 appliqué ! -20%", "success");
-            } else if (code === '') {
+
+            if (code === '') {
                 discountPct = 0;
                 discountCode = '';
-                promoMsg.style.display = 'none';
-            } else {
-                discountPct = 0;
-                discountCode = '';
-                showPromoMsg("Code promo inconnu.", "error");
+                if (promoMsg) promoMsg.style.display = 'none';
+                sessionStorage.setItem('douera_discount_pct', '0');
+                sessionStorage.setItem('douera_discount_code', '');
+                initCheckout();
+                return;
             }
-            sessionStorage.setItem('douera_discount_pct', discountPct.toString());
-            sessionStorage.setItem('douera_discount_code', discountCode);
+
+            if (code === 'WELCOME10') {
+                const count = await getOrderCount();
+                if (count === null) {
+                    showPromoMsg("Connectez-vous à votre compte pour utiliser un code promo.", "error");
+                } else if (count === 0) {
+                    discountPct = 2;
+                    discountCode = 'WELCOME10';
+                    showPromoMsg("🎉 Code WELCOME10 appliqué ! -2% sur votre première commande.", "success");
+                    sessionStorage.setItem('douera_discount_pct', '2');
+                    sessionStorage.setItem('douera_discount_code', 'WELCOME10');
+                    initCheckout();
+                } else {
+                    discountPct = 0;
+                    discountCode = '';
+                    showPromoMsg(`Ce code est réservé aux nouveaux clients (vous avez déjà ${count} commande(s)).`, "error");
+                }
+                return;
+            }
+
+            if (code === 'DOUERA20') {
+                const count = await getOrderCount();
+                if (count === null) {
+                    showPromoMsg("Connectez-vous à votre compte pour utiliser un code promo.", "error");
+                } else if (count >= 100) {
+                    discountPct = 4;
+                    discountCode = 'DOUERA20';
+                    showPromoMsg(`🏆 Code DOUERA20 appliqué ! -4% pour votre fidélité (${count} commandes).`, "success");
+                    sessionStorage.setItem('douera_discount_pct', '4');
+                    sessionStorage.setItem('douera_discount_code', 'DOUERA20');
+                    initCheckout();
+                } else {
+                    discountPct = 0;
+                    discountCode = '';
+                    showPromoMsg(`Ce code est débloqué après 100 commandes. Il vous en manque ${100 - count}.`, "error");
+                }
+                return;
+            }
+
+            // Code inconnu
+            discountPct = 0;
+            discountCode = '';
+            showPromoMsg("Code promo inconnu.", "error");
+            sessionStorage.setItem('douera_discount_pct', '0');
+            sessionStorage.setItem('douera_discount_code', '');
             initCheckout();
         };
     }
 
     if (discountCode && promoInput) {
         promoInput.value = discountCode;
-        showPromoMsg(`Code ${discountCode} actif (${discountPct}%)`, "success");
+        showPromoMsg(`Code ${discountCode} actif (-${discountPct}%)`, "success");
     }
 
     window.getLocation = function() {
