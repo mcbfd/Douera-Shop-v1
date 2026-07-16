@@ -6,6 +6,43 @@
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Currency & Theme Utilities ---
+    window.formatPrice = function(priceXOF) {
+        const currency = localStorage.getItem('douera_currency') || 'XOF';
+        if (currency === 'EUR') {
+            const price = Math.round(priceXOF / 655);
+            return price + ' €';
+        } else if (currency === 'USD') {
+            const price = Math.round(priceXOF / 600);
+            return price + ' $';
+        }
+        return new Intl.NumberFormat('fr-FR').format(priceXOF) + ' XOF';
+    };
+
+    function initTheme() {
+        const theme = localStorage.getItem('douera_theme') || 'light';
+        document.body.classList.toggle('dark-mode', theme === 'dark');
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    function initCurrency() {
+        const currency = localStorage.getItem('douera_currency') || 'XOF';
+        const currencySelect = document.getElementById('currency-select');
+        if (currencySelect) {
+            currencySelect.value = currency;
+            currencySelect.onchange = (e) => {
+                localStorage.setItem('douera_currency', e.target.value);
+                window.dispatchEvent(new Event('currencychange'));
+                renderAppProducts();
+                renderCartDrawer();
+            };
+        }
+    }
+
     // --- DOM ELEMENTS ---
     const productGrid = document.getElementById('productGrid');
     const authArea = document.getElementById('nav-auth-area');
@@ -36,13 +73,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 1. INITIALIZATION ---
 
     async function init() {
+        initTheme();
+        initCurrency();
+
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.onclick = () => {
+                const isDark = document.body.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                localStorage.setItem('douera_theme', newTheme);
+                document.body.classList.toggle('dark-mode', newTheme === 'dark');
+                themeBtn.innerHTML = newTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            };
+        }
+
         // Parallel load for speed
         const loadProductsPromise = (async () => {
             const cached = sessionStorage.getItem('douera_products_cache');
             if (cached) {
                 allProducts = JSON.parse(cached);
                 renderAppProducts(); // Show cached version immediately
-                // Then update in background
             }
             try {
                 const res = await fetch(`${API_BASE_URL}/products`);
@@ -60,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
         await Promise.all([loadProductsPromise, initAuthPromise]);
         
         initHeroBackground();
+        setupAutocomplete('desktopSearchInput', 'desktopSearchSuggestions');
+        setupAutocomplete('storeSearch', 'storeSearchSuggestions');
         
         // Populate Categories
         const categories = [...new Set(allProducts.map(p => p.category))];
@@ -107,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (priceRange) {
             priceRange.oninput = (e) => {
                 currentMaxPrice = parseInt(e.target.value);
-                if (priceValueDisplay) priceValueDisplay.textContent = currentMaxPrice.toLocaleString() + ' XOF';
+                if (priceValueDisplay) priceValueDisplay.textContent = window.formatPrice(currentMaxPrice);
             };
             priceRange.onchange = () => renderAppProducts();
         }
@@ -273,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'product-card animate-fade-in';
             card.style.animationDelay = `${idx * 0.05}s`;
             
-            const price = parseInt(p.price).toLocaleString();
+            const formattedPrice = window.formatPrice(p.price);
             const hasStock = p.stock > 0;
 
             card.innerHTML = `
@@ -298,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;">
                         <div>
-                            <div class="product-price" style="font-size: 1.25rem;">${price} <span style="font-size: 0.75rem;">XOF</span></div>
+                            <div class="product-price" style="font-size: 1.25rem;">${formattedPrice}</div>
                             <div style="font-size: 0.7rem; color: var(--color-success); font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
                                 <i data-lucide="truck" style="width: 12px;"></i> Livraison 24h
                             </div>
@@ -325,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = Cart.getTotal();
         const drawerSummary = document.getElementById('cartDrawerSummary');
 
-        if (drawerTotal) drawerTotal.textContent = total.toLocaleString() + ' XOF';
+        if (drawerTotal) drawerTotal.textContent = window.formatPrice(total);
         cartDrawerItems.innerHTML = '';
 
         if (items.length === 0) {
@@ -353,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="${item.image}" alt="${item.name}" style="width: 70px; height: 70px;">
                 <div class="cart-item-info">
                     <div class="cart-item-title" style="font-size: 0.95rem;">${item.name}</div>
-                    <div class="cart-item-price" style="font-size: 1rem;">${item.price.toLocaleString()} XOF</div>
+                    <div class="cart-item-price" style="font-size: 1rem;">${window.formatPrice(item.price * item.quantity)}</div>
                     <div class="quantity-controls">
                         <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i data-lucide="minus" style="width: 12px;"></i></button>
                         <span style="font-weight: 800; font-size: 0.9rem;">${item.quantity}</span>
@@ -466,7 +519,7 @@ const allBtn = document.querySelector('[data-category="all"]');
         }
         document.getElementById('qv-category').textContent = p.category;
         document.getElementById('qv-title').textContent = p.name;
-        document.getElementById('qv-price').textContent = p.price.toLocaleString() + ' XOF';
+        document.getElementById('qv-price').textContent = window.formatPrice(p.price);
         
         const infoContainer = document.getElementById('qv-info-container');
         const existingAction = infoContainer.querySelector('.sticky-action-area');
@@ -683,6 +736,38 @@ const allBtn = document.querySelector('[data-category="all"]');
             return;
         }
 
+        // Calculate breakdown
+        const starCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+        allReviews.forEach(r => {
+            const rProd = parseInt(r.rating_product || r.ratingproduct || r.rating_service || r.ratingservice || 5);
+            if (starCounts[rProd] !== undefined) starCounts[rProd]++;
+        });
+        const totalReviews = allReviews.length;
+
+        const breakdownDiv = document.createElement('div');
+        breakdownDiv.className = 'rating-breakdown';
+        breakdownDiv.innerHTML = `
+            <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 16px; color: var(--color-foreground);">Répartition des avis client</div>
+            ${[5, 4, 3, 2, 1].map(stars => {
+                const count = starCounts[stars] || 0;
+                const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+                return `
+                    <div class="rating-row">
+                        <span class="rating-label">${stars} étoiles</span>
+                        <div class="rating-bar-container">
+                            <div class="rating-bar-fill" style="width: ${pct}%;"></div>
+                        </div>
+                        <span class="rating-count">${pct}% (${count})</span>
+                    </div>
+                `;
+            }).join('')}
+        `;
+        container.appendChild(breakdownDiv);
+
+        const reviewsWrapper = document.createElement('div');
+        reviewsWrapper.style.cssText = 'display: grid; gap: 16px;';
+        container.appendChild(reviewsWrapper); // We'll append reviews inside reviewsWrapper
+
         allReviews.forEach(review => {
             const date = new Date(review.date || review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
             const uName = review.userName || review.username || 'Client Douéra';
@@ -718,7 +803,7 @@ const allBtn = document.querySelector('[data-category="all"]');
                     </div>
                 ` : ''}
             `;
-            container.appendChild(div);
+            reviewsWrapper.appendChild(div);
         });
         if (window.lucide) lucide.createIcons();
     }
@@ -796,6 +881,62 @@ const allBtn = document.querySelector('[data-category="all"]');
         }
         if (window.lucide) lucide.createIcons();
     };
+
+    // --- 5. SEARCH AUTOCOMPLETE SUGGESTIONS ---
+    function setupAutocomplete(inputId, suggestionsId) {
+        const input = document.getElementById(inputId);
+        const panel = document.getElementById(suggestionsId);
+        if (!input || !panel) return;
+
+        input.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if (!val) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            const matches = allProducts.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
+            if (matches.length === 0) {
+                panel.innerHTML = `
+                    <div style="padding: 16px; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
+                        Aucun résultat pour "${e.target.value}"
+                    </div>
+                `;
+                panel.style.display = 'block';
+                return;
+            }
+
+            panel.innerHTML = matches.map(p => `
+                <div class="suggestion-item" data-id="${p.id}">
+                    <img class="suggestion-img" src="${p.image}" alt="${p.name}">
+                    <div class="suggestion-info">
+                        <div class="suggestion-name">${p.name}</div>
+                        <div class="suggestion-category">${p.category}</div>
+                    </div>
+                    <div class="suggestion-price">${window.formatPrice(p.price)}</div>
+                </div>
+            `).join('');
+
+            panel.style.display = 'block';
+
+            // Add click handlers
+            panel.querySelectorAll('.suggestion-item').forEach(item => {
+                item.onclick = () => {
+                    const id = item.dataset.id;
+                    openQuickView(id);
+                    panel.style.display = 'none';
+                    input.value = '';
+                };
+            });
+        });
+
+        // Hide when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !panel.contains(e.target)) {
+                panel.style.display = 'none';
+            }
+        });
+    }
 
     // --- 6. SCROLL REVEAL ANIMATIONS ---
     function initScrollReveal() {

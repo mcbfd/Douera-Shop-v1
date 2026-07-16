@@ -53,7 +53,7 @@
 <body class="animate-fade-in">
 
     <!-- Header Luxury -->
-    <header id="main-header" style="padding: 8px 0; background: white; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 1000;">
+    <header id="main-header" style="padding: 8px 0; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 1000;">
         <div class="container">
             <nav style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
                 <a href="index.html" class="logo" style="flex-shrink: 0;">
@@ -61,14 +61,24 @@
                 </a>
 
                 <!-- Desktop Search Bar (Hidden on Mobile) -->
-                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none;">
+                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none; position: relative;">
                     <div style="position: relative; display: flex; align-items: center; background: #F8FAFC; border-radius: 10px; border: 1px solid var(--color-border); width: 100%;">
                         <i data-lucide="search" style="margin-left: 12px; width: 18px; color: var(--color-muted);"></i>
-                        <input type="text" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
+                        <input type="text" id="desktopSearchInput" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
                     </div>
+                    <div id="desktopSearchSuggestions" class="search-suggestions-panel"></div>
                 </div>
 
                 <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Theme & Currency Selectors -->
+                    <select id="currency-select" class="currency-selector" title="Choisir la devise">
+                        <option value="XOF">XOF (FCFA)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                    <button id="theme-toggle-btn" class="theme-toggle-btn" title="Changer de thème">
+                        <i data-lucide="moon"></i>
+                    </button>
                     <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
                         <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
                         <span class="cart-count nav-badge" style="top: -2px; right: -8px;">0</span>
@@ -369,14 +379,14 @@
                                 <img src="${item.image}" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 700; color: var(--color-primary-dark); font-size: 0.85rem;">${item.name}</div>
-                                    <div style="color: var(--color-muted); font-size: 0.75rem;">Qté: ${item.quantity} • ${item.price.toLocaleString()} XOF</div>
+                                    <div style="color: var(--color-muted); font-size: 0.75rem;">Qté: ${item.quantity} • ${window.formatPrice(item.price)}</div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--color-border); padding-top: 24px; flex-wrap: wrap; gap: 20px;">
-                        <div style="font-size: 0.95rem; color: var(--color-muted);">Total de la commande: <strong style="color: var(--color-primary-dark); font-size: 1.3rem; margin-left: 8px;">${order.total.toLocaleString()} XOF</strong></div>
+                        <div style="font-size: 0.95rem; color: var(--color-muted);">Total de la commande: <strong style="color: var(--color-primary-dark); font-size: 1.3rem; margin-left: 8px;">${window.formatPrice(order.total)}</strong></div>
                         
                         ${(order.status === 'Livrée' && !order.review_id) ? `
                             <a href="account/review.html?orderId=${order.id}" class="btn btn-primary" style="padding: 12px 24px; border-radius: 12px; font-size: 0.85rem;">
@@ -452,6 +462,56 @@
                 console.error(err);
                 alert("Erreur lors de la confirmation de réception.");
             }
+        }
+
+        // --- Currency & Theme Utilities ---
+        window.formatPrice = function(priceXOF) {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            if (currency === 'EUR') {
+                const price = Math.round(priceXOF / 655);
+                return price + ' €';
+            } else if (currency === 'USD') {
+                const price = Math.round(priceXOF / 600);
+                return price + ' $';
+            }
+            return new Intl.NumberFormat('fr-FR').format(priceXOF) + ' XOF';
+        };
+
+        function initTheme() {
+            const theme = localStorage.getItem('douera_theme') || 'light';
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function initCurrency() {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            const currencySelect = document.getElementById('currency-select');
+            if (currencySelect) {
+                currencySelect.value = currency;
+                currencySelect.onchange = (e) => {
+                    localStorage.setItem('douera_currency', e.target.value);
+                    window.location.reload();
+                };
+            }
+        }
+
+        initTheme();
+        initCurrency();
+
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.onclick = () => {
+                const isDark = document.body.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                localStorage.setItem('douera_theme', newTheme);
+                document.body.classList.toggle('dark-mode', newTheme === 'dark');
+                themeBtn.innerHTML = newTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            };
         }
     </script>
 </body>

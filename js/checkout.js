@@ -1,8 +1,59 @@
 /**
- * Douéra Shop - Checkout Controller
+ * Douéra Shop - Checkout Controller v4.2
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Theme & Currency Utilities ---
+    window.formatPrice = function(priceXOF) {
+        const currency = localStorage.getItem('douera_currency') || 'XOF';
+        if (currency === 'EUR') {
+            const price = Math.round(priceXOF / 655);
+            return price + ' €';
+        } else if (currency === 'USD') {
+            const price = Math.round(priceXOF / 600);
+            return price + ' $';
+        }
+        return new Intl.NumberFormat('fr-FR').format(priceXOF) + ' XOF';
+    };
+
+    function initTheme() {
+        const theme = localStorage.getItem('douera_theme') || 'light';
+        document.body.classList.toggle('dark-mode', theme === 'dark');
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    function initCurrency() {
+        const currency = localStorage.getItem('douera_currency') || 'XOF';
+        const currencySelect = document.getElementById('currency-select');
+        if (currencySelect) {
+            currencySelect.value = currency;
+            currencySelect.onchange = (e) => {
+                localStorage.setItem('douera_currency', e.target.value);
+                window.dispatchEvent(new Event('currencychange'));
+                initCheckout();
+            };
+        }
+    }
+
+    initTheme();
+    initCurrency();
+
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    if (themeBtn) {
+        themeBtn.onclick = () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            const newTheme = isDark ? 'light' : 'dark';
+            localStorage.setItem('douera_theme', newTheme);
+            document.body.classList.toggle('dark-mode', newTheme === 'dark');
+            themeBtn.innerHTML = newTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+            if (window.lucide) lucide.createIcons();
+        };
+    }
+
     // Elements
     const step1 = document.getElementById('step-1-content');
     const step2 = document.getElementById('step-2-content');
@@ -12,7 +63,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalEl = document.getElementById('summary-total');
     const subtotalEl = document.getElementById('summary-subtotal');
     
+    // Promo elements
+    const promoInput = document.getElementById('checkout-promo-input');
+    const promoApply = document.getElementById('checkout-promo-apply');
+    const promoMsg = document.getElementById('checkout-promo-message');
+    const discountRow = document.getElementById('checkout-discount-row');
+    const discountEl = document.getElementById('summary-discount');
+
+    let discountPct = parseFloat(sessionStorage.getItem('douera_discount_pct') || '0');
+    let discountCode = sessionStorage.getItem('douera_discount_code') || '';
+
     let selectedMethod = 'orange';
+
+    function showPromoMsg(text, type) {
+        if (!promoMsg) return;
+        promoMsg.textContent = text;
+        promoMsg.style.color = type === 'success' ? 'var(--color-success)' : 'var(--color-error)';
+        promoMsg.style.display = 'block';
+    }
+
+    if (promoApply) {
+        promoApply.onclick = () => {
+            const code = promoInput.value.trim().toUpperCase();
+            if (code === 'WELCOME10') {
+                discountPct = 10;
+                discountCode = 'WELCOME10';
+                showPromoMsg("Code WELCOME10 appliqué ! -10%", "success");
+            } else if (code === 'DOUERA20') {
+                discountPct = 20;
+                discountCode = 'DOUERA20';
+                showPromoMsg("Code DOUERA20 appliqué ! -20%", "success");
+            } else if (code === '') {
+                discountPct = 0;
+                discountCode = '';
+                promoMsg.style.display = 'none';
+            } else {
+                discountPct = 0;
+                discountCode = '';
+                showPromoMsg("Code promo inconnu.", "error");
+            }
+            sessionStorage.setItem('douera_discount_pct', discountPct.toString());
+            sessionStorage.setItem('douera_discount_code', discountCode);
+            initCheckout();
+        };
+    }
+
+    if (discountCode && promoInput) {
+        promoInput.value = discountCode;
+        showPromoMsg(`Code ${discountCode} actif (${discountPct}%)`, "success");
+    }
 
     window.getLocation = function() {
         if (!navigator.geolocation) {
@@ -46,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.removeItemFromCheckout = function(id) {
         Cart.remove(id);
         initCheckout();
-        // Sync with main page if needed (cart updated event)
         window.dispatchEvent(new CustomEvent('cartUpdated'));
     };
 
@@ -92,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="flex: 1; font-size: 0.85rem;">
                         <div style="font-weight: 700; color: var(--color-primary-dark);">${item.name}</div>
-                        <div style="font-weight: 800; color: var(--color-primary); margin-top: 2px;">${(item.price * item.quantity).toLocaleString()} XOF</div>
+                        <div style="font-weight: 800; color: var(--color-primary); margin-top: 2px;">${window.formatPrice(item.price * item.quantity)}</div>
                     </div>
                     <button onclick="removeItemFromCheckout('${item.id}')" style="background: none; border: none; color: var(--color-error); cursor: pointer; padding: 8px; opacity: 0.4; transition: opacity 0.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
                         <i data-lucide="trash-2" style="width: 18px;"></i>
@@ -103,8 +201,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const total = Cart.getTotal();
-        if (totalEl) totalEl.textContent = `${total.toLocaleString()} XOF`;
-        if (subtotalEl) subtotalEl.textContent = `${total.toLocaleString()} XOF`;
+        const discountAmount = Math.round(total * (discountPct / 100));
+        const finalTotal = total - discountAmount;
+
+        if (subtotalEl) subtotalEl.textContent = window.formatPrice(total);
+        
+        if (discountAmount > 0) {
+            if (discountRow) discountRow.style.display = 'flex';
+            if (discountEl) discountEl.textContent = `-${window.formatPrice(discountAmount)}`;
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+        }
+
+        if (totalEl) totalEl.textContent = window.formatPrice(finalTotal);
         
         if (window.lucide) lucide.createIcons();
     }
@@ -201,17 +310,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 let trxRef = null;
                 const orderId = Payment.generateTransactionRef();
                 const total = Cart.getTotal();
+                const discountAmount = Math.round(total * (discountPct / 100));
+                const finalTotal = total - discountAmount;
 
                 if (selectedMethod === 'wave') {
                     // Pour Wave, on enregistre d'abord la commande puis on redirige
-                    await saveOrderToBackend(orderId, cart, total);
+                    await saveOrderToBackend(orderId, cart, finalTotal);
                     
                     const phone = document.getElementById('mm-phone').value;
-                    const paymentResult = await Payment.processMobileMoney('wave', phone, { id: orderId, total: total });
+                    const paymentResult = await Payment.processMobileMoney('wave', phone, { id: orderId, total: finalTotal });
                     
                     if (paymentResult.type === 'redirect') {
                         UI.showToast("Redirection vers Wave...", "success");
                         Cart.clear();
+                        sessionStorage.removeItem('douera_discount_pct');
+                        sessionStorage.removeItem('douera_discount_code');
                         setTimeout(() => {
                             window.location.href = paymentResult.url;
                         }, 1000);
@@ -219,14 +332,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (selectedMethod === 'orange') {
                     // Pour Orange, on enregistre d'abord la commande puis on redirige
-                    await saveOrderToBackend(orderId, cart, total);
+                    await saveOrderToBackend(orderId, cart, finalTotal);
                     
                     const phone = document.getElementById('mm-phone').value;
-                    const paymentResult = await Payment.processMobileMoney('orange', phone, { id: orderId, total: total });
+                    const paymentResult = await Payment.processMobileMoney('orange', phone, { id: orderId, total: finalTotal });
                     
                     if (paymentResult.type === 'redirect') {
                         UI.showToast("Redirection vers Orange Money...", "success");
                         Cart.clear();
+                        sessionStorage.removeItem('douera_discount_pct');
+                        sessionStorage.removeItem('douera_discount_code');
                         setTimeout(() => {
                             window.location.href = paymentResult.url;
                         }, 1000);
@@ -248,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Success for non-wave methods
-                await saveOrderToBackend(trxRef, cart, total);
+                await saveOrderToBackend(trxRef, cart, finalTotal);
 
                 // Save as Default if checked
                 const saveDefault = document.getElementById('save-default-address');
@@ -272,6 +387,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Clear Cart AFTER successful order save
                 Cart.clear();
+                sessionStorage.removeItem('douera_discount_pct');
+                sessionStorage.removeItem('douera_discount_code');
                 
                 UI.showToast("Commande confirmée ! Merci de votre confiance.", "success");
                 setTimeout(() => {

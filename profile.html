@@ -10,13 +10,24 @@
 </head>
 <body class="animate-fade-in" style="background: #F8FAFC;">
 
-    <header style="background: white; border-bottom: 1px solid var(--color-border); padding: 12px 0; position: sticky; top: 0; z-index: 1000;">
+    <header style="border-bottom: 1px solid var(--color-border); padding: 12px 0; position: sticky; top: 0; z-index: 1000;">
         <div class="container" style="display: flex; align-items: center; justify-content: space-between;">
             <a href="index.html" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--color-primary-dark); font-weight: 800;">
                 <i data-lucide="arrow-left" style="width: 20px;"></i>
                 <span>Boutique</span>
             </a>
-            <div id="nav-auth-area"></div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <!-- Theme & Currency Selectors -->
+                <select id="currency-select" class="currency-selector" title="Choisir la devise">
+                    <option value="XOF">XOF (FCFA)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="USD">USD ($)</option>
+                </select>
+                <button id="theme-toggle-btn" class="theme-toggle-btn" title="Changer de thème">
+                    <i data-lucide="moon"></i>
+                </button>
+                <div id="nav-auth-area"></div>
+            </div>
         </div>
     </header>
 
@@ -175,6 +186,56 @@
                     UI.showToast("Erreur GPS", "error");
                 }
             });
+        }
+
+        // --- Currency & Theme Utilities ---
+        window.formatPrice = function(priceXOF) {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            if (currency === 'EUR') {
+                const price = Math.round(priceXOF / 655);
+                return price + ' €';
+            } else if (currency === 'USD') {
+                const price = Math.round(priceXOF / 600);
+                return price + ' $';
+            }
+            return new Intl.NumberFormat('fr-FR').format(priceXOF) + ' XOF';
+        };
+
+        function initTheme() {
+            const theme = localStorage.getItem('douera_theme') || 'light';
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function initCurrency() {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            const currencySelect = document.getElementById('currency-select');
+            if (currencySelect) {
+                currencySelect.value = currency;
+                currencySelect.onchange = (e) => {
+                    localStorage.setItem('douera_currency', e.target.value);
+                    window.location.reload();
+                };
+            }
+        }
+
+        initTheme();
+        initCurrency();
+
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.onclick = () => {
+                const isDark = document.body.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                localStorage.setItem('douera_theme', newTheme);
+                document.body.classList.toggle('dark-mode', newTheme === 'dark');
+                themeBtn.innerHTML = newTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            };
         }
     </script>
 </body>

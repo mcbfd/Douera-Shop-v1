@@ -17,20 +17,23 @@
 
     <header>
         <div class="container">
-            <nav>
-                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
-                    <div
-                        style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                        <img src="assets/logo douera shop.png" alt="Douéra Shop"
-                            style="width: 100%; height: auto; object-fit: contain; transform: translateY(0);">
-                    </div>
+            <nav style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <a href="index.html" class="logo" style="flex-shrink: 0;">
+                    <img src="assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
-                <div class="nav-icons" style="margin-left: auto;">
-                    <span style="color: var(--color-muted); font-size: 0.9rem; font-weight: 600;">
-                        <i data-lucide="lock"
-                            style="width: 16px; vertical-align: middle; color: var(--color-primary);"></i> Paiement 100%
-                        Sécurisé
-                    </span>
+                <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Theme & Currency Selectors -->
+                    <select id="currency-select" class="currency-selector" title="Choisir la devise">
+                        <option value="XOF">XOF (FCFA)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                    <button id="theme-toggle-btn" class="theme-toggle-btn" title="Changer de thème">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    <a href="cart.html" class="btn btn-outline" style="padding: 10px 20px; border-radius: 12px;">
+                        <i data-lucide="arrow-left" style="width: 18px;"></i> Panier
+                    </a>
                 </div>
             </nav>
         </div>
@@ -343,8 +346,12 @@
                         <div
                             style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--color-muted); font-size: 1rem;">
                             <span>Sous-total</span>
-                            <span id="summary-subtotal" style="font-weight: 600; color: var(--color-foreground);">0
-                                XOF</span>
+                            <span id="summary-subtotal" style="font-weight: 600; color: var(--color-foreground);">0 XOF</span>
+                        </div>
+                        <div id="checkout-discount-row"
+                            style="display: none; justify-content: space-between; margin-bottom: 16px; color: var(--color-error); font-size: 1rem; font-weight: 700;">
+                            <span>Réduction</span>
+                            <span id="summary-discount">-0 XOF</span>
                         </div>
                         <div
                             style="display: flex; justify-content: space-between; margin-bottom: 24px; color: var(--color-muted); font-size: 1rem;">
@@ -352,6 +359,17 @@
                             <span
                                 style="color: var(--color-success); font-weight: 800; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">GRATUITE</span>
                         </div>
+                        
+                        <!-- Checkout Promo Code Box -->
+                        <div style="margin-top: 16px; padding: 16px; border-radius: 14px; background: var(--color-muted-light); border: 1px dashed var(--color-border); display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                            <label style="font-size: 0.85rem; font-weight: 700; color: var(--color-foreground);">Code Promo / Remise</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="checkout-promo-input" placeholder="Ex: WELCOME10" class="pay-input" style="padding: 10px 14px; font-size: 0.9rem; border-radius: 10px; flex: 1;">
+                                <button id="checkout-promo-apply" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem; border-radius: 10px;">Valider</button>
+                            </div>
+                            <div id="checkout-promo-message" style="font-size: 0.8rem; font-weight: 600; display: none;"></div>
+                        </div>
+
                         <div
                             style="display: flex; justify-content: space-between; font-weight: 800; font-size: 2rem; color: var(--color-primary-dark); font-family: 'Outfit', sans-serif;">
                             <span>Total</span>

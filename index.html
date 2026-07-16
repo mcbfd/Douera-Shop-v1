@@ -32,14 +32,25 @@
                 </a>
 
                 <!-- Desktop Search Bar (Hidden on Mobile) -->
-                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none;">
+                <div class="desktop-search-container" style="flex: 1; max-width: 600px; display: none; position: relative;">
                     <div style="position: relative; display: flex; align-items: center; background: #F8FAFC; border-radius: 10px; border: 1px solid var(--color-border); width: 100%;">
                         <i data-lucide="search" style="margin-left: 12px; width: 18px; color: var(--color-muted);"></i>
-                        <input type="text" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
+                        <input type="text" id="desktopSearchInput" placeholder="Rechercher sur Douéra Shop..." style="flex: 1; padding: 10px; border: none; background: transparent; outline: none; font-size: 0.9rem;">
                     </div>
+                    <div id="desktopSearchSuggestions" class="search-suggestions-panel"></div>
                 </div>
 
                 <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Theme & Currency Selectors -->
+                    <select id="currency-select" class="currency-selector" title="Choisir la devise">
+                        <option value="XOF">XOF (FCFA)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                    <button id="theme-toggle-btn" class="theme-toggle-btn" title="Changer de thème">
+                        <i data-lucide="moon"></i>
+                    </button>
+
                     <a href="track-order.html" id="track-nav-link" class="nav-link desktop-only-btn" title="Suivre ma commande" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
                         <i data-lucide="package" style="width: 24px; height: 24px;"></i>
                     </a>
@@ -138,6 +149,7 @@
                             <input type="text" id="storeSearch" placeholder="Qu'est-ce qui vous ferait plaisir ?"
                                 style="flex: 1; padding: 16px 12px; border: none; background: transparent; outline: none; font-family: inherit; font-size: 1rem; font-weight: 600;">
                             <button class="btn btn-primary" style="padding: 10px 24px; border-radius: 10px; font-size: 0.9rem;">Chercher</button>
+                            <div id="storeSearchSuggestions" class="search-suggestions-panel"></div>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <button id="toggleFiltersBtn" class="btn btn-outline" style="border-radius: 12px; padding: 12px; border: 1px solid var(--color-border);">

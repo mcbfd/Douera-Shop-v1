@@ -35,16 +35,25 @@
     </style>
 </head>
 <body class="animate-fade-in">
-    <header id="main-header">
+    <header id="main-header" style="padding: 8px 0; border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 1000;">
         <div class="container">
-            <nav>
-                <a href="index.html" class="logo" style="height: 50px; display: flex; align-items: center;">
-                    <div style="height: 100px; width: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                        <img src="assets/logo douera shop.png" alt="Douéra Shop" style="width: 100%; height: auto; object-fit: contain;">
-                    </div>
+            <nav style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <a href="index.html" class="logo" style="flex-shrink: 0;">
+                    <img src="assets/logo douera shop.png" alt="Douéra Shop" style="height: 35px; width: auto; object-fit: contain;">
                 </a>
-                <div class="nav-icons">
-                    <a href="index.html" class="btn btn-outline">Retour à la boutique</a>
+                <div class="nav-icons" style="display: flex; align-items: center; gap: 16px;">
+                    <!-- Theme & Currency Selectors -->
+                    <select id="currency-select" class="currency-selector" title="Choisir la devise">
+                        <option value="XOF">XOF (FCFA)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                    <button id="theme-toggle-btn" class="theme-toggle-btn" title="Changer de thème">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    <a href="index.html" class="btn btn-outline" style="padding: 10px 20px; border-radius: 12px;">
+                        <i data-lucide="arrow-left" style="width: 18px;"></i> Boutique
+                    </a>
                 </div>
             </nav>
         </div>
@@ -177,7 +186,7 @@
                                     </div>
                                     <div style="text-align: right;">
                                         <p style="color: var(--color-muted); font-size: 0.85rem; margin-bottom: 4px;">Commande #${order.id}</p>
-                                        <p style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">${order.total.toLocaleString()} XOF</p>
+                                        <p style="font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;">${window.formatPrice(order.total)}</p>
                                                      ${(statusNorm.includes('cours') || statusNorm.includes('expédi')) ? `
                                             <button onclick="confirmReceiptPublic('${order.id}')" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.75rem; border-radius: 8px; background: #10B981; border: none;">
                                                 Confirmer la réception
@@ -248,6 +257,56 @@
                 }
             });
         });
+
+        // --- Currency & Theme Utilities ---
+        window.formatPrice = function(priceXOF) {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            if (currency === 'EUR') {
+                const price = Math.round(priceXOF / 655);
+                return price + ' €';
+            } else if (currency === 'USD') {
+                const price = Math.round(priceXOF / 600);
+                return price + ' $';
+            }
+            return new Intl.NumberFormat('fr-FR').format(priceXOF) + ' XOF';
+        };
+
+        function initTheme() {
+            const theme = localStorage.getItem('douera_theme') || 'light';
+            document.body.classList.toggle('dark-mode', theme === 'dark');
+            const themeBtn = document.getElementById('theme-toggle-btn');
+            if (themeBtn) {
+                themeBtn.innerHTML = theme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        function initCurrency() {
+            const currency = localStorage.getItem('douera_currency') || 'XOF';
+            const currencySelect = document.getElementById('currency-select');
+            if (currencySelect) {
+                currencySelect.value = currency;
+                currencySelect.onchange = (e) => {
+                    localStorage.setItem('douera_currency', e.target.value);
+                    window.location.reload();
+                };
+            }
+        }
+
+        initTheme();
+        initCurrency();
+
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        if (themeBtn) {
+            themeBtn.onclick = () => {
+                const isDark = document.body.classList.contains('dark-mode');
+                const newTheme = isDark ? 'light' : 'dark';
+                localStorage.setItem('douera_theme', newTheme);
+                document.body.classList.toggle('dark-mode', newTheme === 'dark');
+                themeBtn.innerHTML = newTheme === 'dark' ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+                if (window.lucide) lucide.createIcons();
+            };
+        }
     </script>
 </body>
 </html>
