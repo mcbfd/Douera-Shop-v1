@@ -51,11 +51,11 @@
                         <i data-lucide="moon"></i>
                     </button>
 
-                    <a href="track-order.html" id="track-nav-link" class="nav-link desktop-only-btn" title="Suivre ma commande" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
+                    <a href="track-order.html" id="track-nav-link" class="nav-link desktop-only-btn logged-in-only" title="Suivre ma commande" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
                         <i data-lucide="package" style="width: 24px; height: 24px;"></i>
                     </a>
                     
-                    <a href="profile.html" id="profile-nav-link" class="nav-link desktop-only-btn" title="Mon Profil" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
+                    <a href="profile.html" id="profile-nav-link" class="nav-link desktop-only-btn logged-in-only" title="Mon Profil" style="color: var(--color-muted); transition: var(--transition-fast); display: none;">
                         <i data-lucide="user" style="width: 24px; height: 24px;"></i>
                     </a>
                     
@@ -66,10 +66,15 @@
             </nav>
         </div>
         <style>
+            .logged-in-only {
+                display: none !important;
+            }
             @media (min-width: 769px) {
                 .desktop-search-container { display: block !important; }
                 .desktop-only-btn { display: flex !important; }
-                #track-nav-link { display: flex !important; }
+                body.logged-in .logged-in-only {
+                    display: flex !important;
+                }
                 header { padding: 12px 0 !important; }
             }
         </style>

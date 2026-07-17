@@ -215,6 +215,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateAuthUI() {
         if (!authArea) return;
         const user = AuthService.getCurrentUser();
+        
+        // Toggle body logged-in state class
+        document.body.classList.toggle('logged-in', !!user);
+
         const cartCount = Cart.getItems().reduce((t, i) => t + i.quantity, 0);
 
         // Update Bottom Nav Link dynamically
