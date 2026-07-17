@@ -7,6 +7,43 @@
     <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <style>
+        .tab-btn {
+            position: relative;
+            outline: none;
+        }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--color-primary);
+            transform: scaleX(0);
+            transition: transform 0.25s ease;
+            transform-origin: bottom left;
+        }
+        .tab-btn.active {
+            color: var(--color-primary) !important;
+        }
+        .tab-btn.active::after {
+            transform: scaleX(1);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body class="animate-fade-in" style="background: #F8FAFC;">
 
@@ -42,51 +79,90 @@
             </div>
         </div>
 
+        <!-- Tabs Header -->
+        <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 2px solid var(--color-border); padding-bottom: 12px; justify-content: center;">
+            <button id="tab-info-btn" class="tab-btn active" onclick="switchTab('info')" style="background: none; border: none; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--color-primary); cursor: pointer; padding: 8px 16px; display: flex; align-items: center; gap: 8px; transition: var(--transition-fast);">
+                <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                Informations Personnelles
+            </button>
+            <button id="tab-security-btn" class="tab-btn" onclick="switchTab('security')" style="background: none; border: none; font-family: 'Outfit', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--color-muted); cursor: pointer; padding: 8px 16px; display: flex; align-items: center; gap: 8px; transition: var(--transition-fast);">
+                <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+                Sécurité & Mot de passe
+            </button>
+        </div>
+
         <div style="background: white; border-radius: 24px; padding: 40px; border: 1px solid var(--color-border); box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
-            <form id="profileForm" style="display: flex; flex-direction: column; gap: 24px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                    <div class="form-group">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nom complet</label>
-                        <input type="text" id="name" class="pay-input" style="width: 100%;" required>
+            <!-- Tab 1: Personal Info -->
+            <div id="tab-info-content" class="tab-content active">
+                <form id="profileForm" style="display: flex; flex-direction: column; gap: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nom complet</label>
+                            <input type="text" id="name" class="pay-input" style="width: 100%;" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Email</label>
+                            <input type="email" id="email" class="pay-input" style="width: 100%; opacity: 0.7; background: #F1F5F9;" readonly>
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Email</label>
-                        <input type="email" id="email" class="pay-input" style="width: 100%; opacity: 0.7; background: #F1F5F9;" readonly>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Téléphone (WhatsApp)</label>
+                        <input type="tel" id="phone" class="pay-input" style="width: 100%;" required>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Téléphone (WhatsApp)</label>
-                    <input type="tel" id="phone" class="pay-input" style="width: 100%;" required>
-                </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Adresse de livraison</label>
+                        <div style="position: relative;">
+                            <input type="text" id="address" class="pay-input" style="width: 100%; padding-right: 120px;" required>
+                            <button type="button" onclick="getLocation()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--color-primary-light); border: none; color: var(--color-primary); padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; cursor: pointer;">
+                                <i data-lucide="map-pin" style="width: 12px; vertical-align: middle;"></i> GPS
+                            </button>
+                        </div>
+                    </div>
 
-                <div class="form-group">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Adresse de livraison</label>
-                    <div style="position: relative;">
-                        <input type="text" id="address" class="pay-input" style="width: 100%; padding-right: 120px;" required>
-                        <button type="button" onclick="getLocation()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--color-primary-light); border: none; color: var(--color-primary); padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; cursor: pointer;">
-                            <i data-lucide="map-pin" style="width: 12px; vertical-align: middle;"></i> GPS
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Région</label>
+                            <input type="text" id="region" class="pay-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville</label>
+                            <input type="text" id="city" class="pay-input" style="width: 100%;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit" id="saveBtn" class="btn btn-primary" style="width: 100%; padding: 18px; font-weight: 800; border-radius: 14px; justify-content: center;">
+                            Enregistrer les modifications
                         </button>
                     </div>
-                </div>
+                </form>
+            </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Tab 2: Password Update -->
+            <div id="tab-security-content" class="tab-content">
+                <form id="passwordForm" style="display: flex; flex-direction: column; gap: 24px;">
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Région</label>
-                        <input type="text" id="region" class="pay-input" style="width: 100%;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Mot de passe actuel</label>
+                        <input type="password" id="current_password" class="pay-input" style="width: 100%;" required>
                     </div>
                     <div class="form-group">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Ville</label>
-                        <input type="text" id="city" class="pay-input" style="width: 100%;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Nouveau mot de passe (min. 6 caractères)</label>
+                        <input type="password" id="new_password" class="pay-input" style="width: 100%;" required>
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;">Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirm_password" class="pay-input" style="width: 100%;" required>
+                    </div>
 
-                <div style="margin-top: 20px;">
-                    <button type="submit" id="saveBtn" class="btn btn-primary" style="width: 100%; padding: 18px; font-weight: 800; border-radius: 14px; justify-content: center;">
-                        Enregistrer les modifications
-                    </button>
-                </div>
-            </form>
+                    <div style="margin-top: 20px;">
+                        <button type="submit" id="savePasswordBtn" class="btn btn-primary" style="width: 100%; padding: 18px; font-weight: 800; border-radius: 14px; justify-content: center;">
+                            Mettre à jour le mot de passe
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div style="margin-top: 32px; text-align: center;">
@@ -100,19 +176,61 @@
     <script src="js/ui.js"></script>
     <script src="js/auth-service.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabId === 'info') {
+                document.getElementById('tab-info-btn').classList.add('active');
+                document.getElementById('tab-info-content').classList.add('active');
+            } else if (tabId === 'security') {
+                document.getElementById('tab-security-btn').classList.add('active');
+                document.getElementById('tab-security-content').classList.add('active');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
             const user = AuthService.getCurrentUser();
             if (!user) { window.location.href = 'account/login.html'; return; }
 
-            // Fill Form
-            document.getElementById('display-name').textContent = user.name;
-            document.getElementById('profile-initial').textContent = user.name.charAt(0).toUpperCase();
-            document.getElementById('name').value = user.name;
-            document.getElementById('email').value = user.email;
-            document.getElementById('phone').value = user.phone || '';
-            document.getElementById('address').value = user.address || '';
-            document.getElementById('region').value = user.region || '';
-            document.getElementById('city').value = user.city || '';
+            // 1. Fetch full user details from DB
+            try {
+                const res = await fetch(`${API_BASE_URL}/users/${user.userId}/profile`);
+                if (res.ok) {
+                    const fullUser = await res.json();
+                    
+                    // Fill inputs with DB data
+                    document.getElementById('display-name').textContent = fullUser.name;
+                    document.getElementById('profile-initial').textContent = fullUser.name.charAt(0).toUpperCase();
+                    document.getElementById('name').value = fullUser.name;
+                    document.getElementById('email').value = fullUser.email;
+                    document.getElementById('phone').value = fullUser.phone || '';
+                    document.getElementById('address').value = fullUser.address || '';
+                    document.getElementById('region').value = fullUser.region || '';
+                    document.getElementById('city').value = fullUser.city || '';
+                } else {
+                    // Fallback to session info
+                    document.getElementById('display-name').textContent = user.name;
+                    document.getElementById('profile-initial').textContent = user.name.charAt(0).toUpperCase();
+                    document.getElementById('name').value = user.name;
+                    document.getElementById('email').value = user.email || '';
+                    document.getElementById('phone').value = user.phone || '';
+                    document.getElementById('address').value = user.address || '';
+                    document.getElementById('region').value = user.region || '';
+                    document.getElementById('city').value = user.city || '';
+                }
+            } catch (err) {
+                console.error("Failed to fetch profile details", err);
+                // Fallback
+                document.getElementById('display-name').textContent = user.name;
+                document.getElementById('profile-initial').textContent = user.name.charAt(0).toUpperCase();
+                document.getElementById('name').value = user.name;
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('address').value = user.address || '';
+                document.getElementById('region').value = user.region || '';
+                document.getElementById('city').value = user.city || '';
+            }
 
             // Update Header UI
             const authArea = document.getElementById('nav-auth-area');
@@ -129,18 +247,18 @@
 
             if (window.lucide) lucide.createIcons();
 
-            // Handle Submit
+            // Handle Profile Info Submit
             document.getElementById('profileForm').onsubmit = async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('saveBtn');
                 UI.setLoading(btn, true, "Mise à jour...");
 
                 const updatedData = {
-                    name: document.getElementById('name').value,
-                    phone: document.getElementById('phone').value,
-                    address: document.getElementById('address').value,
-                    region: document.getElementById('region').value,
-                    city: document.getElementById('city').value
+                    name: document.getElementById('name').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    address: document.getElementById('address').value.trim(),
+                    region: document.getElementById('region').value.trim(),
+                    city: document.getElementById('city').value.trim()
                 };
 
                 try {
@@ -150,6 +268,7 @@
                         body: JSON.stringify(updatedData)
                     });
 
+                    const resData = await res.json();
                     if (res.ok) {
                         // Update Local Session
                         const newSession = { ...user, ...updatedData };
@@ -157,12 +276,58 @@
                         UI.showToast("Profil mis à jour avec succès !", "success");
                         setTimeout(() => window.location.reload(), 1000);
                     } else {
-                        throw new Error("Erreur lors de la mise à jour.");
+                        throw new Error(resData.error || "Erreur lors de la mise à jour.");
                     }
                 } catch (err) {
                     UI.showToast(err.message, "error");
                 } finally {
                     UI.setLoading(btn, false, "Enregistrer les modifications");
+                }
+            };
+
+            // Handle Password Update Submit
+            document.getElementById('passwordForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('savePasswordBtn');
+                
+                const currentPassword = document.getElementById('current_password').value;
+                const newPassword = document.getElementById('new_password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
+
+                if (newPassword !== confirmPassword) {
+                    UI.showToast("Les mots de passe ne correspondent pas.", "error");
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    UI.showToast("Le nouveau mot de passe doit comporter au moins 6 caractères.", "error");
+                    return;
+                }
+
+                UI.setLoading(btn, true, "Mise à jour...");
+
+                try {
+                    const res = await fetch(`${API_BASE_URL}/users/${user.userId}/profile`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            current_password: currentPassword,
+                            new_password: newPassword
+                        })
+                    });
+
+                    const resData = await res.json();
+                    if (res.ok) {
+                        UI.showToast("Mot de passe mis à jour avec succès !", "success");
+                        document.getElementById('passwordForm').reset();
+                        setTimeout(() => switchTab('info'), 1000);
+                    } else {
+                        throw new Error(resData.error || "Erreur lors du changement de mot de passe.");
+                    }
+                } catch (err) {
+                    UI.showToast(err.message, "error");
+                } finally {
+                    UI.setLoading(btn, false, "Mettre à jour le mot de passe");
                 }
             };
         });

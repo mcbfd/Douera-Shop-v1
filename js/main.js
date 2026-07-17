@@ -263,6 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Profile link update
+        const profileNavLink = document.getElementById('profile-nav-link');
+        if (profileNavLink) {
+            profileNavLink.style.display = user ? 'flex' : 'none';
+        }
+
         const cartIconHtml = `
             <a href="checkout.html" class="cart-icon-wrapper" style="position: relative; color: var(--color-primary); text-decoration: none;">
                 <i data-lucide="shopping-cart" style="width: 28px; height: 28px;"></i>
@@ -274,11 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
             authArea.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
                     ${cartIconHtml}
-                    <div style="display: flex; align-items: center; gap: 8px; background: var(--color-primary-light); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--color-primary-light);">
-                        <div style="text-align: right; line-height: 1;">
-                            <span style="font-size: 0.55rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;" class="desktop-only-badge">Client Privilège</span>
-                            <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.85rem;">${user.name.split(' ')[0]}</p>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <a href="profile.html" style="text-decoration: none; display: flex; align-items: center; background: var(--color-primary-light); padding: 4px 12px; border-radius: 12px; border: 1px solid var(--color-primary-light); color: inherit; transition: var(--transition-fast);" class="nav-profile-badge">
+                            <div style="text-align: right; line-height: 1;">
+                                <span style="font-size: 0.55rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;" class="desktop-only-badge">Mon Profil</span>
+                                <p style="font-weight: 800; color: var(--color-primary-dark); font-size: 0.85rem;">${user.name.split(' ')[0]}</p>
+                            </div>
+                        </a>
                         <button id="logoutBtn" style="background: white; border: none; color: var(--color-primary); cursor: pointer; padding: 6px; border-radius: 8px; box-shadow: var(--shadow-soft);" title="Déconnexion">
                             <i data-lucide="log-out" style="width: 16px;"></i>
                         </button>

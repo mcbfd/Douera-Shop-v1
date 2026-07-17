@@ -261,15 +261,28 @@ def init_db():
         is_postgres = hasattr(conn, 'tpc_begin')
         id_type = "TEXT PRIMARY KEY"
         
-        cur.execute(f"CREATE TABLE IF NOT EXISTS users (id {id_type}, email TEXT UNIQUE, password TEXT, name TEXT, role TEXT, status TEXT, address TEXT, phone TEXT)")
+        cur.execute(f"CREATE TABLE IF NOT EXISTS users (id {id_type}, email TEXT UNIQUE, password TEXT, name TEXT, role TEXT, status TEXT, address TEXT, phone TEXT, region TEXT, city TEXT)")
         cur.execute(f"CREATE TABLE IF NOT EXISTS products (id {id_type}, name TEXT, price INTEGER, category TEXT, image TEXT, stock INTEGER, description TEXT, specs TEXT, media TEXT)")
         cur.execute(f"CREATE TABLE IF NOT EXISTS orders (id {id_type}, \"userId\" TEXT, date TEXT, method TEXT, status TEXT, total INTEGER, items TEXT, customer_firstname TEXT, customer_lastname TEXT, customer_address TEXT, customer_phone TEXT)")
         
         try:
             cur.execute("ALTER TABLE products ADD COLUMN IF NOT EXISTS media TEXT" if is_postgres else "ALTER TABLE products ADD COLUMN media TEXT")
+        except Exception as e:
+            pass
+            
+        try:
             cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_id TEXT" if is_postgres else "ALTER TABLE orders ADD COLUMN review_id TEXT")
-        except:
-            conn.rollback()
+        except Exception as e:
+            pass
+            
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS region TEXT" if is_postgres else "ALTER TABLE users ADD COLUMN region TEXT")
+        except Exception as e:
+            pass
+            
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT" if is_postgres else "ALTER TABLE users ADD COLUMN city TEXT")
+        except Exception as e:
             pass
             
         cur.execute(f"CREATE TABLE IF NOT EXISTS reviews (id {id_type}, \"orderId\" TEXT, \"productId\" TEXT, \"userId\" TEXT, \"userName\" TEXT, rating_product INTEGER, rating_service INTEGER, comment TEXT, admin_reply TEXT, date TEXT)")
@@ -474,6 +487,74 @@ def check_email():
         if user:
             return jsonify({"exists": True})
         return jsonify({"exists": False, "error": "Aucun compte trouvé avec cet email."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/users/<u_id>/profile', methods=['GET'])
+def get_user_profile(u_id):
+    try:
+        db = DB(get_db_connection())
+        db.execute('SELECT id, name, email, phone, address, region, city, role, status FROM users WHERE id = ?', (u_id,))
+        user = db.fetchone()
+        db.close()
+        if not user:
+            return jsonify({"error": "Utilisateur non trouvé"}), 404
+        return jsonify(user)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/users/<u_id>/profile', methods=['PATCH'])
+def update_user_profile(u_id):
+    try:
+        data = request.json or {}
+        db = DB(get_db_connection())
+        
+        # 1. Fetch user to verify existence
+        db.execute('SELECT * FROM users WHERE id = ?', (u_id,))
+        user = db.fetchone()
+        if not user:
+            db.close()
+            return jsonify({"error": "Utilisateur non trouvé"}), 404
+            
+        # 2. Check password change request
+        new_password = data.get('new_password')
+        if new_password:
+            current_password = data.get('current_password')
+            if not current_password:
+                db.close()
+                return jsonify({"error": "Le mot de passe actuel est requis pour changer de mot de passe."}), 400
+            if user['password'] != current_password:
+                db.close()
+                return jsonify({"error": "Le mot de passe actuel est incorrect."}), 400
+            if len(new_password) < 6:
+                db.close()
+                return jsonify({"error": "Le nouveau mot de passe doit comporter au moins 6 caractères."}), 400
+                
+            db.execute('UPDATE users SET password = ? WHERE id = ?', (new_password, u_id))
+            
+        # 3. Update other profile details
+        name = data.get('name', user['name'])
+        phone = data.get('phone', user.get('phone', ''))
+        address = data.get('address', user.get('address', ''))
+        region = data.get('region', user.get('region', ''))
+        city = data.get('city', user.get('city', ''))
+        
+        db.execute('''
+            UPDATE users 
+            SET name = ?, phone = ?, address = ?, region = ?, city = ?
+            WHERE id = ?
+        ''', (name, phone, address, region, city, u_id))
+        
+        db.commit()
+        
+        # Fetch updated user details to return
+        db.execute('SELECT id, name, email, phone, address, region, city, role, status FROM users WHERE id = ?', (u_id,))
+        updated_user = db.fetchone()
+        db.close()
+        
+        return jsonify({"success": True, "user": updated_user})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
